@@ -2,11 +2,11 @@
 
 ---
 
-## 1. Objective
+## 1. Objective hi
 
 Implement a **secure, production-grade, custom JWT-based authentication and authorization system** from scratch. You own the security utility layer (backend) and the authentication UI (CMS frontend).
 
-> **YOUR SCOPE:** Files in `backend/app/security/`, the login/auth UI in `cms/src/auth/`, and auth-related TypeScript types.  
+> **YOUR SCOPE:** Files in `backend/app/security/`, the login/auth UI in `cms/src/auth/`, and auth-related TypeScript types.
 > **NOT YOUR SCOPE:** Route definitions (M5 owns routers), database schemas (M1 owns models), page builder UI (M3 owns).
 
 ---
@@ -33,15 +33,15 @@ Implement a **secure, production-grade, custom JWT-based authentication and auth
 
 ### 2.1 Critical Security Decisions
 
-| Decision                          | Choice                          | Reason                                                     |
-| --------------------------------- | ------------------------------- | ---------------------------------------------------------- |
-| Access token storage              | In-memory JS variable           | XSS cannot steal it (no localStorage/sessionStorage)       |
-| Refresh token storage             | `HttpOnly`, `Secure`, `SameSite=Strict` cookie | Immune to XSS, sent only on same-site requests |
-| Password hashing                  | bcrypt, cost factor 12          | Industry standard, resistant to GPU brute-force            |
-| JWT algorithm                     | HS256                           | Symmetric, simple, adequate for single-issuer system       |
-| Token rotation                    | Refresh tokens are single-use   | Stolen refresh token detected via reuse detection          |
-| Account lockout                   | 10 failures → 15 min lock       | Mitigates brute-force without permanent denial             |
-| Rate limiting                     | 5 login attempts/min/IP         | Prevents credential stuffing at scale                      |
+| Decision              | Choice                                               | Reason                                               |
+| --------------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| Access token storage  | In-memory JS variable                                | XSS cannot steal it (no localStorage/sessionStorage) |
+| Refresh token storage | `HttpOnly`, `Secure`, `SameSite=Strict` cookie | Immune to XSS, sent only on same-site requests       |
+| Password hashing      | bcrypt, cost factor 12                               | Industry standard, resistant to GPU brute-force      |
+| JWT algorithm         | HS256                                                | Symmetric, simple, adequate for single-issuer system |
+| Token rotation        | Refresh tokens are single-use                        | Stolen refresh token detected via reuse detection    |
+| Account lockout       | 10 failures → 15 min lock                           | Mitigates brute-force without permanent denial       |
+| Rate limiting         | 5 login attempts/min/IP                              | Prevents credential stuffing at scale                |
 
 ---
 
@@ -66,6 +66,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 ```
 
 **Rules:**
+
 - NEVER log or print plaintext passwords.
 - NEVER store plaintext passwords anywhere.
 - `verify_password` uses constant-time comparison internally (passlib handles this).
@@ -98,7 +99,7 @@ def _require_secret() -> str:
 
 def create_access_token(subject: str, role: str, extra: dict[str, Any] | None = None) -> str:
     """Create a short-lived access token.
-    
+  
     Args:
         subject: User ID (string ObjectId).
         role: UserRole value (e.g., "admin").
@@ -119,7 +120,7 @@ def create_access_token(subject: str, role: str, extra: dict[str, Any] | None = 
 
 def create_refresh_token(subject: str) -> str:
     """Create a long-lived refresh token.
-    
+  
     Args:
         subject: User ID (string ObjectId).
     """
@@ -135,13 +136,14 @@ def create_refresh_token(subject: str) -> str:
 
 def decode_token(token: str) -> dict[str, Any]:
     """Decode and validate a JWT. Raises jwt.InvalidTokenError on failure.
-    
+  
     Returns the full payload dict with keys: sub, role (access only), type, iat, exp.
     """
     return jwt.decode(token, _require_secret(), algorithms=[ALGORITHM])
 ```
 
 **Rules:**
+
 - `JWT_SECRET_KEY` MUST be at least 32 characters (256 bits). Fail loudly at startup if missing.
 - Access token payload: `{"sub": "<user_id>", "role": "<role>", "type": "access", "iat": ..., "exp": ...}`
 - Refresh token payload: `{"sub": "<user_id>", "type": "refresh", "iat": ..., "exp": ...}`
@@ -169,7 +171,7 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
 ) -> dict:
     """FastAPI dependency: extract and validate JWT from Authorization header.
-    
+  
     Returns the full user document (dict) from MongoDB.
     Raises 401 if token is missing, expired, invalid, or user is inactive/locked.
     """
@@ -217,7 +219,7 @@ async def get_current_user(
 
 def require_role(allowed_roles: list[UserRole]):
     """Factory that returns a FastAPI dependency checking user role.
-    
+  
     Usage in router:
         @router.post("/pages", dependencies=[Depends(require_role([UserRole.ADMIN, UserRole.MARKETING]))])
     """
@@ -236,6 +238,7 @@ def require_role(allowed_roles: list[UserRole]):
 ```
 
 **Rules:**
+
 - `get_current_user` MUST validate: (a) token present, (b) token not expired, (c) token type is `"access"`, (d) user exists in DB, (e) user is active.
 - `require_role` is a **factory** — it returns a dependency. Usage: `Depends(require_role([UserRole.ADMIN]))`.
 - Error responses MUST follow the M0 §9 error contract shape.
@@ -257,7 +260,7 @@ _lock = Lock()
 
 def is_rate_limited(key: str, max_requests: int, window_seconds: int) -> bool:
     """Return True if the key has exceeded the limit in the time window.
-    
+  
     Args:
         key: Identifier (e.g., IP address or "login:{ip}").
         max_requests: Max allowed requests in window.
@@ -274,6 +277,7 @@ def is_rate_limited(key: str, max_requests: int, window_seconds: int) -> bool:
 ```
 
 **Usage in M5 auth router:**
+
 ```python
 if is_rate_limited(f"login:{client_ip}", max_requests=5, window_seconds=60):
     raise HTTPException(status_code=429, detail={"code": "RATE_LIMITED", "message": "Too many login attempts"})
@@ -334,6 +338,7 @@ cms/src/auth/
 ### 4.4 File: `cms/src/auth/LoginPage.tsx` — UI Specification
 
 **Visual requirements:**
+
 - Centered card on a neutral gray background (`bg-gray-50`)
 - Company logo at top (placeholder `<img>` tag for now)
 - Email input: `type="email"`, `autocomplete="email"`, required, with validation
@@ -343,6 +348,7 @@ cms/src/auth/
 - Loading state: button disabled + spinner during API call
 
 **Behavior:**
+
 1. On submit, call `login(email, password)` from `useAuth` hook.
 2. `login()` sends `POST /api/v1/auth/login` with `{ email, password }`.
 3. On success: store access token in memory, redirect to `/dashboard`.
@@ -350,6 +356,7 @@ cms/src/auth/
 5. Disable submit button for 2 seconds after a failed attempt (client-side throttle).
 
 **Security:**
+
 - `novalidate` is NOT set — rely on HTML5 validation as first line.
 - Trim and lowercase email before sending.
 - Do NOT log credentials to console, even in development.
