@@ -4,3 +4,14 @@ py -m venv .venv
 pip install -r requirements.txt
 
 uvicorn app.main:app --reload --reload-dir app --port 8000
+
+
+cd cms
+npm install
+npm run build
+npm run dev
+
+cd web
+npm install
+npm run build
+npm run dev
