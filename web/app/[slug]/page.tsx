@@ -7,11 +7,12 @@ import { fetchPublicPage } from '@/lib/api';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const page = await fetchPublicPage(params.slug);
+  const { slug } = await params;
+  const page = await fetchPublicPage(slug);
   if (!page) return {};
   return {
     title: page.title,
@@ -21,7 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SlugPage({ params }: Props) {
-  const page = await fetchPublicPage(params.slug);
+  const { slug } = await params;
+  const page = await fetchPublicPage(slug);
   if (!page) {
     notFound();
   }
