@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Backend Python cache (specific requested path)
+backend/app/__pycache__/
+
+# Node modules (requested)
+cms/node_modules/
+web/node_modules/
+
+# Virtual environment
+.venv/
+backend/app/__pycache__/__init__.cpython-313.pyc
+
+# Next.js build output
+.next/
+
+# Vite build output / generic dist
+cms/dist/
+dist/
