@@ -19,3 +19,9 @@ backend/app/__pycache__/__init__.cpython-313.pyc
 # Vite build output / generic dist
 cms/dist/
 dist/
+backend/app/routers/__pycache__
+backend/app/services/__pycache__
+backend/app/utils/__pycache__
+backend/app/routers/__pycache__/__init__.cpython-313.pyc
+backend/app/routers/__pycache__/__init__.cpython-313.pyc
+backend/app/routers/__pycache__/cms.cpython-313.pyc

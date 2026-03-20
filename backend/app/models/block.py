@@ -13,6 +13,11 @@ class BlockType(str, Enum):
     FAQ = "FAQ"
     CTA_STRIP = "CTAStrip"
     TESTIMONIALS = "Testimonials"
+    BANNER = "Banner"
+    RELATED_CONTENT = "RelatedContent"
+    TIMER = "Timer"
+    FORM = "Form"
+    CTA_BUTTON = "CTAButton"
 
 
 class BlockEnvelope(BaseModel):
@@ -21,10 +26,12 @@ class BlockEnvelope(BaseModel):
         pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
         description="UUIDv4 format",
     )
+    component_id: str | None = Field(default=None, description="Reads from template component id")
     type: BlockType
     order: int = Field(..., ge=0)
     visible: bool = True
     data: dict[str, Any] = Field(...)
+    content_status: str = Field(default="empty", description="empty or filled")
 
     @field_validator("data")
     @classmethod

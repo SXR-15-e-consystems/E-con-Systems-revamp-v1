@@ -197,12 +197,37 @@ async def create_page(db: Any, payload: PageCreate) -> PageResponse:
         "title": payload.title,
         "meta_description": payload.meta_description,
         "og_image_url": payload.og_image_url,
+        "template_id": payload.template_id if hasattr(payload, "template_id") else None,
         "status": PageStatus.DRAFT.value,
         "blocks": [],
         "created_by": "poc-user",
         "created_at": now,
         "updated_at": now,
     }
+
+    if payload.template_id:
+        from bson import ObjectId
+        if not ObjectId.is_valid(payload.template_id):
+            raise ServiceError("VALIDATION_ERROR", "Invalid template ID", 400)
+        template = await db.templates.find_one({"_id": ObjectId(payload.template_id)})
+        if not template:
+            raise ServiceError("NOT_FOUND", "Template not found", 404)
+        
+        # Clone components into boilerplate blocks
+        import uuid
+        blocks = []
+        for i, comp in enumerate(template.get("components", [])):
+            blocks.append({
+                "block_id": str(uuid.uuid4()),
+                "component_id": comp["component_id"],
+                "type": comp["type"],
+                "order": i,
+                "visible": True,
+                "data": {"meta": comp.get("meta", {}), "content": {}},
+                "content_status": "empty"
+            })
+        document["blocks"] = blocks
+
     result = await db.pages.insert_one(document)
     document["_id"] = result.inserted_id
     return _to_page_response(document)

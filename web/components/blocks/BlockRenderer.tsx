@@ -1,13 +1,19 @@
-import type { BlockEnvelope } from '@/types';
-
+import type { BlockEnvelope, PageResponse } from '@/types';
+import type { Template } from '@/types/template';
 import { getBlockComponent } from './BlockRegistry';
+import { GridLayout } from './GridLayout';
 
 interface Props {
-  blocks: BlockEnvelope[];
+  page: PageResponse;
+  template?: Template;
 }
 
-export function BlockRenderer({ blocks }: Props) {
-  const visibleBlocks = blocks
+export function BlockRenderer({ page, template }: Props) {
+  if (template) {
+    return <GridLayout page={page} template={template} />;
+  }
+
+  const visibleBlocks = page.blocks
     .filter((block) => block.visible)
     .sort((a, b) => a.order - b.order);
 

@@ -19,6 +19,7 @@ export interface BlockEnvelope {
   order: number;
   visible: boolean;
   data: Record<string, unknown>;
+  component_id?: string;
 }
 
 export interface HeroData {
@@ -42,6 +43,7 @@ export interface PageResponse {
   meta_description: string;
   og_image_url: string | null;
   status: PageStatus;
+  template_id?: string | null;
   blocks: BlockEnvelope[];
   created_by: string;
   created_at: string;
