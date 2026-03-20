@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, connect_db
-from app.routers import cms, public
+from app.routers import cms, public, templates
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -75,6 +75,7 @@ def create_app() -> FastAPI:
         )
 
     app.include_router(cms.router, prefix="/api/v1/cms", tags=["CMS"])
+    app.include_router(templates.router, prefix="/api/v1/cms", tags=["Templates"])
     app.include_router(public.router, prefix="/api/v1/public", tags=["Public"])
 
     @app.get("/health", tags=["System"])

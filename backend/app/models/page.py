@@ -25,6 +25,7 @@ class PageInDB(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     meta_description: str = Field(default="", max_length=320)
     og_image_url: str | None = None
+    template_id: str | None = None
     status: PageStatus = PageStatus.DRAFT
     blocks: list[BlockEnvelope] = Field(default_factory=list)
     created_by: str = "poc-user"
@@ -47,6 +48,7 @@ class PageCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     meta_description: str = Field(default="", max_length=320)
     og_image_url: str | None = None
+    template_id: str | None = None
 
     @field_validator("slug")
     @classmethod
@@ -68,6 +70,7 @@ class PageResponse(BaseModel):
     title: str
     meta_description: str
     og_image_url: str | None
+    template_id: str | None = None
     status: PageStatus
     blocks: list[BlockEnvelope]
     created_by: str

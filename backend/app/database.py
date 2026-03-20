@@ -33,3 +33,6 @@ async def _ensure_indexes() -> None:
     await db.pages.create_index("slug", unique=True)
     await db.pages.create_index("status")
     await db.pages.create_index("updated_at")
+    await db.templates.create_index("slug", unique=True)
+    await db.templates.create_index("status")
+    await db.templates.create_index("updated_at")

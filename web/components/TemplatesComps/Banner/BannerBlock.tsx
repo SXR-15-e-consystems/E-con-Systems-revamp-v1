@@ -48,14 +48,18 @@ function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta })
       style={{ height: meta.height, backgroundColor: meta.bgColor }}
     >
       {/* Background image */}
-      <Image
-        src={slide.image_url}
-        alt={slide.image_alt}
-        fill
-        className="object-cover"
-        priority
-        sizes="100vw"
-      />
+      {slide.image_url ? (
+        <Image
+          src={slide.image_url}
+          alt={slide.image_alt || 'Banner Image'}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-slate-200" />
+      )}
 
       {/* type2 overlay content */}
       {isType2 && (slide.title || slide.description || slide.cta_text) && (

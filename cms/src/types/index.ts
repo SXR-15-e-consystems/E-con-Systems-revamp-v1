@@ -19,6 +19,8 @@ export interface BlockEnvelope {
   order: number;
   visible: boolean;
   data: Record<string, unknown>;
+  component_id?: string;
+  content_status?: string;
 }
 
 export interface HeroData {
@@ -42,6 +44,7 @@ export interface Page {
   meta_description: string;
   og_image_url: string | null;
   status: PageStatus;
+  template_id?: string | null;
   blocks: BlockEnvelope[];
   created_by: string;
   created_at: string;
@@ -60,6 +63,7 @@ export interface PageCreate {
   slug: string;
   title: string;
   meta_description?: string;
+  template_id?: string;
   og_image_url?: string;
 }
 
