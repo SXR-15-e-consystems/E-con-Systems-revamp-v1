@@ -6,7 +6,12 @@ export type BlockType =
   | 'VideoEmbed'
   | 'FAQ'
   | 'CTAStrip'
-  | 'Testimonials';
+  | 'Testimonials'
+  | 'Banner'
+  | 'RelatedContent'
+  | 'Timer'
+  | 'Form'
+  | 'CTAButton';
 
 export interface BlockEnvelope {
   block_id: string;
