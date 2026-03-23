@@ -48,6 +48,9 @@ export function PlaceholderOverlay({ type, label, isFilled, isSelected, onEdit }
 
       {/* Floating Action Button */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={isFilled ? `Edit ${label || def?.label || type} content` : `Add ${label || def?.label || type} content`}
         className={`
           absolute shadow-lg transition-all duration-200
           flex h-10 w-10 items-center justify-center rounded-full text-white

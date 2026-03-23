@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -39,18 +39,26 @@ export function PageEditorPage() {
   const [blocks, setBlocks] = useState<BlockEnvelope[]>([]);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
 
-  const initialized = useMemo(() => page !== undefined, [page]);
+  // Use a ref to always have latest blocks in the mutation (fixes stale closure CMS-BUG-002)
+  const blocksRef = useRef(blocks);
+  blocksRef.current = blocks;
 
-  if (initialized && title === '' && page) {
-    setTitle(page.title);
-    setMetaDescription(page.meta_description);
-    setStatus(page.status);
-    setBlocks(page.blocks);
-  }
+  // Initialize form state from server data in useEffect (fixes CMS-BUG-001: state update during render)
+  const initializedRef = useRef(false);
+  useEffect(() => {
+    if (page && !initializedRef.current) {
+      initializedRef.current = true;
+      setTitle(page.title);
+      setMetaDescription(page.meta_description);
+      setStatus(page.status);
+      setBlocks(page.blocks);
+    }
+  }, [page]);
 
   const saveMutation = useMutation({
     mutationFn: (nextStatus: PageStatus) => {
-      const normalizedBlocks = blocks.map((block, index) => ({
+      const currentBlocks = blocksRef.current;
+      const normalizedBlocks = currentBlocks.map((block, index) => ({
         ...block,
         order: index,
         data:
@@ -254,7 +262,7 @@ export function PageEditorPage() {
                     onClick={() => {
                       setBlocks(prev => prev.map(b =>
                         b.block_id === editingBlock.block_id
-                          ? { ...b, content_status: 'filled' as any }
+                          ? { ...b, content_status: 'filled' }
                           : b
                       ));
                       setEditingBlockId(null);
@@ -267,7 +275,7 @@ export function PageEditorPage() {
                 <div className="flex-1 overflow-y-auto p-5">
                   <ActiveEditor
                     block={editingBlock}
-                    onChange={(newData: any) => {
+                    onChange={(newData: Record<string, unknown>) => {
                       // Merge new data into the block and trigger re-render for live preview
                       setBlocks(prev => prev.map(b =>
                         b.block_id === editingBlock.block_id

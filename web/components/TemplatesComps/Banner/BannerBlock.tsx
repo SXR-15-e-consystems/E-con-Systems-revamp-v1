@@ -2,9 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 import { useSlider } from '@/hooks/useSlider';
+import { sanitizeUrl } from '@/lib/security';
 import type { BannerData, BannerMeta, BannerSlide, CTAPosition } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,20 +76,23 @@ function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta })
               {slide.description}
             </p>
           )}
-          {slide.cta_text && slide.cta_link && (
-            <Link
-              href={slide.cta_link}
-              style={{
-                backgroundColor: meta.ctaStyle.bgColor,
-                color: meta.ctaStyle.textColor,
-                borderRadius: meta.ctaStyle.borderRadius,
-                fontSize: meta.ctaStyle.fontSize,
-              }}
-              className="inline-block font-semibold px-5 py-2.5 shadow transition-opacity hover:opacity-90"
-            >
-              {slide.cta_text}
-            </Link>
-          )}
+          {slide.cta_text && slide.cta_link && (() => {
+            const safeCta = sanitizeUrl(slide.cta_link);
+            return safeCta ? (
+              <Link
+                href={safeCta}
+                style={{
+                  backgroundColor: meta.ctaStyle.bgColor,
+                  color: meta.ctaStyle.textColor,
+                  borderRadius: meta.ctaStyle.borderRadius,
+                  fontSize: meta.ctaStyle.fontSize,
+                }}
+                className="inline-block font-semibold px-5 py-2.5 shadow transition-opacity hover:opacity-90"
+              >
+                {slide.cta_text}
+              </Link>
+            ) : null;
+          })()}
         </div>
       )}
     </div>
@@ -97,11 +100,14 @@ function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta })
 
   // type1: wrap entire slide in a link
   if (meta.variant === 'type1' && slide.href) {
-    return (
-      <Link href={slide.href} className="block" aria-label={slide.image_alt}>
-        {inner}
-      </Link>
-    );
+    const safeHref = sanitizeUrl(slide.href);
+    if (safeHref) {
+      return (
+        <Link href={safeHref} className="block" aria-label={slide.image_alt}>
+          {inner}
+        </Link>
+      );
+    }
   }
 
   return inner;
@@ -142,11 +148,6 @@ export function BannerBlock({ data }: BannerBlockProps) {
     slides.length,
     meta.sliderMode ? meta.autoplayInterval : 0,
   );
-
-  // Pause autoplay on user slide interaction
-  useEffect(() => {
-    // Intentionally empty — pause() is called in button handlers
-  }, []);
 
   if (slides.length === 0) return null;
 

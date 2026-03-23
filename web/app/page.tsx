@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
-import { fetchPublicPage } from '@/lib/api';
+import { fetchPublicPage, fetchTemplate } from '@/lib/api';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 export default async function HomePage() {
   const page = await fetchPublicPage('homepage');
@@ -11,16 +11,9 @@ export default async function HomePage() {
     notFound();
   }
 
-  let template = undefined;
-  if (page.template_id) {
-    const { API_BASE_URL, REVALIDATE_SECONDS } = await import('@/lib/constants');
-    const res = await fetch(`${API_BASE_URL}/templates/${page.template_id}`, {
-      next: { revalidate: REVALIDATE_SECONDS },
-    });
-    if (res.ok) {
-      template = await res.json();
-    }
-  }
+  const template = page.template_id
+    ? await fetchTemplate(page.template_id)
+    : undefined;
 
   return <BlockRenderer page={page} template={template} />;
 }

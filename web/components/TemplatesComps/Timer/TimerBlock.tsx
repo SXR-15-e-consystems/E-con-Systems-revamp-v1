@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { useCountdown } from '@/hooks/useCountdown';
+import { Z_INDEX } from '@/lib/constants';
+import { sanitizeUrl } from '@/lib/security';
 import type { TimerContent, TimerData, TimerMeta } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,15 +126,18 @@ function TimerInner({
       <CountdownDisplay expiryIso={content.expiry_iso} textColor={meta.textColor} />
 
       {/* CTA */}
-      {content.cta_text && content.cta_link && (
-        <Link
-          href={content.cta_link}
-          className="flex-shrink-0 rounded px-4 py-2 text-xs font-semibold transition-opacity hover:opacity-80 border border-current whitespace-nowrap"
-          style={{ color: meta.textColor }}
-        >
-          {content.cta_text}
-        </Link>
-      )}
+      {content.cta_text && content.cta_link && (() => {
+        const safeCta = sanitizeUrl(content.cta_link);
+        return safeCta ? (
+          <Link
+            href={safeCta}
+            className="flex-shrink-0 rounded px-4 py-2 text-xs font-semibold transition-opacity hover:opacity-80 border border-current whitespace-nowrap"
+            style={{ color: meta.textColor }}
+          >
+            {content.cta_text}
+          </Link>
+        ) : null;
+      })()}
 
       {/* Dismiss for popup */}
       {isPopup && onDismiss && (
@@ -166,13 +171,13 @@ export function TimerBlock({ data }: TimerBlockProps) {
   const isPopup = meta.layout === 'popup';
 
   const positionClasses: Record<string, string> = {
-    top: 'fixed top-0 inset-x-0 z-40',
-    bottom: 'fixed bottom-0 inset-x-0 z-40',
-    'bottom-left': 'fixed bottom-4 left-4 z-40',
-    'bottom-right': 'fixed bottom-4 right-4 z-40',
+    top: `fixed top-0 inset-x-0 z-${Z_INDEX.overlay}`,
+    bottom: `fixed bottom-0 inset-x-0 z-${Z_INDEX.overlay}`,
+    'bottom-left': `fixed bottom-4 left-4 z-${Z_INDEX.overlay}`,
+    'bottom-right': `fixed bottom-4 right-4 z-${Z_INDEX.overlay}`,
   };
 
-  const outerClass = positionClasses[meta.position] ?? 'fixed bottom-0 inset-x-0 z-40';
+  const outerClass = positionClasses[meta.position] ?? `fixed bottom-0 inset-x-0 z-${Z_INDEX.overlay}`;
 
   return (
     <div

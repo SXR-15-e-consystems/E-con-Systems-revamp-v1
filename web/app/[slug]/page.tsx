@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { fetchPublicPage, fetchTemplate } from '@/lib/api';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -34,5 +34,5 @@ export default async function SlugPage({ params }: Props) {
     ? await fetchTemplate(page.template_id)
     : undefined;
 
-  return <BlockRenderer page={page} template={template ?? undefined} />;
+  return <BlockRenderer page={page} template={template} />;
 }

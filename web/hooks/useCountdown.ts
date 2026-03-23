@@ -37,10 +37,22 @@ function computeParts(expiryMs: number): CountdownParts {
 export function useCountdown(expiryIso: string): CountdownParts {
   const expiryMs = new Date(expiryIso).getTime();
 
+  // Validate the date is valid
+  if (isNaN(expiryMs)) {
+    console.error(`Invalid expiry date: ${expiryIso}`);
+    return {
+      days: '00',
+      hours: '00',
+      minutes: '00',
+      seconds: '00',
+      expired: true,
+    };
+  }
+
   const [parts, setParts] = useState<CountdownParts>(() => computeParts(expiryMs));
 
   useEffect(() => {
-    if (parts.expired) return;
+    if (parts.expired || isNaN(expiryMs)) return;
 
     const id = setInterval(() => {
       const next = computeParts(expiryMs);

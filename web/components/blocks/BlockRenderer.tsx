@@ -26,6 +26,16 @@ export function BlockRenderer({ page, template }: Props) {
       {visibleBlocks.map((block) => {
         const Component = getBlockComponent(block.type);
         if (!Component) {
+          console.warn(`No component registered for block type: ${block.type}`);
+          // Optional: render a fallback in development
+          if (process.env.NODE_ENV === 'development') {
+            return (
+              <div key={block.block_id} className="border-2 border-dashed border-red-400 bg-red-50 p-4 m-4 rounded">
+                <p className="text-red-700 font-semibold">Missing block component: {block.type}</p>
+                <p className="text-sm text-red-600 mt-1">Block ID: {block.block_id}</p>
+              </div>
+            );
+          }
           return null;
         }
         return <Component key={block.block_id} data={block.data} />;

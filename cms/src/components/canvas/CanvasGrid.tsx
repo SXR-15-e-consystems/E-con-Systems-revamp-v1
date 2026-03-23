@@ -1,5 +1,5 @@
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import type { TemplateComponent } from '../../types/template';
 import type { TrayComponentDef } from './ComponentTray';
 import { TRAY_COMPONENTS } from './ComponentTray';
@@ -307,6 +307,7 @@ export function CanvasGrid({
   const TOTAL_ROWS = Math.max(maxRow, 20);
 
   // Ref callback: wire drop ref, shared gridRef, and ResizeObserver in one shot
+  const rafRef = useRef<number>(0);
   const setCanvasRef = useCallback(
     (el: HTMLDivElement | null) => {
       setDropRef(el);
@@ -316,9 +317,17 @@ export function CanvasGrid({
         observerRef.current.disconnect();
         observerRef.current = null;
       }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
       if (el) {
         const ro = new ResizeObserver((entries) => {
-          setCanvasWidth(entries[0].contentRect.width);
+          // Debounce via rAF to avoid re-render storm on every pixel change
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          rafRef.current = requestAnimationFrame(() => {
+            setCanvasWidth(entries[0].contentRect.width);
+          });
         });
         ro.observe(el);
         observerRef.current = ro;
@@ -328,6 +337,20 @@ export function CanvasGrid({
     },
     [setDropRef, gridRef],
   );
+
+  // Ensure observer is disconnected on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+    };
+  }, []);
 
   return (
     <div

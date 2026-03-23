@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,11 +15,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
     
     {/* Logo - Left */}
-    <img
+    <Image
       src="https://d2u56hfpsewfc3.cloudfront.net/images/e-con-twenty-plus-years-logo-register.svg"
       alt="e-con logo"
       title="e-conSystems"
       className="h-10"
+      width={120}
+      height={40}
+      priority
     />
 
     {/* Center Text */}

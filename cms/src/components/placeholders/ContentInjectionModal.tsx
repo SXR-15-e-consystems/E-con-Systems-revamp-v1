@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BlockEnvelope } from '../../types';
 import { getBlockEditor } from '../blocks/BlockEditorRegistry';
 import { TRAY_COMPONENTS } from '../canvas/ComponentTray';
@@ -12,25 +13,52 @@ interface ContentInjectionModalProps {
 export function ContentInjectionModal({ block, label, onClose, onSave }: ContentInjectionModalProps) {
   const Editor = getBlockEditor(block.type);
   const def = TRAY_COMPONENTS.find((c) => c.type === block.type);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Local state for the editable content
-  // Note: block.data contains both { meta: {...}, content: {...} } 
-  // We only pass content to L2 editors. But since Hero/RichText don't use this envelope yet,
-  // we do a generic pass-through for now, and handle envelope saving.
+  // Local copy of block data — avoids mutating the original block via Object.assign
+  const [localData, setLocalData] = useState<Record<string, unknown>>(() => ({ ...block.data }));
+
+  // Focus trap: focus the dialog when it mounts
+  useEffect(() => {
+    const prevFocused = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => { prevFocused?.focus(); };
+  }, []);
+
+  // Escape key handler
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const handleChange = useCallback((newData: Record<string, unknown>) => {
+    // Shallow-merge new data into local copy (immutable update, no prototype pollution)
+    setLocalData((prev) => ({ ...prev, ...newData }));
+  }, []);
 
   const handleSave = () => {
-    // If we were using local state for the block, we'd apply it here.
-    // For now, since L2 editors mutate the block directly via onChange, we just pass the block back.
-    // We mark it as filled.
     onSave({
       ...block,
+      data: localData,
       content_status: 'filled',
     });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-[2px]">
-      <div className="flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-900/5">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 sm:p-6 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Edit ${label || def?.label || block.type} content`}
+    >
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-900/5 outline-none"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
@@ -49,6 +77,7 @@ export function ContentInjectionModal({ block, label, onClose, onSave }: Content
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
           >
             ✕
@@ -60,13 +89,8 @@ export function ContentInjectionModal({ block, label, onClose, onSave }: Content
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             {Editor ? (
               <Editor
-                block={block}
-                onChange={(newData: Record<string, any>) => {
-                  // The Editor might pass back { meta, content } OR just flat properties (Hero/RichText legacy)
-                  // It's mutating the block object here via reference or we need local state tracking.
-                  // For simplicity, we just mutate block.data (React state will update via parent if needed).
-                  Object.assign(block.data, newData);
-                }}
+                block={{ ...block, data: localData }}
+                onChange={handleChange}
               />
             ) : (
               <div className="py-12 text-center">

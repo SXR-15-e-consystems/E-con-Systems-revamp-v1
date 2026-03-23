@@ -2,11 +2,20 @@
  * CMS-side live preview renderers for each block type.
  * These use plain HTML/CSS (no Next.js Image/Link) for use inside the CMS canvas.
  */
-import type { ComponentType } from 'react';
+import { memo, type ComponentType } from 'react';
 import type { BlockType } from '../../types';
+import { sanitizeHtml } from '../../utils/sanitize';
+
+/**
+ * Preview components render loosely-typed CMS block data from varying block types.
+ * A JSON-compatible recursive type provides flexible property access while being
+ * more explicit than `any`. Each preview casts its `data` prop to this type.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PreviewData = Record<string, any>;
 
 // ─── Banner Preview ──────────────────────────────────────────
-function BannerPreview({ data }: { data: Record<string, any> }) {
+const BannerPreview = memo(function BannerPreview({ data }: { data: PreviewData }) {
   const meta = data.meta ?? {};
   const slides = data.content?.slides ?? [];
   const slide = slides[0]; // Show first slide in preview
@@ -20,7 +29,6 @@ function BannerPreview({ data }: { data: Record<string, any> }) {
   }
 
   const variant = meta.variant ?? 'type2';
-  const height = meta.height ?? '100%';
   const bgColor = meta.bgColor ?? '#000';
 
   return (
@@ -59,10 +67,10 @@ function BannerPreview({ data }: { data: Record<string, any> }) {
       )}
     </div>
   );
-}
+});
 
 // ─── CTA Button Preview ──────────────────────────────────────
-function CTAButtonPreview({ data }: { data: Record<string, any> }) {
+const CTAButtonPreview = memo(function CTAButtonPreview({ data }: { data: PreviewData }) {
   const meta = data.meta ?? {};
   const content = data.content ?? {};
   const text = content.text || meta.text || 'Button';
@@ -79,10 +87,10 @@ function CTAButtonPreview({ data }: { data: Record<string, any> }) {
       </span>
     </div>
   );
-}
+});
 
 // ─── Timer Preview ──────────────────────────────────────────
-function TimerPreview({ data }: { data: Record<string, any> }) {
+const TimerPreview = memo(function TimerPreview({ data }: { data: PreviewData }) {
   const meta = data.meta ?? {};
   const content = data.content ?? {};
   const label = content.label || meta.label || 'Countdown Timer';
@@ -100,10 +108,10 @@ function TimerPreview({ data }: { data: Record<string, any> }) {
       </div>
     </div>
   );
-}
+});
 
 // ─── Form Preview ──────────────────────────────────────────
-function FormPreview({ data }: { data: Record<string, any> }) {
+const FormPreview = memo(function FormPreview({ data }: { data: PreviewData }) {
   const meta = data.meta ?? {};
   const heading = meta.heading || 'Contact Form';
 
@@ -120,10 +128,10 @@ function FormPreview({ data }: { data: Record<string, any> }) {
       </div>
     </div>
   );
-}
+});
 
 // ─── Related Content Preview ──────────────────────────────────
-function RelatedContentPreview({ data }: { data: Record<string, any> }) {
+const RelatedContentPreview = memo(function RelatedContentPreview({ data }: { data: PreviewData }) {
   const meta = data.meta ?? {};
   const content = data.content ?? {};
   const heading = content.heading || meta.heading || 'Related Content';
@@ -133,7 +141,7 @@ function RelatedContentPreview({ data }: { data: Record<string, any> }) {
     <div className="flex h-full w-full flex-col bg-white p-4 gap-3">
       <h3 className="font-bold text-slate-800 text-sm">{heading}</h3>
       <div className="flex gap-2 flex-wrap">
-        {(items.length > 0 ? items.slice(0, 3) : [1, 2, 3]).map((_: any, i: number) => (
+        {(items.length > 0 ? items.slice(0, 3) : [1, 2, 3]).map((_: PreviewData, i: number) => (
           <div key={i} className="flex-1 min-w-[80px] rounded border border-slate-200 bg-slate-50 p-3">
             <div className="h-12 w-full rounded bg-slate-200 mb-2" />
             <div className="h-2 w-3/4 rounded bg-slate-200 mb-1" />
@@ -143,10 +151,10 @@ function RelatedContentPreview({ data }: { data: Record<string, any> }) {
       </div>
     </div>
   );
-}
+});
 
 // ─── Hero Preview ──────────────────────────────────────────
-function HeroPreview({ data }: { data: Record<string, any> }) {
+const HeroPreview = memo(function HeroPreview({ data }: { data: PreviewData }) {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-800 p-6 text-center text-white">
       {data.image_url && (
@@ -163,28 +171,29 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
       </div>
     </div>
   );
-}
+});
 
 // ─── RichText Preview ──────────────────────────────────────
-function RichTextPreview({ data }: { data: Record<string, any> }) {
-  const html = data.html || '';
-  if (!html) {
+const RichTextPreview = memo(function RichTextPreview({ data }: { data: PreviewData }) {
+  const rawHtml = typeof data.html === 'string' ? data.html : '';
+  if (!rawHtml) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-white text-slate-400 text-sm p-4">
         Rich Text — No content yet
       </div>
     );
   }
+  const safeHtml = sanitizeHtml(rawHtml);
   return (
     <div
       className="h-full w-full overflow-hidden bg-white p-4 prose prose-sm max-w-none text-slate-800"
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: safeHtml }}
     />
   );
-}
+});
 
 // ─── Fallback ──────────────────────────────────────────
-function FallbackPreview({ data }: { data: Record<string, any> }) {
+function FallbackPreview({ data }: { data: PreviewData }) {
   return (
     <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 text-sm font-medium">
       Preview unavailable
@@ -193,7 +202,7 @@ function FallbackPreview({ data }: { data: Record<string, any> }) {
 }
 
 // ─── Registry ───────────────────────────────────────────
-const previewRegistry: Record<string, ComponentType<{ data: Record<string, any> }>> = {
+const previewRegistry: Record<string, ComponentType<{ data: PreviewData }>> = {
   Banner: BannerPreview,
   CTAButton: CTAButtonPreview,
   Timer: TimerPreview,
@@ -203,6 +212,6 @@ const previewRegistry: Record<string, ComponentType<{ data: Record<string, any> 
   RichText: RichTextPreview,
 };
 
-export function getBlockPreview(type: string): ComponentType<{ data: Record<string, any> }> {
+export function getBlockPreview(type: string): ComponentType<{ data: PreviewData }> {
   return previewRegistry[type] ?? FallbackPreview;
 }

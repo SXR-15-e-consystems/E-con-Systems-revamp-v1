@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 
 import { useSlider } from '@/hooks/useSlider';
 import { useVideoModal } from '@/hooks/useVideoModal';
+import { sanitizeUrl } from '@/lib/security';
 import { getYouTubeEmbedUrl, getYouTubeThumbnail, isYouTubeUrl } from '@/lib/youtube';
 import type {
   RelatedContentData,
@@ -48,6 +49,12 @@ function VideoModal({
 }) {
   const embedUrl = getYouTubeEmbedUrl(videoUrl);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus close button when modal opens
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
 
   // Close on Escape
   useEffect(() => {
@@ -80,6 +87,7 @@ function VideoModal({
       <div className="relative w-full max-w-4xl mx-4">
         {/* Close button */}
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="Close video"
@@ -210,7 +218,7 @@ function ContentCard({
               </button>
             ) : (
               <Link
-                href={item.link}
+                href={sanitizeUrl(item.link) || '#'}
                 className="text-xs font-semibold underline underline-offset-2 transition-opacity hover:opacity-70"
               >
                 {ctaText}

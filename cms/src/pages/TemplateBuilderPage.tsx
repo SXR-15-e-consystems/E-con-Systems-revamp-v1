@@ -91,19 +91,22 @@ export function TemplateBuilderPage() {
     enabled: isEdit,
   });
 
-  if (template && !initialized) {
-    setName(template.name);
-    setSlug(template.slug);
-    setDescription(template.description);
-    setCategory(template.category);
-    // Upgrade old 12-col templates to 40 cols
-    setGrid({
-      ...template.grid,
-      columns: template.grid.columns < 40 ? 40 : template.grid.columns,
-    });
-    setComponents(template.components);
-    setInitialized(true);
-  }
+  // Initialize form state from loaded template in useEffect (fixes CMS-BUG-003)
+  useEffect(() => {
+    if (template && !initialized) {
+      setName(template.name);
+      setSlug(template.slug);
+      setDescription(template.description);
+      setCategory(template.category);
+      // Upgrade old 12-col templates to 40 cols
+      setGrid({
+        ...template.grid,
+        columns: template.grid.columns < 40 ? 40 : template.grid.columns,
+      });
+      setComponents(template.components);
+      setInitialized(true);
+    }
+  }, [template, initialized]);
 
   // ── Save mutation ──
   const saveMutation = useMutation({

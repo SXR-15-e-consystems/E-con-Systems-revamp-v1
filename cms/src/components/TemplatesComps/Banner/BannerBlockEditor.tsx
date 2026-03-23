@@ -28,7 +28,7 @@ const EMPTY_SLIDE: BannerSlide = {
   cta_link: '',
 };
 
-function fi(label: string, value: string, onChange: (v: string) => void, placeholder?: string) {
+function TextInputField(label: string, value: string, onChange: (v: string) => void, placeholder?: string) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs font-semibold text-gray-600">{label}</span>
@@ -115,16 +115,16 @@ export function BannerBlockEditor({ block, onChange }: BlockEditorProps) {
           </button>
         </div>
 
-        {fi('Image URL *', slide.image_url, (v) => updateSlide(activeIndex, { image_url: v }), 'https://…')}
-        {fi('Image Alt Text *', slide.image_alt, (v) => updateSlide(activeIndex, { image_alt: v }), 'Describe the image')}
+        {TextInputField('Image URL *', slide.image_url, (v) => updateSlide(activeIndex, { image_url: v }), 'https://…')}
+        {TextInputField('Image Alt Text *', slide.image_alt, (v) => updateSlide(activeIndex, { image_alt: v }), 'Describe the image')}
 
         {/* type1: only href */}
-        {!isType2 && fi('Link (href)', slide.href ?? '', (v) => updateSlide(activeIndex, { href: v }), 'https://…')}
+        {!isType2 && TextInputField('Link (href)', slide.href ?? '', (v) => updateSlide(activeIndex, { href: v }), 'https://…')}
 
         {/* type2: content fields */}
         {isType2 && (
           <>
-            {fi('Title', slide.title ?? '', (v) => updateSlide(activeIndex, { title: v }))}
+            {TextInputField('Title', slide.title ?? '', (v) => updateSlide(activeIndex, { title: v }))}
             <label className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-gray-600">Description</span>
               <textarea
@@ -134,8 +134,8 @@ export function BannerBlockEditor({ block, onChange }: BlockEditorProps) {
                 onChange={(e) => updateSlide(activeIndex, { description: e.target.value })}
               />
             </label>
-            {fi('CTA Button Text', slide.cta_text ?? '', (v) => updateSlide(activeIndex, { cta_text: v }), 'Learn More')}
-            {fi('CTA Button Link', slide.cta_link ?? '', (v) => updateSlide(activeIndex, { cta_link: v }), 'https://…')}
+            {TextInputField('CTA Button Text', slide.cta_text ?? '', (v) => updateSlide(activeIndex, { cta_text: v }), 'Learn More')}
+            {TextInputField('CTA Button Link', slide.cta_link ?? '', (v) => updateSlide(activeIndex, { cta_link: v }), 'https://…')}
           </>
         )}
 
@@ -145,7 +145,7 @@ export function BannerBlockEditor({ block, onChange }: BlockEditorProps) {
             <span className="text-xs text-gray-500">Preview:</span>
             <img
               src={slide.image_url}
-              alt={slide.image_alt || 'preview'}
+              alt={slide.image_alt || `Banner slide ${activeIndex + 1} preview`}
               className="mt-1 max-h-32 rounded border object-cover"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />

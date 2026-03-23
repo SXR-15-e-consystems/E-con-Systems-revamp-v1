@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { FormEvent, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { createPage, fetchPages } from '../api/endpoints';
@@ -13,29 +13,6 @@ export function DashboardPage() {
   });
 
   const [showCreate, setShowCreate] = useState(false);
-  const [slug, setSlug] = useState('');
-  const [title, setTitle] = useState('');
-  const [metaDescription, setMetaDescription] = useState('');
-
-  const createMutation = useMutation({
-    mutationFn: createPage,
-    onSuccess: async () => {
-      setShowCreate(false);
-      setSlug('');
-      setTitle('');
-      setMetaDescription('');
-      await queryClient.invalidateQueries({ queryKey: ['pages'] });
-    },
-  });
-
-  const handleCreate = (event: FormEvent) => {
-    event.preventDefault();
-    createMutation.mutate({
-      slug,
-      title,
-      meta_description: metaDescription,
-    });
-  };
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -167,8 +144,8 @@ function CreatePageFlow({ onClose, onCreateSuccess }: { onClose: () => void, onC
       slug,
       title,
       meta_description: metaDescription,
-      template_id: selectedTemplateId || undefined,
-    } as any);
+      template_id: selectedTemplateId ?? undefined,
+    });
   };
 
   return (

@@ -48,11 +48,14 @@ export function GridLayout({ page, template }: Props) {
              ...(block.data || {}),   // The actual content injected by Campaign Manager
           };
 
+          // Sanitize component_id for CSS class to prevent injection
+          const safeComponentId = String(block.component_id).replace(/[^a-zA-Z0-9_-]/g, '');
+
           return (
             <div
               key={block.block_id}
               style={style}
-              className={`component-wrapper template-block-${block.component_id}`}
+              className={`component-wrapper template-block-${safeComponentId}`}
             >
               <Component data={mergedData as any} />
             </div>
@@ -64,10 +67,17 @@ export function GridLayout({ page, template }: Props) {
         Injecting Responsive Overrides using a styled-jsx block.
         Only apply explicit overrides when defined in the template.
         On mobile (<640px), stack everything full-width as a sensible fallback.
+        Security: component_id is sanitized to prevent CSS injection.
       */}
       <style dangerouslySetInnerHTML={{
         __html: `
           ${template.components.map(comp => {
+            // Sanitize component_id to prevent CSS injection
+            const safeComponentId = String(comp.component_id).replace(/[^a-zA-Z0-9_-]/g, '');
+            if (!safeComponentId || safeComponentId !== comp.component_id) {
+              console.warn(`Invalid component_id "${comp.component_id}" sanitized to "${safeComponentId}"`);
+            }
+
             let cssLines = [];
 
             // Tablet: only apply if explicitly configured in the template
@@ -75,7 +85,7 @@ export function GridLayout({ page, template }: Props) {
                const tb = comp.responsive_overrides.tablet;
                cssLines.push(`
                   @media (max-width: 1023px) {
-                    .template-block-${comp.component_id} {
+                    .template-block-${safeComponentId} {
                        grid-column: ${tb.col_start} / ${tb.col_end} !important;
                        ${tb.row_start && tb.row_end ? `grid-row: ${tb.row_start} / ${tb.row_end} !important;` : ''}
                     }
@@ -89,7 +99,7 @@ export function GridLayout({ page, template }: Props) {
                const mb = comp.responsive_overrides.mobile;
                cssLines.push(`
                   @media (max-width: 640px) {
-                    .template-block-${comp.component_id} {
+                    .template-block-${safeComponentId} {
                        grid-column: ${mb.col_start} / ${mb.col_end} !important;
                        ${mb.row_start && mb.row_end ? `grid-row: ${mb.row_start} / ${mb.row_end} !important;` : ''}
                     }
@@ -98,7 +108,7 @@ export function GridLayout({ page, template }: Props) {
             } else {
                cssLines.push(`
                   @media (max-width: 640px) {
-                    .template-block-${comp.component_id} {
+                    .template-block-${safeComponentId} {
                        grid-column: 1 / -1 !important;
                        grid-row: auto !important;
                     }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { sanitizeFormType, sanitizeUrl } from '@/lib/security';
 import type { FormContent, FormData, FormMeta, FormType, QuoteQuantity } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +61,9 @@ function loadRecaptchaScript(siteKey: string): void {
   script.id = 'recaptcha-script';
   script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
   script.async = true;
+  script.crossOrigin = 'anonymous';
+  // Note: SRI hash not added as Google updates this file frequently
+  // Consider implementing CSP instead for production
   document.head.appendChild(script);
 }
 
@@ -187,13 +191,19 @@ export function FormBlock({ data }: FormBlockProps) {
       setStatus('submitting');
 
       try {
+        // Sanitize form type to prevent path traversal
+        const safeFormType = sanitizeFormType(meta.formType);
+        if (!safeFormType) {
+          throw new Error('Invalid form type');
+        }
+
         let recaptchaToken = '';
         if (meta.recaptchaSiteKey) {
-          recaptchaToken = await getRecaptchaToken(meta.recaptchaSiteKey, `form_${meta.formType}`);
+          recaptchaToken = await getRecaptchaToken(meta.recaptchaSiteKey, `form_${safeFormType}`);
         }
 
         const payload = { ...fields, recaptchaToken };
-        const response = await fetch(`/api/v1/forms/${meta.formType}`, {
+        const response = await fetch(`/api/v1/forms/${safeFormType}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -365,7 +375,7 @@ export function FormBlock({ data }: FormBlockProps) {
           <span className="text-sm text-gray-600">
             I agree to the{' '}
             <a
-              href={meta.tcLink}
+              href={sanitizeUrl(meta.tcLink) || '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline"
