@@ -18,10 +18,11 @@ export function GridLayout({ page, template }: Props) {
   return (
     <div className="w-full">
       <div
-        className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 py-8"
+        className="w-full"
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          gridAutoRows: `${template.grid.row_height}px`,
           gap: `${gap}px`,
         }}
       >
@@ -60,16 +61,16 @@ export function GridLayout({ page, template }: Props) {
       </div>
 
       {/* 
-        Injecting Responsive Overrides using a styled-jsx block. 
+        Injecting Responsive Overrides using a styled-jsx block.
+        Only apply explicit overrides when defined in the template.
+        On mobile (<640px), stack everything full-width as a sensible fallback.
       */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          /* Auto-Responsive Base Fallbacks for Tablet/Mobile */
-          @media (max-width: 1023px) { /* Tablet override loop */ }
-          @media (max-width: 767px)  { /* Mobile override loop */ }
-          
           ${template.components.map(comp => {
             let cssLines = [];
+
+            // Tablet: only apply if explicitly configured in the template
             if (comp.responsive_overrides?.tablet) {
                const tb = comp.responsive_overrides.tablet;
                cssLines.push(`
@@ -80,22 +81,14 @@ export function GridLayout({ page, template }: Props) {
                     }
                   }
                `);
-            } else {
-               // Default Tablet Fallback: if not explicitly defined, we stack them 2 per row (6 cols each) or full width
-               // For simplicity in Phase 5 POC, we fall back to full width stacking if no override.
-               cssLines.push(`
-                  @media (max-width: 1023px) {
-                    .template-block-${comp.component_id} {
-                       grid-column: 1 / -1 !important;
-                    }
-                  }
-               `);
             }
+            // No else — keep the designed desktop layout on tablet by default
 
+            // Mobile: apply explicit override, or fall back to full-width stacking
             if (comp.responsive_overrides?.mobile) {
                const mb = comp.responsive_overrides.mobile;
                cssLines.push(`
-                  @media (max-width: 767px) {
+                  @media (max-width: 640px) {
                     .template-block-${comp.component_id} {
                        grid-column: ${mb.col_start} / ${mb.col_end} !important;
                        ${mb.row_start && mb.row_end ? `grid-row: ${mb.row_start} / ${mb.row_end} !important;` : ''}
@@ -104,9 +97,10 @@ export function GridLayout({ page, template }: Props) {
                `);
             } else {
                cssLines.push(`
-                  @media (max-width: 767px) {
+                  @media (max-width: 640px) {
                     .template-block-${comp.component_id} {
                        grid-column: 1 / -1 !important;
+                       grid-row: auto !important;
                     }
                   }
                `);

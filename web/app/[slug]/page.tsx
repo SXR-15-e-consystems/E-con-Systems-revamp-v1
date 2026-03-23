@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
-import { fetchPublicPage } from '@/lib/api';
+import { fetchPublicPage, fetchTemplate } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,5 +28,11 @@ export default async function SlugPage({ params }: Props) {
     notFound();
   }
 
-  return <BlockRenderer page={page} />;
+  // If the page was created from a template, fetch the template
+  // so GridLayout can render the proper 2D grid placement
+  const template = page.template_id
+    ? await fetchTemplate(page.template_id)
+    : undefined;
+
+  return <BlockRenderer page={page} template={template ?? undefined} />;
 }

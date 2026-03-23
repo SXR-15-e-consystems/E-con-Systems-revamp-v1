@@ -150,6 +150,7 @@ def _to_page_response(document: dict[str, Any]) -> PageResponse:
         title=document["title"],
         meta_description=document.get("meta_description", ""),
         og_image_url=document.get("og_image_url"),
+        template_id=document.get("template_id"),
         status=document["status"],
         blocks=document.get("blocks", []),
         created_by=document.get("created_by", "poc-user"),

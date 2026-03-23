@@ -13,14 +13,14 @@ class TemplateStatus(str, Enum):
 
 
 class GridPlacement(BaseModel):
-    col_start: int = Field(..., ge=1, le=13)
-    col_end: int = Field(..., ge=1, le=13)
+    col_start: int = Field(..., ge=1, le=100)
+    col_end: int = Field(..., ge=1, le=100)
     row_start: int = Field(..., ge=1)
     row_end: int = Field(..., ge=1)
 
 
 class GridConfig(BaseModel):
-    columns: int = Field(default=12, ge=1, le=24)
+    columns: int = Field(default=12, ge=1, le=100)
     row_height: int = Field(default=40, ge=10, le=200)
     gap: int = Field(default=16, ge=0, le=100)
 

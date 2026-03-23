@@ -6,10 +6,11 @@ interface PlaceholderOverlayProps {
   type: BlockType;
   label?: string;
   isFilled: boolean;
+  isSelected?: boolean;
   onEdit: () => void;
 }
 
-export function PlaceholderOverlay({ type, label, isFilled, onEdit }: PlaceholderOverlayProps) {
+export function PlaceholderOverlay({ type, label, isFilled, isSelected, onEdit }: PlaceholderOverlayProps) {
   const def: TrayComponentDef | undefined = TRAY_COMPONENTS.find(
     (c) => c.type === type,
   );
@@ -22,11 +23,14 @@ export function PlaceholderOverlay({ type, label, isFilled, onEdit }: Placeholde
       }}
       className={`
         group relative flex h-full min-h-[140px] w-full cursor-pointer flex-col items-center justify-center
-        rounded-xl border-2 transition-all duration-200
-        ${isFilled
-          ? 'border-emerald-200 bg-emerald-50/30 hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md'
-          : 'border-dashed border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-md'
-        }
+        rounded-xl border-2 transition-all duration-200 bg-white
+        ${isSelected ? 'border-blue-500 ring-4 ring-blue-500/20 shadow-xl scale-[1.01] z-10' : ''}
+        ${!isSelected && isFilled
+          ? 'border-emerald-200 bg-emerald-50/10 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md'
+          : ''}
+        ${!isSelected && !isFilled
+          ? 'border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/30 hover:shadow-md'
+          : ''}
       `}
     >
       {/* Icon & Label */}

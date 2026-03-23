@@ -25,7 +25,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
     icon: '🎯',
     category: 'content',
     defaultMeta: {},
-    defaultSpan: { cols: 12, rows: 6 },
+    defaultSpan: { cols: 40, rows: 8 },
   },
   {
     type: 'RichText',
@@ -34,7 +34,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
     icon: '📝',
     category: 'content',
     defaultMeta: {},
-    defaultSpan: { cols: 12, rows: 4 },
+    defaultSpan: { cols: 20, rows: 5 },
   },
 
   // ── TemplatesComps components ──
@@ -54,7 +54,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       ctaPosition: 'bottom-left',
       ctaStyle: { bgColor: '#e63329', textColor: '#ffffff', borderRadius: '4px', fontSize: '16px' },
     },
-    defaultSpan: { cols: 12, rows: 8 },
+    defaultSpan: { cols: 40, rows: 10 },
   },
   {
     type: 'RelatedContent',
@@ -72,7 +72,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       cardStyle: { bgColor: '#ffffff', textColor: '#1a1a1a', borderRadius: '8px' },
       width: '100%',
     },
-    defaultSpan: { cols: 12, rows: 6 },
+    defaultSpan: { cols: 40, rows: 7 },
   },
   {
     type: 'Timer',
@@ -88,7 +88,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       textColor: '#ffffff',
       width: '380px',
     },
-    defaultSpan: { cols: 12, rows: 2 },
+    defaultSpan: { cols: 40, rows: 2 },
   },
   {
     type: 'Form',
@@ -104,7 +104,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       width: '600px',
       submitLabel: 'Submit',
     },
-    defaultSpan: { cols: 8, rows: 8 },
+    defaultSpan: { cols: 20, rows: 10 },
   },
   {
     type: 'CTAButton',
@@ -124,7 +124,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
         padding: '12px 24px',
       },
     },
-    defaultSpan: { cols: 4, rows: 2 },
+    defaultSpan: { cols: 10, rows: 2 },
   },
 ];
 
