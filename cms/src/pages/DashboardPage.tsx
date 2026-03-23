@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { createPage, fetchPages } from '../api/endpoints';
+import { createPage, deletePage, fetchPages } from '../api/endpoints';
 import { PUBLIC_SITE_URL, apiClient } from '../api/client';
+import type { PageListItem } from '../types';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
@@ -13,6 +14,7 @@ export function DashboardPage() {
   });
 
   const [showCreate, setShowCreate] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<PageListItem | null>(null);
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -69,7 +71,7 @@ export function DashboardPage() {
                   Updated
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  Preview
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -91,14 +93,23 @@ export function DashboardPage() {
                     {new Date(page.updated_at).toLocaleString()}
                   </td>
                   <td className="px-4 py-3">
-                    <a
-                      className="inline-flex items-center gap-1 rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                      href={`${PUBLIC_SITE_URL}/${page.slug}`}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      View ↗
-                    </a>
+                    <div className="flex gap-2">
+                      <a
+                        className="inline-flex items-center gap-1 rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        href={`${PUBLIC_SITE_URL}/${page.slug}`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        View ↗
+                      </a>
+                      <button
+                        className="inline-flex items-center gap-1 rounded border border-red-300 bg-red-50 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+                        onClick={() => setPageToDelete(page)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -112,6 +123,17 @@ export function DashboardPage() {
           setShowCreate(false);
           queryClient.invalidateQueries({ queryKey: ['pages'] });
         }} />
+      ) : null}
+
+      {pageToDelete ? (
+        <DeleteConfirmationModal
+          page={pageToDelete}
+          onClose={() => setPageToDelete(null)}
+          onDeleteSuccess={() => {
+            setPageToDelete(null);
+            queryClient.invalidateQueries({ queryKey: ['pages'] });
+          }}
+        />
       ) : null}
     </main>
   );
@@ -307,6 +329,128 @@ function CreatePageFlow({ onClose, onCreateSuccess }: { onClose: () => void, onC
               </button>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmationModal({
+  page,
+  onClose,
+  onDeleteSuccess,
+}: {
+  page: PageListItem;
+  onClose: () => void;
+  onDeleteSuccess: () => void;
+}) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [slugConfirmation, setSlugConfirmation] = useState('');
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deletePage(page.slug),
+    onSuccess: onDeleteSuccess,
+  });
+
+  const handleConfirmDelete = () => {
+    deleteMutation.mutate();
+  };
+
+  const isSlugMatch = slugConfirmation === page.slug;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-red-200 bg-red-50 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <h2 className="text-xl font-bold text-red-900">Delete Page</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded p-2 text-red-400 hover:bg-red-100 hover:text-red-600"
+            disabled={deleteMutation.isPending}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {step === 1 ? (
+            <div className="space-y-4">
+              <p className="text-slate-700">
+                Are you sure you want to delete the page <span className="font-semibold">"{page.title}"</span>?
+              </p>
+              <div className="rounded-lg bg-slate-100 p-3 text-sm text-slate-600">
+                <strong>Slug:</strong> /{page.slug}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <p className="font-bold mb-2">⚠️ This action cannot be undone!</p>
+                <p>
+                  Deleting this page will permanently remove all associated data from the database.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Type the slug <span className="font-mono text-red-600">"{page.slug}"</span> to confirm:
+                  </span>
+                  <input
+                    className="rounded-md border border-slate-300 px-3 py-2.5 font-mono text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                    value={slugConfirmation}
+                    onChange={(e) => setSlugConfirmation(e.target.value)}
+                    placeholder={page.slug}
+                    autoFocus
+                  />
+                </label>
+                {slugConfirmation && !isSlugMatch && (
+                  <p className="text-xs text-red-600">Slug does not match</p>
+                )}
+              </div>
+
+              {deleteMutation.isError && (
+                <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                  Failed to delete page. Please try again.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="border-t border-slate-200 bg-slate-50 px-6 py-4 flex justify-end gap-3">
+          <button
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            onClick={onClose}
+            type="button"
+            disabled={deleteMutation.isPending}
+          >
+            Cancel
+          </button>
+          {step === 1 ? (
+            <button
+              className="rounded-md bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+              onClick={() => setStep(2)}
+              type="button"
+            >
+              Yes, Delete
+            </button>
+          ) : (
+            <button
+              className="rounded-md bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleConfirmDelete}
+              type="button"
+              disabled={!isSlugMatch || deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Permanently Delete'}
+            </button>
+          )}
         </div>
       </div>
     </div>
