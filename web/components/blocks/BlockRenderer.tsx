@@ -13,6 +13,10 @@ export function BlockRenderer({ page, template }: Props) {
     return <GridLayout page={page} template={template} />;
   }
 
+  if (!page?.blocks) {
+    return null;
+  }
+
   const visibleBlocks = page.blocks
     .filter((block) => block.visible)
     .sort((a, b) => a.order - b.order);

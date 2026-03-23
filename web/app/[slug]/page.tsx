@@ -28,16 +28,5 @@ export default async function SlugPage({ params }: Props) {
     notFound();
   }
 
-  let template = undefined;
-  if (page.template_id) {
-    const { API_BASE_URL, REVALIDATE_SECONDS } = await import('@/lib/constants');
-    const res = await fetch(`${API_BASE_URL}/templates/${page.template_id}`, {
-      next: { revalidate: REVALIDATE_SECONDS },
-    });
-    if (res.ok) {
-      template = await res.json();
-    }
-  }
-
-  return <BlockRenderer page={page} template={template} />;
+  return <BlockRenderer page={page} />;
 }
