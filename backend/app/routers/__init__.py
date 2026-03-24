@@ -1,3 +1,3 @@
-from . import cms, public
+from . import auth, cms, public, templates, users
 
-__all__ = ["cms", "public"]
+__all__ = ["auth", "cms", "public", "templates", "users"]

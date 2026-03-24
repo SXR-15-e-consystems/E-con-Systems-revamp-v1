@@ -4,3 +4,7 @@ motor==3.7.1
 pymongo==4.13.2
 pydantic[email]==2.11.7
 python-multipart==0.0.20
+python-dotenv==1.0.0
+PyJWT==2.9.0
+bcrypt==4.1.2
+passlib==1.7.4

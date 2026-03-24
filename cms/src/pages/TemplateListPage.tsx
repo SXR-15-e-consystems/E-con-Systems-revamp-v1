@@ -2,10 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { fetchTemplates, deleteTemplate } from '../api/templateEndpoints';
+import { useAuth } from '../auth/AuthProvider';
 
 export function TemplateListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole(['admin']);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['templates'],
     queryFn: fetchTemplates,
@@ -31,12 +34,14 @@ export function TemplateListPage() {
           </button>
           <h1 className="text-2xl font-bold text-slate-900">Templates</h1>
         </div>
-        <Link
-          to="/templates/new"
-          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"
-        >
-          + Create Template
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/templates/new"
+            className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"
+          >
+            + Create Template
+          </Link>
+        )}
       </div>
 
       {isLoading && <p className="text-slate-500">Loading templates...</p>}
@@ -56,12 +61,14 @@ export function TemplateListPage() {
           <p className="mt-1 text-sm text-slate-400">
             Create your first template to start building no-code pages
           </p>
-          <Link
-            to="/templates/new"
-            className="mt-4 inline-block rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Create Template
-          </Link>
+          {isAdmin && (
+            <Link
+              to="/templates/new"
+              className="mt-4 inline-block rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Create Template
+            </Link>
+          )}
         </div>
       )}
 
@@ -101,24 +108,28 @@ export function TemplateListPage() {
               </div>
 
               <div className="mt-3 flex items-center gap-2">
-                <Link
-                  to={`/templates/${tmpl.id}/edit`}
-                  className="flex-1 rounded border border-blue-500 px-3 py-1.5 text-center text-xs font-semibold text-blue-600 hover:bg-blue-50"
-                >
-                  Edit
-                </Link>
-                <button
-                  type="button"
-                  className="rounded border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 disabled:opacity-50"
-                  disabled={deleteMutation.isPending}
-                  onClick={() => {
-                    if (confirm('Delete this template? This cannot be undone.')) {
-                      deleteMutation.mutate(tmpl.id);
-                    }
-                  }}
-                >
-                  Delete
-                </button>
+                {isAdmin && (
+                  <Link
+                    to={`/templates/${tmpl.id}/edit`}
+                    className="flex-1 rounded border border-blue-500 px-3 py-1.5 text-center text-xs font-semibold text-blue-600 hover:bg-blue-50"
+                  >
+                    Edit
+                  </Link>
+                )}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className="rounded border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 disabled:opacity-50"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => {
+                      if (confirm('Delete this template? This cannot be undone.')) {
+                        deleteMutation.mutate(tmpl.id);
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
 
               <p className="mt-2 text-[10px] text-slate-400">

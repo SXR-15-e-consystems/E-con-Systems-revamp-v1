@@ -36,3 +36,6 @@ async def _ensure_indexes() -> None:
     await db.templates.create_index("slug", unique=True)
     await db.templates.create_index("status")
     await db.templates.create_index("updated_at")
+    await db.users.create_index("email", unique=True)
+    await db.audit_log.create_index("timestamp")
+    await db.audit_log.create_index("user_id")
