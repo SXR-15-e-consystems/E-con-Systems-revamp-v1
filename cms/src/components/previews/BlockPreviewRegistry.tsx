@@ -192,6 +192,270 @@ const RichTextPreview = memo(function RichTextPreview({ data }: { data: PreviewD
   );
 });
 
+// ─── Product Image Slider Preview ──────────────────────────
+const ProductImageSliderPreview = memo(function ProductImageSliderPreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const slides = data.content?.slides ?? [];
+  const slide = slides[0];
+  const borderColor = meta.borderColor ?? '#2563eb';
+  const thumbSize = meta.thumbnailSize ?? 72;
+  const position = meta.thumbnailPosition ?? 'left';
+
+  if (!slide) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-white text-slate-400 text-sm font-medium">
+        Product Image Slider — No images added yet
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex h-full w-full overflow-hidden bg-white ${position === 'bottom' ? 'flex-col' : 'flex-row'}`}
+      style={{ backgroundColor: meta.bgColor ?? '#fff' }}
+    >
+      {/* Thumbnails */}
+      <div className={`flex gap-1 p-1.5 ${position === 'bottom' ? 'flex-row justify-center' : 'flex-col'}`}>
+        {slides.slice(0, 4).map((_: PreviewData, i: number) => (
+          <div
+            key={i}
+            className="rounded overflow-hidden flex-shrink-0"
+            style={{
+              width: Math.min(thumbSize, 48),
+              height: Math.min(thumbSize, 48),
+              border: i === 0 ? `2px solid ${borderColor}` : '2px solid #d1d5db',
+            }}
+          >
+            {slides[i]?.image_url ? (
+              <img
+                src={slides[i].image_url}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="h-full w-full bg-slate-200" />
+            )}
+          </div>
+        ))}
+        {slides.length > 4 && (
+          <div
+            className="flex items-center justify-center rounded bg-slate-100 text-[9px] text-slate-500 font-bold flex-shrink-0"
+            style={{ width: Math.min(thumbSize, 48), height: Math.min(thumbSize, 48) }}
+          >
+            +{slides.length - 4}
+          </div>
+        )}
+      </div>
+
+      {/* Main image */}
+      <div className="flex-1 flex items-center justify-center p-2 min-h-0">
+        {slide.image_url ? (
+          <img
+            src={slide.image_url}
+            alt={slide.image_alt || 'Product'}
+            className="max-h-full max-w-full object-contain border-2 border-gray-300 rounded shadow-md"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className="flex items-center justify-center text-slate-300 text-sm">No image</div>
+        )}
+      </div>
+    </div>
+  );
+});
+// ─── Tag Preview ──────────────────────────────────────────────────
+const TagPreview = memo(function TagPreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const title = content.title || 'Tags';
+  const tags = content.tags ?? [];
+  const layout = meta.layout ?? 'grid';
+  const tagBg = meta.tagBgColor ?? '#f1f5f9';
+  const tagText = meta.tagTextColor ?? '#334155';
+  const tagRadius = meta.tagBorderRadius ?? '9999px';
+
+  const displayTags = tags.length > 0
+    ? tags.slice(0, 5)
+    : [{ label: 'Tag 1' }, { label: 'Tag 2' }, { label: 'Tag 3' }];
+
+  return (
+    <div
+      className="flex h-full w-full flex-col p-4 gap-2 overflow-hidden"
+      style={{ backgroundColor: meta.bgColor ?? '#fff' }}
+    >
+      <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+        {meta.showIcon !== false && <span className="text-blue-600 text-xs">▦</span>}
+        {title}
+      </h3>
+      <div className={layout === 'grid' ? 'flex flex-wrap gap-1.5' : 'flex flex-col gap-1.5'}>
+        {displayTags.map((t: PreviewData, i: number) => (
+          <span
+            key={i}
+            className="inline-block px-3 py-1 text-[11px] font-medium truncate max-w-[140px]"
+            style={{ backgroundColor: tagBg, color: tagText, borderRadius: tagRadius }}
+          >
+            {t.label}
+          </span>
+        ))}
+        {tags.length > 5 && (
+          <span className="inline-block px-2 py-1 text-[10px] text-slate-400 font-bold">
+            +{tags.length - 5}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+// ─── Headline Preview ──────────────────────────────────────
+const HeadlinePreview = memo(function HeadlinePreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const text = content.text || 'Headline';
+  const fontFamily = meta.fontFamily ?? 'inherit';
+  const fontSize = meta.fontSize ?? '28px';
+  const fontWeight = meta.fontWeight ?? '700';
+  const align = meta.align ?? 'left';
+  const color = meta.color ?? '#1a1a2e';
+  const bgColor = meta.bgColor ?? '#ffffff';
+
+  return (
+    <div
+      className="flex h-full w-full items-center overflow-hidden p-4"
+      style={{ backgroundColor: bgColor, justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}
+    >
+      <span
+        className="truncate"
+        style={{ fontFamily, fontSize, fontWeight: Number(fontWeight), color, textAlign: align as 'left' | 'center' | 'right' }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+});
+
+// ─── Product Description Preview ──────────────────────────────
+const ProductDescriptionPreview = memo(function ProductDescriptionPreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const title = content.title || 'Description';
+  const bullets = content.bullets ?? [];
+  const bulletStyle = meta.bulletStyle ?? 'disc';
+  const titleColor = meta.titleColor ?? '#1a1a2e';
+  const textColor = meta.textColor ?? '#374151';
+  const bgColor = meta.bgColor ?? '#ffffff';
+
+  const charMap: Record<string, string> = { disc: '•', circle: '◦', square: '▪', dash: '–', check: '✓' };
+  const bulletChar = charMap[bulletStyle] ?? '•';
+  const displayBullets = bullets.length > 0
+    ? bullets.slice(0, 4)
+    : [{ text: 'Feature point one' }, { text: 'Feature point two' }, { text: 'Feature point three' }];
+
+  return (
+    <div className="flex h-full w-full flex-col p-4 gap-2 overflow-hidden" style={{ backgroundColor: bgColor }}>
+      <h3 className="font-bold text-sm" style={{ color: titleColor }}>{title}</h3>
+      <ul className="space-y-1">
+        {displayBullets.map((b: PreviewData, i: number) => (
+          <li key={i} className="flex gap-2 text-[12px] leading-snug" style={{ color: textColor }}>
+            <span className="flex-shrink-0" style={{ color: meta.bulletColor ?? textColor }}>{bulletChar}</span>
+            <span className="line-clamp-2">{b.text}</span>
+          </li>
+        ))}
+        {bullets.length > 4 && (
+          <li className="text-[10px] text-slate-400 font-bold pl-4">+{bullets.length - 4} more</li>
+        )}
+      </ul>
+    </div>
+  );
+});
+// ─── SamplePrice Preview ────────────────────────────────────
+const SamplePricePreview = memo(function SamplePricePreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const label = content.label || meta.label || 'Sample Price';
+  const currency = content.currency || meta.currency || 'USD';
+  const price = content.price || meta.price || '299';
+  const bgColor = meta.bgColor ?? '#ffffff';
+  const labelColor = meta.labelColor ?? '#374151';
+  const priceColor = meta.priceColor ?? '#2563eb';
+  const borderColor = meta.borderColor ?? '#e5e7eb';
+  const borderRadius = meta.borderRadius ?? '10px';
+
+  return (
+    <div className="flex h-full w-full items-center p-4" style={{ backgroundColor: bgColor }}>
+      <div
+        className="inline-flex flex-col gap-0.5 px-5 py-3"
+        style={{ border: `1px solid ${borderColor}`, borderRadius }}
+      >
+        <span className="text-sm" style={{ color: labelColor, fontWeight: 500 }}>{label}</span>
+        <span className="text-lg font-bold" style={{ color: priceColor }}>{currency} {price}</span>
+      </div>
+    </div>
+  );
+});
+
+// ─── ImageOnly Preview ─────────────────────────────────────
+const ImageOnlyPreview = memo(function ImageOnlyPreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const url = content.image_url;
+  const objectFit = meta.objectFit ?? 'cover';
+  const borderRadius = meta.borderRadius ?? '0px';
+  const bgColor = meta.bgColor ?? '#ffffff';
+
+  if (!url) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400 text-sm font-medium">
+        🖼️ Image — No URL set
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full overflow-hidden" style={{ backgroundColor: bgColor, borderRadius }}>
+      <img
+        src={url}
+        alt={content.image_alt || 'Image'}
+        className="h-full w-full"
+        style={{ objectFit: objectFit as React.CSSProperties['objectFit'] }}
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      />
+    </div>
+  );
+});
+
+// ─── ActionButton Preview ──────────────────────────────────
+const ActionButtonPreview = memo(function ActionButtonPreview({ data }: { data: PreviewData }) {
+  const meta = data.meta ?? {};
+  const content = data.content ?? {};
+  const buttonText = content.buttonText || meta.buttonText || 'Button';
+  const subText = content.subText || '';
+  const bgColor = meta.bgColor ?? '#2952cc';
+  const textColor = meta.textColor ?? '#ffffff';
+  const borderRadius = meta.borderRadius ?? '6px';
+  const subTextColor = meta.subTextColor ?? '#1f2937';
+  const icon = meta.icon ?? 'cart';
+
+  const iconChar: Record<string, string> = { cart: '🛒', download: '⬇', 'arrow-right': '→', phone: '📞', mail: '✉', external: '↗' };
+
+  return (
+    <div className="flex h-full w-full items-center justify-center p-4">
+      <div className="inline-flex flex-col items-center gap-1">
+        <span
+          className="inline-flex items-center gap-1.5 px-5 py-2 font-bold text-sm"
+          style={{ backgroundColor: bgColor, color: textColor, borderRadius }}
+        >
+          {icon !== 'none' && <span className="text-xs">{iconChar[icon] ?? ''}</span>}
+          {buttonText}
+        </span>
+        {subText && (
+          <span className="text-[11px]" style={{ color: subTextColor }}>{subText}</span>
+        )}
+      </div>
+    </div>
+  );
+});
+
 // ─── Fallback ──────────────────────────────────────────
 function FallbackPreview({ data }: { data: PreviewData }) {
   return (
@@ -210,6 +474,13 @@ const previewRegistry: Record<string, ComponentType<{ data: PreviewData }>> = {
   RelatedContent: RelatedContentPreview,
   Hero: HeroPreview,
   RichText: RichTextPreview,
+  ProductImageSlider: ProductImageSliderPreview,
+  Tag: TagPreview,
+  Headline: HeadlinePreview,
+  ProductDescription: ProductDescriptionPreview,
+  SamplePrice: SamplePricePreview,
+  ImageOnly: ImageOnlyPreview,
+  ActionButton: ActionButtonPreview,
 };
 
 export function getBlockPreview(type: string): ComponentType<{ data: PreviewData }> {

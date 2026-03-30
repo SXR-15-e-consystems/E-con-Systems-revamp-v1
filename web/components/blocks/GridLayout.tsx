@@ -22,7 +22,7 @@ export function GridLayout({ page, templateConfig }: Props) {
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gridAutoRows: `${templateConfig.grid.row_height}px`,
+          gridAutoRows: `minmax(${templateConfig.grid.row_height}px, auto)`,
           gap: `${gap}px`,
         }}
       >
@@ -42,11 +42,20 @@ export function GridLayout({ page, templateConfig }: Props) {
             style.gridRow = `${row_start} / ${row_end}`;
           }
 
-          // Merge meta (from template) and content (from block) for the component data
-          const mergedData = {
-             ...(compDef.meta || {}), // Read-only styling/config from template
-             ...(block.data || {}),   // The actual content injected by Campaign Manager
-          };
+          // Merge template styling into block data.
+          // New components (Banner, Form, etc.) store their config under a nested
+          // `meta` key. The template's flat component meta must be merged INTO
+          // that nested `meta` so the renderer can find it via `data.meta`.
+          const blockData = (block.data || {}) as Record<string, unknown>;
+          const templateMeta = compDef.meta || {};
+          const hasNestedMeta = blockData.meta && typeof blockData.meta === 'object' && !Array.isArray(blockData.meta);
+
+          const mergedData = hasNestedMeta
+            ? {
+                ...blockData,
+                meta: { ...templateMeta, ...(blockData.meta as Record<string, unknown>) },
+              }
+            : { ...templateMeta, ...blockData };
 
           // Sanitize component_id for CSS class to prevent injection
           const safeComponentId = String(block.component_id).replace(/[^a-zA-Z0-9_-]/g, '');
@@ -54,7 +63,7 @@ export function GridLayout({ page, templateConfig }: Props) {
           return (
             <div
               key={block.block_id}
-              style={style}
+              style={{ ...style, overflow: 'hidden' }}
               className={`component-wrapper template-block-${safeComponentId}`}
             >
               <Component data={mergedData as any} />

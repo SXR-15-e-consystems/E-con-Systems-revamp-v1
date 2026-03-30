@@ -186,3 +186,199 @@ export interface CTAButtonData {
   meta: CTAButtonMeta;
   content: CTAButtonContent;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCT IMAGE SLIDER
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface ProductImageSliderMeta {
+  width: string;
+  height: string;
+  bgColor: string;
+  thumbnailPosition: 'left' | 'bottom';
+  thumbnailSize: number; // px — width/height of each thumbnail
+  borderColor: string; // active thumbnail highlight color
+}
+
+export interface ProductImageSlide {
+  image_url: string;
+  image_alt: string;
+}
+
+export interface ProductImageSliderContent {
+  slides: ProductImageSlide[];
+}
+
+export interface ProductImageSliderData {
+  meta: ProductImageSliderMeta;
+  content: ProductImageSliderContent;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAG BLOCK
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type TagLayout = 'grid' | 'list';
+
+export interface TagMeta {
+  layout: TagLayout;
+  bgColor: string;
+  tagBgColor: string;
+  tagTextColor: string;
+  tagBorderRadius: string;
+  showIcon: boolean;
+  width: string;
+}
+
+export interface TagItem {
+  label: string;
+}
+
+export interface TagContent {
+  title: string;
+  tags: TagItem[];
+}
+
+export interface TagData {
+  meta: TagMeta;
+  content: TagContent;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HEADLINE BLOCK
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type HeadlineAlign = 'left' | 'center' | 'right';
+export type HeadlineWeight = '400' | '500' | '600' | '700' | '800' | '900';
+export type HeadlineTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p';
+
+export interface HeadlineMeta {
+  tag: HeadlineTag;
+  fontFamily: string;
+  fontSize: string;
+  fontWeight: HeadlineWeight;
+  textColor: string;
+  bgColor: string;
+  align: HeadlineAlign;
+  width: string;
+  letterSpacing: string;
+  lineHeight: string;
+}
+
+export interface HeadlineContent {
+  text: string;
+}
+
+export interface HeadlineData {
+  meta: HeadlineMeta;
+  content: HeadlineContent;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCT DESCRIPTION BLOCK
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type BulletStyle = 'disc' | 'circle' | 'square' | 'dash' | 'check';
+
+export interface ProductDescriptionMeta {
+  bgColor: string;
+  titleColor: string;
+  titleFontSize: string;
+  titleFontWeight: string;
+  textColor: string;
+  textFontSize: string;
+  bulletStyle: BulletStyle;
+  bulletColor: string;
+  lineSpacing: string;
+  width: string;
+}
+
+export interface ProductDescriptionBullet {
+  text: string;
+}
+
+export interface ProductDescriptionContent {
+  title: string;
+  bullets: ProductDescriptionBullet[];
+}
+
+export interface ProductDescriptionData {
+  meta: ProductDescriptionMeta;
+  content: ProductDescriptionContent;
+}
+
+// ─── SamplePrice ─────────────────────────────────────────────
+export interface SamplePriceMeta {
+  label: string;
+  price: string;
+  currency: string;
+  bgColor: string;
+  labelColor: string;
+  priceColor: string;
+  labelFontSize: string;
+  priceFontSize: string;
+  borderRadius: string;
+  borderColor: string;
+  width: string;
+}
+
+export interface SamplePriceContent {
+  label: string;
+  price: string;
+  currency: string;
+}
+
+export interface SamplePriceData {
+  meta: SamplePriceMeta;
+  content: SamplePriceContent;
+}
+
+// ─── ImageOnly ───────────────────────────────────────────────
+export interface ImageOnlyMeta {
+  bgColor: string;
+  borderRadius: string;
+  objectFit: 'cover' | 'contain' | 'fill' | 'none';
+  width: string;
+  height: string;
+}
+
+export interface ImageOnlyContent {
+  image_url: string;
+  image_alt: string;
+}
+
+export interface ImageOnlyData {
+  meta: ImageOnlyMeta;
+  content: ImageOnlyContent;
+}
+
+// ─── ActionButton ───────────────────────────────────────────
+export type ActionButtonIcon = 'cart' | 'download' | 'arrow-right' | 'phone' | 'mail' | 'external' | 'none';
+
+export interface ActionButtonMeta {
+  bgColor: string;
+  textColor: string;
+  fontSize: string;
+  fontWeight: string;
+  subTextColor: string;
+  subTextFontSize: string;
+  borderRadius: string;
+  paddingX: string;
+  paddingY: string;
+  icon: ActionButtonIcon;
+  iconPosition: 'left' | 'right';
+  width: string;
+  align: 'left' | 'center' | 'right';
+}
+
+export interface ActionButtonContent {
+  buttonText: string;
+  subText: string;
+  url: string;
+  openInNewTab: boolean;
+}
+
+export interface ActionButtonData {
+  meta: ActionButtonMeta;
+  content: ActionButtonContent;
+}

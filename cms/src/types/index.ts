@@ -11,7 +11,14 @@ export type BlockType =
   | 'RelatedContent'
   | 'Timer'
   | 'Form'
-  | 'CTAButton';
+  | 'CTAButton'
+  | 'ProductImageSlider'
+  | 'Tag'
+  | 'Headline'
+  | 'ProductDescription'
+  | 'SamplePrice'
+  | 'ImageOnly'
+  | 'ActionButton';
 
 export interface BlockEnvelope {
   block_id: string;

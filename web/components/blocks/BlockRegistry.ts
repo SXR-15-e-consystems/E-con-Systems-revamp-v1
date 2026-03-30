@@ -8,6 +8,13 @@ import { RelatedContentBlock } from '@/components/TemplatesComps/RelatedContent/
 import { TimerBlock } from '@/components/TemplatesComps/Timer/TimerBlock';
 import { HeroBlock } from './HeroBlock';
 import { RichTextBlock } from './RichTextBlock';
+import { ProductImageSliderBlock } from '@/components/TemplatesComps/ProductImageSlider/ProductImageSliderBlock';
+import { TagBlock } from '@/components/TemplatesComps/Tag/TagBlock';
+import { HeadlineBlock } from '@/components/TemplatesComps/Headline/HeadlineBlock';
+import { ProductDescriptionBlock } from '@/components/TemplatesComps/ProductDescription/ProductDescriptionBlock';
+import { SamplePriceBlock } from '@/components/TemplatesComps/SamplePrice/SamplePriceBlock';
+import { ImageOnlyBlock } from '@/components/TemplatesComps/ImageOnly/ImageOnlyBlock';
+import { ActionButtonBlock } from '@/components/TemplatesComps/ActionButton/ActionButtonBlock';
 
 export interface BlockProps {
   data: Record<string, unknown>;
@@ -21,6 +28,13 @@ const registry: Partial<Record<BlockType, ComponentType<BlockProps>>> = {
   Timer: TimerBlock,
   Form: FormBlock,
   CTAButton: CTAButtonBlock,
+  ProductImageSlider: ProductImageSliderBlock,
+  Tag: TagBlock,
+  Headline: HeadlineBlock,
+  ProductDescription: ProductDescriptionBlock,
+  SamplePrice: SamplePriceBlock,
+  ImageOnly: ImageOnlyBlock,
+  ActionButton: ActionButtonBlock,
 };
 
 export function getBlockComponent(type: string): ComponentType<BlockProps> | null {

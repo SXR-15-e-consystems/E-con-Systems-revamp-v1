@@ -198,8 +198,15 @@ export function PageEditorPage() {
                     const Preview = getBlockPreview(block.type);
                     const isSelected = editingBlockId === block.block_id;
 
-                    // Merge meta from template component + block data for the preview
-                    const mergedData = { ...(compDef.meta || {}), ...block.data };
+                    // Merge template styling into block data.
+                    // New components store config under nested `meta`; merge template
+                    // flat meta INTO that nested key so previews render correctly.
+                    const blockData = (block.data || {}) as Record<string, unknown>;
+                    const tmplMeta = compDef.meta || {};
+                    const hasNested = blockData.meta && typeof blockData.meta === 'object' && !Array.isArray(blockData.meta);
+                    const mergedData = hasNested
+                      ? { ...blockData, meta: { ...tmplMeta, ...(blockData.meta as Record<string, unknown>) } }
+                      : { ...tmplMeta, ...blockData };
 
                     return (
                       <div

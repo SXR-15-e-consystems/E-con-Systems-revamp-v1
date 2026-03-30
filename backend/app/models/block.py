@@ -18,6 +18,13 @@ class BlockType(str, Enum):
     TIMER = "Timer"
     FORM = "Form"
     CTA_BUTTON = "CTAButton"
+    PRODUCT_IMAGE_SLIDER = "ProductImageSlider"
+    TAG = "Tag"
+    HEADLINE = "Headline"
+    PRODUCT_DESCRIPTION = "ProductDescription"
+    SAMPLE_PRICE = "SamplePrice"
+    IMAGE_ONLY = "ImageOnly"
+    ACTION_BUTTON = "ActionButton"
 
 
 class BlockEnvelope(BaseModel):
