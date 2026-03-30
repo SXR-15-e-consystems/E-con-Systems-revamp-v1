@@ -140,6 +140,151 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
     },
     defaultSpan: { cols: 40, rows: 8 },
   },
+  // ── Product Image Slider ──
+  {
+    type: 'ProductImageSlider',
+    label: 'Product Image Slider',
+    description: 'Image gallery with thumbnail navigation — ideal for product pages',
+    icon: '🖼️',
+    category: 'media',
+    defaultMeta: {
+      width: '100%',
+      height: '480px',
+      bgColor: '#ffffff',
+      thumbnailPosition: 'left',
+      thumbnailSize: 72,
+      borderColor: '#2563eb',
+    },
+    defaultSpan: { cols: 20, rows: 10 },
+  },
+
+  // ── Tag ──
+  {
+    type: 'Tag',
+    label: 'Tags',
+    description: 'Pill-shaped tag labels in grid or list layout with title',
+    icon: '🏷️',
+    category: 'content',
+    defaultMeta: {
+      layout: 'grid',
+      bgColor: '#ffffff',
+      tagBgColor: '#f1f5f9',
+      tagTextColor: '#334155',
+      tagBorderRadius: '9999px',
+      showIcon: true,
+      width: '100%',
+    },
+    defaultSpan: { cols: 20, rows: 5 },
+  },
+
+  // ── Headline ──
+  {
+    type: 'Headline',
+    label: 'Headline',
+    description: 'Styled text heading with custom font, size, weight & colour',
+    icon: '🅰️',
+    category: 'content',
+    defaultMeta: {
+      tag: 'h2',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '28px',
+      fontWeight: '700',
+      textColor: '#1a1a2e',
+      bgColor: 'transparent',
+      align: 'left',
+      width: '100%',
+      letterSpacing: '0px',
+      lineHeight: '1.3',
+    },
+    defaultSpan: { cols: 40, rows: 2 },
+  },
+
+  // ── Product Description ──
+  {
+    type: 'ProductDescription',
+    label: 'Product Description',
+    description: 'Titled bullet-point list with customisable bullet styles',
+    icon: '📋',
+    category: 'content',
+    defaultMeta: {
+      bgColor: '#ffffff',
+      titleColor: '#1a1a2e',
+      titleFontSize: '18px',
+      titleFontWeight: '700',
+      textColor: '#374151',
+      textFontSize: '15px',
+      bulletStyle: 'disc',
+      bulletColor: '#374151',
+      lineSpacing: '1.7',
+      width: '100%',
+    },
+    defaultSpan: { cols: 20, rows: 6 },
+  },
+
+  // ── Sample Price ──
+  {
+    type: 'SamplePrice',
+    label: 'Sample Price',
+    description: 'Price box showing label, currency & price',
+    icon: '💲',
+    category: 'content',
+    defaultMeta: {
+      label: 'Sample Price',
+      price: '299',
+      currency: 'USD',
+      bgColor: '#ffffff',
+      labelColor: '#374151',
+      priceColor: '#2563eb',
+      labelFontSize: '14px',
+      priceFontSize: '22px',
+      borderRadius: '10px',
+      borderColor: '#e5e7eb',
+      width: '100%',
+    },
+    defaultSpan: { cols: 10, rows: 3 },
+  },
+
+  // ── Image Only ──
+  {
+    type: 'ImageOnly',
+    label: 'Image',
+    description: 'Single image that fills its container, no overlays',
+    icon: '🖼️',
+    category: 'media',
+    defaultMeta: {
+      bgColor: '#ffffff',
+      borderRadius: '0px',
+      objectFit: 'cover',
+      width: '100%',
+      height: '100%',
+    },
+    defaultSpan: { cols: 20, rows: 8 },
+  },
+
+  // ── Action Button ──
+  {
+    type: 'ActionButton',
+    label: 'Action Button',
+    description: 'Button with icon, text & sub-text (Contact Us, Download…)',
+    icon: '🔘',
+    category: 'content',
+    defaultMeta: {
+      bgColor: '#2952cc',
+      textColor: '#ffffff',
+      fontSize: '16px',
+      fontWeight: '700',
+      subTextColor: '#1f2937',
+      subTextFontSize: '13px',
+      borderRadius: '6px',
+      paddingX: '28px',
+      paddingY: '12px',
+      icon: 'cart',
+      iconPosition: 'left',
+      width: 'auto',
+      align: 'left',
+    },
+    defaultSpan: { cols: 10, rows: 3 },
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

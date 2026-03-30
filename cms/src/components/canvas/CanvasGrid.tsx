@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import type { TemplateComponent } from '../../types/template';
 import type { TrayComponentDef } from './ComponentTray';
 import { TRAY_COMPONENTS } from './ComponentTray';
+import { getBlockPreview } from '../previews/BlockPreviewRegistry';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -112,15 +113,16 @@ function CanvasItem({
         </span>
       </div>
 
-      {/* ── Content placeholder ── */}
-      <div className="flex-1 mx-2 mb-2 mt-1.5 rounded bg-slate-50 border border-dashed border-slate-200 flex flex-col items-center justify-center p-2 min-h-0">
-        <p className="text-[10px] text-slate-400 text-center leading-snug">
-          {def?.description ?? `${component.type} component`}
-        </p>
-        <p className="mt-1 text-[9px] text-slate-300 text-center font-mono">
-          ≈ {approxW} × {approxH} px
-        </p>
-      </div>
+      {/* ── Component preview skeleton ── */}
+      {(() => {
+        const Preview = getBlockPreview(component.type);
+        const previewData = component.meta ?? {};
+        return (
+          <div className="flex-1 mx-2 mb-2 mt-1.5 rounded border border-slate-200 overflow-hidden min-h-0">
+            <Preview data={previewData} />
+          </div>
+        );
+      })()}
 
       {/* ── Live resize badge ── */}
       {dimBadge && (
