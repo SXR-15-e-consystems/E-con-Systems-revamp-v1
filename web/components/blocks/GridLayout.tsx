@@ -1,19 +1,19 @@
 import type { BlockEnvelope, PageResponse } from '@/types';
-import type { Template } from '@/types/template';
+import type { TemplateConfigForPage } from '@/types/template';
 import { getBlockComponent } from './BlockRegistry';
 
 interface Props {
   page: PageResponse;
-  template: Template;
+  templateConfig: TemplateConfigForPage;
 }
 
-export function GridLayout({ page, template }: Props) {
+export function GridLayout({ page, templateConfig }: Props) {
   // Sort blocks by order. We'll only render visible ones.
   const visibleBlocks = page.blocks
     .filter((b) => b.visible)
     .sort((a, b) => a.order - b.order);
 
-  const { columns, gap } = template.grid;
+  const { columns, gap } = templateConfig.grid;
 
   return (
     <div className="w-full">
@@ -22,12 +22,12 @@ export function GridLayout({ page, template }: Props) {
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gridAutoRows: `${template.grid.row_height}px`,
+          gridAutoRows: `${templateConfig.grid.row_height}px`,
           gap: `${gap}px`,
         }}
       >
         {visibleBlocks.map((block) => {
-          const compDef = template.components.find((c: any) => c.component_id === block.component_id);
+          const compDef = templateConfig.components.find((c: any) => c.component_id === block.component_id);
           const Component = getBlockComponent(block.type);
 
           if (!Component || !compDef) return null;
@@ -71,7 +71,7 @@ export function GridLayout({ page, template }: Props) {
       */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          ${template.components.map(comp => {
+          ${templateConfig.components.map(comp => {
             // Sanitize component_id to prevent CSS injection
             const safeComponentId = String(comp.component_id).replace(/[^a-zA-Z0-9_-]/g, '');
             if (!safeComponentId || safeComponentId !== comp.component_id) {

@@ -44,6 +44,7 @@ export interface PageResponse {
   og_image_url: string | null;
   status: PageStatus;
   template_id?: string | null;
+  template_config?: { grid: Record<string, any>; components: Record<string, any>[] } | null;
   blocks: BlockEnvelope[];
   created_by: string;
   created_at: string;

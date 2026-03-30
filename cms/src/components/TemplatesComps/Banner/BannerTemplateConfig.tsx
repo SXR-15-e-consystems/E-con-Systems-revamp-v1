@@ -10,8 +10,8 @@ const DEFAULT_META: BannerMeta = {
   height: '480px',
   bgColor: '#000000',
   variant: 'type2',
-  sliderMode: false,
-  autoplayInterval: 5000,
+  sliderMode: true,
+  autoplayInterval: 10000,
   ctaPosition: 'bottom-left',
   ctaStyle: {
     bgColor: '#e63329',

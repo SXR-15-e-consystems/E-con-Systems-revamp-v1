@@ -29,6 +29,12 @@ export interface TemplateComponent {
   };
 }
 
+// Embedded template config for public rendering (no ID/slug/status)
+export interface TemplateConfigForPage {
+  grid: GridConfig;
+  components: TemplateComponent[];
+}
+
 export type TemplateStatus = 'active' | 'archived';
 
 export interface Template {

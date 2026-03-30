@@ -24,16 +24,7 @@ export function TemplateListPage() {
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            className="rounded border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-            onClick={() => navigate('/')}
-            type="button"
-          >
-            ← Dashboard
-          </button>
-          <h1 className="text-2xl font-bold text-slate-900">Templates</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900">Templates</h1>
         {isAdmin && (
           <Link
             to="/templates/new"

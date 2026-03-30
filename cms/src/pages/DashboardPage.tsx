@@ -9,10 +9,9 @@ import type { PageListItem } from '../types';
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
-  const { user, hasRole, logout } = useAuth();
+  const { hasRole } = useAuth();
   const canEdit = hasRole(['admin', 'marketing']);
   const canDelete = hasRole(['admin']);
-  const isAdmin = hasRole(['admin']);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['pages'],
     queryFn: fetchPages,
@@ -25,44 +24,15 @@ export function DashboardPage() {
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Pages</h1>
-        <div className="flex gap-2 items-center">
-          {isAdmin && (
-            <Link
-              to="/users"
-              className="rounded border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              👥 Users
-            </Link>
-          )}
-          <Link
-            to="/templates"
-            className="rounded border border-blue-600 px-4 py-2 font-semibold text-blue-600 hover:bg-blue-50"
+        {canEdit && (
+          <button
+            className="rounded bg-blue-600 px-4 py-2 font-semibold text-white"
+            onClick={() => setShowCreate(true)}
+            type="button"
           >
-            🎨 Templates
-          </Link>
-          {canEdit && (
-            <button
-              className="rounded bg-blue-600 px-4 py-2 font-semibold text-white"
-              onClick={() => setShowCreate(true)}
-              type="button"
-            >
-              Create New Page
-            </button>
-          )}
-          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
-            <span className="text-sm text-slate-500">{user?.email}</span>
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold uppercase text-slate-500">
-              {user?.role}
-            </span>
-            <button
-              className="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-              onClick={() => logout()}
-              type="button"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+            Create New Page
+          </button>
+        )}
       </div>
 
       {isLoading ? <p>Loading pages...</p> : null}

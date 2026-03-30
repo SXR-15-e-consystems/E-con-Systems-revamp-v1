@@ -4,6 +4,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+# Load environment variables FIRST — before any app imports that read os.getenv
+env_path = Path(__file__).parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,10 +17,6 @@ from fastapi.responses import JSONResponse
 from app.database import close_db, connect_db
 from app.routers import auth, cms, public, templates, users
 from app.utils.logger import get_logger
-
-# Load environment variables from .env file in project root
-env_path = Path(__file__).parent.parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
 
 logger = get_logger(__name__)
 

@@ -1,16 +1,16 @@
 import type { BlockEnvelope, PageResponse } from '@/types';
-import type { Template } from '@/types/template';
+import type { TemplateConfigForPage } from '@/types/template';
 import { getBlockComponent } from './BlockRegistry';
 import { GridLayout } from './GridLayout';
 
 interface Props {
   page: PageResponse;
-  template?: Template;
+  template?: TemplateConfigForPage;
 }
 
 export function BlockRenderer({ page, template }: Props) {
   if (template) {
-    return <GridLayout page={page} template={template} />;
+    return <GridLayout page={page} templateConfig={template} />;
   }
 
   if (!page?.blocks) {

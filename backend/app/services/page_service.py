@@ -143,14 +143,34 @@ def validate_blocks(blocks: list[BlockEnvelope]) -> list[BlockEnvelope]:
     return normalized
 
 
-def _to_page_response(document: dict[str, Any]) -> PageResponse:
+async def _to_page_response(document: dict[str, Any], db: Any) -> PageResponse:
+    template_config = None
+    template_id = document.get("template_id")
+    
+    # If page was created from a template, embed the template config for public rendering
+    if template_id:
+        try:
+            from bson import ObjectId
+            from app.models.page import TemplateConfigForPage
+            
+            template = await db.templates.find_one({"_id": ObjectId(template_id)})
+            if template:
+                template_config = TemplateConfigForPage(
+                    grid=template.get("grid", {}),
+                    components=template.get("components", []),
+                )
+        except Exception:
+            # If template fetch fails, continue without it (graceful degradation)
+            pass
+    
     return PageResponse(
         id=str(document["_id"]),
         slug=document["slug"],
         title=document["title"],
         meta_description=document.get("meta_description", ""),
         og_image_url=document.get("og_image_url"),
-        template_id=document.get("template_id"),
+        template_id=template_id,
+        template_config=template_config,
         status=document["status"],
         blocks=document.get("blocks", []),
         created_by=document.get("created_by", "poc-user"),
@@ -182,7 +202,7 @@ async def get_page(db: Any, slug: str) -> PageResponse:
     document = await db.pages.find_one({"slug": normalized_slug})
     if document is None:
         raise ServiceError("NOT_FOUND", "Page not found", 404)
-    return _to_page_response(document)
+    return await _to_page_response(document, db)
 
 
 async def create_page(db: Any, payload: PageCreate) -> PageResponse:
@@ -231,7 +251,7 @@ async def create_page(db: Any, payload: PageCreate) -> PageResponse:
 
     result = await db.pages.insert_one(document)
     document["_id"] = result.inserted_id
-    return _to_page_response(document)
+    return await _to_page_response(document, db)
 
 
 async def update_page(db: Any, slug: str, payload: PageUpdate) -> PageResponse:
@@ -257,7 +277,7 @@ async def update_page(db: Any, slug: str, payload: PageUpdate) -> PageResponse:
     updated = await db.pages.find_one({"_id": ObjectId(existing["_id"])})
     if updated is None:
         raise ServiceError("INTERNAL_ERROR", "Page update failed", 500)
-    return _to_page_response(updated)
+    return await _to_page_response(updated, db)
 
 
 async def delete_page(db: Any, slug: str) -> None:
@@ -296,4 +316,4 @@ async def get_public_page(db: Any, slug: str) -> PageResponse:
 
     visible_blocks = [block for block in document.get("blocks", []) if block.get("visible", True)]
     document["blocks"] = visible_blocks
-    return _to_page_response(document)
+    return await _to_page_response(document, db)

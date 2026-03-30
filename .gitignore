@@ -29,3 +29,6 @@ backend/app/services/__pycache__/page_service.cpython-313.pyc
 backend/app/routers/__pycache__/__init__.cpython-313.pyc
 backend/app/routers/__pycache__/cms.cpython-313.pyc
 backend/app/routers/__pycache__/__init__.cpython-313.pyc
+backend/app/routers/__pycache__/__init__.cpython-313.pyc
+backend/app/routers/__pycache__/cms.cpython-313.pyc
+backend/app/services/__pycache__/page_service.cpython-313.pyc

@@ -23,7 +23,7 @@ const DEFAULT_META: BannerMeta = {
   bgColor: '#000000',
   variant: 'type2',
   sliderMode: false,
-  autoplayInterval: 5000,
+  autoplayInterval: 10000,
   ctaPosition: 'bottom-left',
   ctaStyle: { bgColor: '#e63329', textColor: '#ffffff', borderRadius: '4px', fontSize: '16px' },
 };
@@ -144,14 +144,16 @@ export function BannerBlock({ data }: BannerBlockProps) {
   const meta: BannerMeta = { ...DEFAULT_META, ...parsed.meta };
   const slides: BannerSlide[] = parsed.content?.slides ?? [];
 
+  // Always show controls when multiple slides exist; autoplay only when sliderMode is enabled
+  const enableAutoplay = meta.sliderMode && meta.autoplayInterval > 0;
   const { activeIndex, goTo, next, prev, pause } = useSlider(
     slides.length,
-    meta.sliderMode ? meta.autoplayInterval : 0,
+    enableAutoplay ? meta.autoplayInterval : 0,
   );
 
   if (slides.length === 0) return null;
 
-  const showSlider = meta.sliderMode && slides.length > 1;
+  const showSlider = slides.length > 1;
 
   return (
     <div

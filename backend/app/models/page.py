@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -64,6 +65,12 @@ class PageUpdate(BaseModel):
     blocks: list[BlockEnvelope] | None = None
 
 
+class TemplateConfigForPage(BaseModel):
+    """Embedded template config for public rendering of template-based pages."""
+    grid: dict[str, Any]  # GridConfig
+    components: list[dict[str, Any]]  # TemplateComponent list
+
+
 class PageResponse(BaseModel):
     id: str
     slug: str
@@ -71,6 +78,7 @@ class PageResponse(BaseModel):
     meta_description: str
     og_image_url: str | None
     template_id: str | None = None
+    template_config: TemplateConfigForPage | None = None  # Populated when template_id is set
     status: PageStatus
     blocks: list[BlockEnvelope]
     created_by: str

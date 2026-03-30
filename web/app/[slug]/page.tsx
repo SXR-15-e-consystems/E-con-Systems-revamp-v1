@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
-import { fetchPublicPage, fetchTemplate } from '@/lib/api';
+import { fetchPublicPage } from '@/lib/api';
 
 export const revalidate = 60; // ISR: revalidate every 60 seconds
 
@@ -28,11 +28,6 @@ export default async function SlugPage({ params }: Props) {
     notFound();
   }
 
-  // If the page was created from a template, fetch the template
-  // so GridLayout can render the proper 2D grid placement
-  const template = page.template_id
-    ? await fetchTemplate(page.template_id)
-    : undefined;
-
-  return <BlockRenderer page={page} template={template} />;
+  // template_config is now embedded in the page response
+  return <BlockRenderer page={page} template={page.template_config} />;
 }
