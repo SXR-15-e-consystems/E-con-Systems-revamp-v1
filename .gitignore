@@ -33,3 +33,44 @@ backend/app/routers/__pycache__/__init__.cpython-313.pyc
 backend/app/routers/__pycache__/cms.cpython-313.pyc
 backend/app/services/__pycache__/page_service.cpython-313.pyc
 backend/app/services/__pycache__/page_service.cpython-313.pyc
+
+# ─── Global ignores (catch-all) ───────────────────────────────
+# Python bytecode — covers ALL __pycache__ dirs and .pyc files everywhere
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+.next/
+cms/dist/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript incremental build info
+*.tsbuildinfo
