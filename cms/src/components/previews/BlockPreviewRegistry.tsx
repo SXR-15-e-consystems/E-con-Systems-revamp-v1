@@ -201,6 +201,52 @@ function FallbackPreview({ data }: { data: PreviewData }) {
   );
 }
 
+// ─── ProductTabs Preview ──────────────────────────────────
+const ProductTabsPreview = memo(function ProductTabsPreview({ data }: { data: PreviewData }) {
+  const tabs: PreviewData[] = data.content?.tabs ?? [];
+  const enabledTabs = tabs.filter((t: PreviewData) => t.enabled !== false);
+  const activeColor: string = (data.meta?.active_color as string) ?? '#2563eb';
+
+  if (enabledTabs.length === 0) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-white text-slate-400 text-sm">
+        Product Tabs — No tabs enabled
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full bg-white overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-[140px] border-r border-slate-200 bg-slate-50 flex flex-col py-2">
+        {enabledTabs.slice(0, 9).map((tab: PreviewData, i: number) => (
+          <div
+            key={i}
+            className="px-3 py-1.5 text-[11px] truncate"
+            style={
+              i === 0
+                ? { color: activeColor, fontWeight: 700, borderLeft: `3px solid ${activeColor}` }
+                : { color: '#64748b', borderLeft: '3px solid transparent' }
+            }
+          >
+            {tab.label || 'Untitled'}
+          </div>
+        ))}
+      </div>
+      {/* Content placeholder */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-xs font-bold text-slate-600 mb-1">
+            {enabledTabs[0]?.label || 'Tab'}
+          </div>
+          <div className="h-2 w-32 rounded bg-slate-200 mx-auto mb-1" />
+          <div className="h-2 w-24 rounded bg-slate-200 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+});
+
 // ─── Registry ───────────────────────────────────────────
 const previewRegistry: Record<string, ComponentType<{ data: PreviewData }>> = {
   Banner: BannerPreview,
@@ -210,6 +256,7 @@ const previewRegistry: Record<string, ComponentType<{ data: PreviewData }>> = {
   RelatedContent: RelatedContentPreview,
   Hero: HeroPreview,
   RichText: RichTextPreview,
+  ProductTabs: ProductTabsPreview,
 };
 
 export function getBlockPreview(type: string): ComponentType<{ data: PreviewData }> {

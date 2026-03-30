@@ -11,6 +11,8 @@ import { RelatedContentBlockEditor } from '../TemplatesComps/RelatedContent/Rela
 import { RelatedContentTemplateConfig } from '../TemplatesComps/RelatedContent/RelatedContentTemplateConfig';
 import { TimerBlockEditor } from '../TemplatesComps/Timer/TimerBlockEditor';
 import { TimerTemplateConfig } from '../TemplatesComps/Timer/TimerTemplateConfig';
+import { ProductTabsBlockEditor } from '../TemplatesComps/ProductTabs/ProductTabsBlockEditor';
+import { ProductTabsTemplateConfig } from '../TemplatesComps/ProductTabs/ProductTabsTemplateConfig';
 import { HeroBlockEditor } from './HeroBlockEditor';
 import { RichTextBlockEditor } from './RichTextBlockEditor';
 
@@ -32,6 +34,7 @@ const templateConfigRegistry: Partial<Record<BlockType, ComponentType<BlockEdito
   Timer: TimerTemplateConfig,
   Form: FormTemplateConfig,
   CTAButton: CTAButtonTemplateConfig,
+  ProductTabs: ProductTabsTemplateConfig,
 };
 
 const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorProps>>> = {
@@ -42,6 +45,7 @@ const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorPr
   Timer: TimerBlockEditor,
   Form: FormBlockEditor,
   CTAButton: CTAButtonBlockEditor,
+  ProductTabs: ProductTabsBlockEditor,
 };
 
 /** Returns the L1 template config editor for a block type, or null if not applicable. */

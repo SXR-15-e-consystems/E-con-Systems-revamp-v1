@@ -126,6 +126,20 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
     },
     defaultSpan: { cols: 10, rows: 2 },
   },
+  {
+    type: 'ProductTabs',
+    label: 'Product Tabs',
+    description: 'Tabbed section with sidebar navigation for product details',
+    icon: '🗂️',
+    category: 'interactive',
+    defaultMeta: {
+      sidebar_width: '160px',
+      active_color: '#2563eb',
+      mobile_layout: 'horizontal_scroll',
+      max_custom_tabs: 2,
+    },
+    defaultSpan: { cols: 40, rows: 8 },
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

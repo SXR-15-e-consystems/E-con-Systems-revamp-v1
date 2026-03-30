@@ -7,6 +7,7 @@ import { FormBlock } from '@/components/TemplatesComps/Form/FormBlock';
 import { RelatedContentBlock } from '@/components/TemplatesComps/RelatedContent/RelatedContentBlock';
 import { TimerBlock } from '@/components/TemplatesComps/Timer/TimerBlock';
 import { HeroBlock } from './HeroBlock';
+import { ProductTabsBlock } from './ProductTabs/ProductTabsBlock';
 import { RichTextBlock } from './RichTextBlock';
 
 export interface BlockProps {
@@ -21,6 +22,7 @@ const registry: Partial<Record<BlockType, ComponentType<BlockProps>>> = {
   Timer: TimerBlock,
   Form: FormBlock,
   CTAButton: CTAButtonBlock,
+  ProductTabs: ProductTabsBlock,
 };
 
 export function getBlockComponent(type: string): ComponentType<BlockProps> | null {

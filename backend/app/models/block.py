@@ -18,6 +18,7 @@ class BlockType(str, Enum):
     TIMER = "Timer"
     FORM = "Form"
     CTA_BUTTON = "CTAButton"
+    PRODUCT_TABS = "ProductTabs"
 
 
 class BlockEnvelope(BaseModel):
