@@ -1,5 +1,6 @@
 import type { ImageOnlyData, ImageOnlyMeta } from '../../../types/templates';
 import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
+import { DimensionInput } from '../shared/DimensionInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // L1: Template Config Editor — image display style only
@@ -75,14 +76,20 @@ export function ImageOnlyTemplateConfig({ block, onChange }: BlockEditorProps) {
               {textInput(meta.bgColor, (v) => updateMeta({ bgColor: v }))}
             </div>
           </label>
-          <label>
-            {label('Width')}
-            {textInput(meta.width, (v) => updateMeta({ width: v }), '100%')}
-          </label>
-          <label>
-            {label('Height')}
-            {textInput(meta.height, (v) => updateMeta({ height: v }), '100%')}
-          </label>
+          <div>
+            <DimensionInput
+              label="Width"
+              value={meta.width}
+              onChange={(v) => updateMeta({ width: v })}
+            />
+          </div>
+          <div>
+            <DimensionInput
+              label="Height"
+              value={meta.height}
+              onChange={(v) => updateMeta({ height: v })}
+            />
+          </div>
         </div>
       </fieldset>
     </div>

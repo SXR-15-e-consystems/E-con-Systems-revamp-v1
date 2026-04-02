@@ -1,5 +1,8 @@
 'use client';
 
+import Link from 'next/link';
+
+import { sanitizeUrl } from '@/lib/security';
 import type { TagData, TagMeta, TagItem } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -58,19 +61,41 @@ export function TagBlock({ data }: TagBlockProps) {
             : 'flex flex-col gap-2.5'
         }
       >
-        {tags.map((tag, i) => (
-          <span
-            key={i}
-            className="inline-block px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-            style={{
-              backgroundColor: meta.tagBgColor,
-              color: meta.tagTextColor,
-              borderRadius: meta.tagBorderRadius,
-            }}
-          >
-            {tag.label}
-          </span>
-        ))}
+        {tags.map((tag, i) => {
+          const hasLink = Boolean(tag.href);
+          const safeHref = tag.href ? sanitizeUrl(tag.href) : '';
+          const pillBg = hasLink ? '#d5e8ff' : meta.tagBgColor;
+
+          const pillStyle: React.CSSProperties = {
+            backgroundColor: pillBg,
+            color: meta.tagTextColor,
+            borderRadius: meta.tagBorderRadius,
+            width: 'max-content',
+          };
+
+          if (hasLink && safeHref) {
+            return (
+              <Link
+                key={i}
+                href={safeHref}
+                className="inline-block px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+                style={pillStyle}
+              >
+                {tag.label}
+              </Link>
+            );
+          }
+
+          return (
+            <span
+              key={i}
+              className="inline-block px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+              style={pillStyle}
+            >
+              {tag.label}
+            </span>
+          );
+        })}
       </div>
     </section>
   );

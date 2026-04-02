@@ -29,6 +29,8 @@ import { ImageOnlyBlockEditor } from '../TemplatesComps/ImageOnly/ImageOnlyBlock
 import { ImageOnlyTemplateConfig } from '../TemplatesComps/ImageOnly/ImageOnlyTemplateConfig';
 import { ActionButtonBlockEditor } from '../TemplatesComps/ActionButton/ActionButtonBlockEditor';
 import { ActionButtonTemplateConfig } from '../TemplatesComps/ActionButton/ActionButtonTemplateConfig';
+import { EvaluationSectionBlockEditor } from '../TemplatesComps/EvaluationSection/EvaluationSectionBlockEditor';
+import { EvaluationSectionTemplateConfig } from '../TemplatesComps/EvaluationSection/EvaluationSectionTemplateConfig';
 
 export interface BlockEditorProps {
   block: BlockEnvelope;
@@ -56,6 +58,7 @@ const templateConfigRegistry: Partial<Record<BlockType, ComponentType<BlockEdito
   SamplePrice: SamplePriceTemplateConfig,
   ImageOnly: ImageOnlyTemplateConfig,
   ActionButton: ActionButtonTemplateConfig,
+  EvaluationSection: EvaluationSectionTemplateConfig,
 };
 
 const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorProps>>> = {
@@ -74,6 +77,7 @@ const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorPr
   SamplePrice: SamplePriceBlockEditor,
   ImageOnly: ImageOnlyBlockEditor,
   ActionButton: ActionButtonBlockEditor,
+  EvaluationSection: EvaluationSectionBlockEditor,
 };
 
 /** Returns the L1 template config editor for a block type, or null if not applicable. */

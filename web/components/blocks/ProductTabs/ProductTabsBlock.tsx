@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type {
   ComplianceTableTabContent,
+  DatasheetCTA,
   DocumentsTabContent,
   FAQTabContent,
   OrderTableTabContent,
@@ -33,9 +34,17 @@ const DEFAULT_META: ProductTabsMeta = {
   active_color: '#2563eb',
   mobile_layout: 'horizontal_scroll',
   max_custom_tabs: 2,
+  recaptchaSiteKey: '',
+  datasheet_cta: { enabled: true, label: 'Datasheet' },
 };
 
-function renderTabContent(tab: ProductTab, data: TabContent | undefined) {
+function renderTabContent(
+  tab: ProductTab,
+  data: TabContent | undefined,
+  recaptchaSiteKey: string,
+  datasheetCta?: DatasheetCTA,
+  documentsData?: DocumentsTabContent,
+) {
   if (!data) {
     return (
       <div className="py-8 text-center text-sm text-slate-400">
@@ -46,11 +55,18 @@ function renderTabContent(tab: ProductTab, data: TabContent | undefined) {
 
   switch (tab.content_type) {
     case 'richtext':
-      return <OverviewRenderer data={data as RichTextTabContent} />;
+      return (
+        <OverviewRenderer
+          data={data as RichTextTabContent}
+          datasheetCta={tab.preset_key === 'overview' ? datasheetCta : undefined}
+          documentsData={tab.preset_key === 'overview' ? documentsData : undefined}
+          recaptchaSiteKey={recaptchaSiteKey}
+        />
+      );
     case 'spec_list':
       return <SpecListRenderer data={data as SpecListTabContent} />;
     case 'documents':
-      return <DocumentsRenderer data={data as DocumentsTabContent} />;
+      return <DocumentsRenderer data={data as DocumentsTabContent} recaptchaSiteKey={recaptchaSiteKey} />;
     case 'order_table':
       return <OrderTableRenderer data={data as OrderTableTabContent} />;
     case 'video_grid':
@@ -77,6 +93,12 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
   );
 
   const tabData = raw.content?.tab_data ?? {};
+
+  // Find documents tab data for the datasheet CTA in overview
+  const documentsTab = tabs.find((t) => t.content_type === 'documents');
+  const documentsData = documentsTab
+    ? (tabData[documentsTab.tab_id] as DocumentsTabContent | undefined)
+    : undefined;
 
   const [activeId, setActiveId] = useState<string>('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -210,25 +232,25 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
       <div className="hidden md:flex">
         {/* Left Sidebar */}
         <nav
-          className="flex-shrink-0 border-r border-slate-200"
+          className="flex-shrink-0 bg-[#f3f4f6] rounded-lg mr-6 self-start"
           style={{ width: meta.sidebar_width, minWidth: meta.sidebar_width }}
         >
-          <ul className="py-2">
+          <ul className="py-2 flex flex-col items-center">
             {tabs.map((tab) => {
               const isActive = activeId === tab.tab_id;
               return (
-                <li key={tab.tab_id}>
+                <li key={tab.tab_id} className="w-[90%]">
                   <button
                     type="button"
                     onClick={() => handleTabClick(tab)}
-                    className={`w-full text-left px-4 py-2.5 text-[13px] leading-snug transition-colors border-l-2 ${
+                    className={`w-full text-left px-4 py-2.5 text-[13px] leading-snug transition-colors ${
                       isActive
-                        ? 'font-semibold'
-                        : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        ? 'bg-white font-bold rounded-[5px] border border-transparent border-b-[#e9e4e4]'
+                        : 'border border-transparent text-slate-600 hover:text-slate-900 hover:bg-gray-200/60 rounded-[5px]'
                     }`}
                     style={
                       isActive
-                        ? { borderColor: meta.active_color, color: meta.active_color }
+                        ? { color: 'rgb(37, 99, 235)' }
                         : undefined
                     }
                   >
@@ -256,11 +278,11 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
         </nav>
 
         {/* Tab Content */}
-        <div className="flex-1 min-w-0 px-6 py-4">
+        <div className="flex-1 min-w-0 py-2">
           {activeTab && !activeTab.external_url && (
             <>
-              <h2 className="text-lg font-bold text-slate-900 mb-4">{activeTab.label}</h2>
-              {renderTabContent(activeTab, tabData[activeTab.tab_id])}
+              <h2 className="text-base font-bold text-slate-900 mb-4">{activeTab.label}</h2>
+              {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey, meta.datasheet_cta, documentsData)}
             </>
           )}
         </div>
@@ -271,7 +293,7 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
         {activeTab && !activeTab.external_url && (
           <>
             <h2 className="text-base font-bold text-slate-900 mb-3">{activeTab.label}</h2>
-            {renderTabContent(activeTab, tabData[activeTab.tab_id])}
+            {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey, meta.datasheet_cta, documentsData)}
           </>
         )}
       </div>

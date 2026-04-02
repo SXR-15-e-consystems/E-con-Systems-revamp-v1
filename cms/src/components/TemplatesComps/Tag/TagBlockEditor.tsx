@@ -39,8 +39,8 @@ export function TagBlockEditor({ block, onChange }: BlockEditorProps) {
     updateContent({ tags: tags.filter((_, i) => i !== index) });
   }
 
-  function updateTag(index: number, label: string) {
-    const updated = tags.map((t, i) => (i === index ? { label } : t));
+  function updateTag(index: number, patch: Partial<TagItem>) {
+    const updated = tags.map((t, i) => (i === index ? { ...t, ...patch } : t));
     updateContent({ tags: updated });
   }
 
@@ -118,33 +118,41 @@ export function TagBlockEditor({ block, onChange }: BlockEditorProps) {
         )}
 
         <div className={meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
-          {tags.map((tag, i) => (
-            <div
-              key={i}
-              className="group flex items-center gap-1.5"
-              style={{
-                backgroundColor: meta.tagBgColor,
-                color: meta.tagTextColor,
-                borderRadius: meta.tagBorderRadius,
-                padding: '4px 6px 4px 12px',
-              }}
-            >
-              <input
-                className="bg-transparent text-sm font-medium outline-none min-w-[60px]"
-                style={{ color: meta.tagTextColor }}
-                value={tag.label}
-                onChange={(e) => updateTag(i, e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => removeTag(i)}
-                className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs opacity-50 hover:opacity-100 hover:bg-red-100 hover:text-red-600 transition-all"
-                title="Remove tag"
+          {tags.map((tag, i) => {
+            const hasLink = Boolean(tag.href);
+            const pillBg = hasLink ? '#d5e8ff' : meta.tagBgColor;
+            return (
+              <div
+                key={i}
+                className="group flex flex-col gap-1 rounded-lg border border-gray-100 p-2"
+                style={{ backgroundColor: pillBg }}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    className="bg-transparent text-sm font-medium outline-none min-w-[60px] flex-1"
+                    style={{ color: meta.tagTextColor }}
+                    value={tag.label}
+                    placeholder="Tag label"
+                    onChange={(e) => updateTag(i, { label: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeTag(i)}
+                    className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full text-xs opacity-50 hover:opacity-100 hover:bg-red-100 hover:text-red-600 transition-all"
+                    title="Remove tag"
+                  >
+                    ×
+                  </button>
+                </div>
+                <input
+                  className="bg-white/70 rounded border border-gray-200 px-2 py-1 text-xs outline-none w-full"
+                  value={tag.href ?? ''}
+                  placeholder="Link URL (optional) e.g. /products/camera"
+                  onChange={(e) => updateTag(i, { href: e.target.value || undefined })}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -165,12 +173,13 @@ export function TagBlockEditor({ block, onChange }: BlockEditorProps) {
                   key={i}
                   className="inline-block px-4 py-1.5 text-sm font-medium"
                   style={{
-                    backgroundColor: meta.tagBgColor,
+                    backgroundColor: tag.href ? '#d5e8ff' : meta.tagBgColor,
                     color: meta.tagTextColor,
                     borderRadius: meta.tagBorderRadius,
                   }}
                 >
                   {tag.label}
+                  {tag.href && <span className="ml-1 text-[10px] text-blue-500">🔗</span>}
                 </span>
               ))}
             </div>

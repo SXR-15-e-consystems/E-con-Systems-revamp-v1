@@ -10,6 +10,7 @@ const DEFAULT_META: ProductTabsMeta = {
   active_color: '#2563eb',
   mobile_layout: 'horizontal_scroll',
   max_custom_tabs: 2,
+  recaptchaSiteKey: '',
 };
 
 function label(text: string) {
@@ -88,6 +89,23 @@ export function ProductTabsTemplateConfig({ block, onChange }: BlockEditorProps)
             }
           />
         </label>
+      </fieldset>
+
+      <fieldset className="border border-gray-200 rounded p-3 space-y-3">
+        <legend className="text-xs font-bold text-gray-700 px-1">Download Form (Documents Tab)</legend>
+        <label>
+          {label('reCAPTCHA v3 Site Key')}
+          <input
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm font-mono"
+            value={meta.recaptchaSiteKey}
+            onChange={(e) => updateMeta({ recaptchaSiteKey: e.target.value })}
+            placeholder="6Le...  (leave empty to skip reCAPTCHA)"
+          />
+        </label>
+        <p className="text-[10px] text-gray-400">
+          When users click &ldquo;Download&rdquo; in the Documents tab, a form will appear requesting their
+          details. A reCAPTCHA v3 site key is recommended for spam protection.
+        </p>
       </fieldset>
     </div>
   );

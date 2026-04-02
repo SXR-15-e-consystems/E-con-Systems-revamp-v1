@@ -67,3 +67,25 @@ export async function deletePage(slug: string): Promise<void> {
     throw new ApiError(extractErrorMessage(error), (error as AxiosError)?.response?.status);
   }
 }
+
+// ── File Uploads ──────────────────────────────────────────────────────────────
+
+export interface UploadDocumentResponse {
+  url: string;
+  filename: string;
+}
+
+export async function uploadDocument(file: File): Promise<UploadDocumentResponse> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiClient.post<UploadDocumentResponse>(
+      '/cms/uploads/documents',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 },
+    );
+    return data;
+  } catch (error) {
+    throw new ApiError(extractErrorMessage(error), (error as AxiosError)?.response?.status);
+  }
+}

@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 
-import { useSlider } from '@/hooks/useSlider';
 import { useVideoModal } from '@/hooks/useVideoModal';
 import { sanitizeUrl } from '@/lib/security';
 import { getYouTubeEmbedUrl, getYouTubeThumbnail, isYouTubeUrl } from '@/lib/youtube';
@@ -121,13 +120,9 @@ function VideoModal({
 
 function PlayButtonOverlay() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform group-hover:scale-110">
-        <svg
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="h-6 w-6 text-gray-900 translate-x-0.5"
-        >
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-[68px] h-[48px] rounded-xl bg-[#FF0000] flex items-center justify-center shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all">
+        <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
         </svg>
       </div>
@@ -135,95 +130,124 @@ function PlayButtonOverlay() {
   );
 }
 
-// ── Card ─────────────────────────────────────────────────────────────────────
+// ── Video Card (vertical: full thumbnail + play + title) ─────────────────
 
-function ContentCard({
+function VideoCard({
   item,
-  meta,
-  isVideo,
   onVideoOpen,
 }: {
   item: RelatedContentItem;
-  meta: RelatedContentMeta;
-  isVideo: boolean;
   onVideoOpen: (url: string) => void;
 }) {
-  const displayImage =
-    item.image_url ??
-    (isVideo ? (getYouTubeThumbnail(item.link) ?? undefined) : undefined);
-
-  const ctaText = item.cta_text ?? meta.ctaLabel;
-
-  const cardStyle = {
-    backgroundColor: meta.cardStyle.bgColor,
-    color: meta.cardStyle.textColor,
-    borderRadius: meta.cardStyle.borderRadius,
-  };
-
-  const handleClick = () => {
-    if (isVideo) onVideoOpen(item.link);
-  };
+  const thumbSrc = item.image_url || getYouTubeThumbnail(item.link) || '';
 
   return (
-    <div
-      className="overflow-hidden shadow-sm border border-gray-100 flex flex-col transition-shadow hover:shadow-md"
-      style={cardStyle}
+    <button
+      type="button"
+      onClick={() => onVideoOpen(item.link)}
+      className="group block w-full rounded-lg overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left bg-white"
     >
-      {/* Thumbnail */}
-      <div
-        className={`relative aspect-video w-full overflow-hidden bg-gray-200 ${isVideo ? 'cursor-pointer group' : ''}`}
-        onClick={isVideo ? handleClick : undefined}
-        role={isVideo ? 'button' : undefined}
-        tabIndex={isVideo ? 0 : undefined}
-        aria-label={isVideo ? `Play ${item.title ?? 'video'}` : undefined}
-        onKeyDown={isVideo ? (e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); } : undefined}
-      >
-        {displayImage ? (
+      <div className="relative aspect-video w-full bg-gray-100">
+        {thumbSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={thumbSrc}
+            alt={item.image_alt || item.title || 'Video thumbnail'}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+            <span className="text-xs text-gray-400">No thumbnail</span>
+          </div>
+        )}
+        <PlayButtonOverlay />
+      </div>
+      {item.title && (
+        <div className="px-3 py-2.5">
+          <p className="text-sm font-medium text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
+            {item.title}
+          </p>
+        </div>
+      )}
+    </button>
+  );
+}
+
+// ── Article / Blog Card (horizontal: small thumb + category + title) ─────
+
+function ArticleCard({ item }: { item: RelatedContentItem }) {
+  const safeLink = sanitizeUrl(item.link) || '#';
+
+  return (
+    <Link
+      href={safeLink}
+      className="flex items-start gap-3 rounded-lg border border-gray-200 p-2.5 hover:border-blue-300 hover:shadow-sm transition-all bg-white group"
+    >
+      {item.image_url && (
+        <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden bg-gray-100">
           <Image
-            src={displayImage}
+            src={item.image_url}
+            alt={item.image_alt || item.title || ''}
+            fill
+            className="object-cover"
+            sizes="64px"
+          />
+        </div>
+      )}
+      <div className="flex flex-col justify-center min-w-0 flex-1 gap-0.5">
+        {item.category && (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
+            {item.category}
+          </span>
+        )}
+        {item.title && (
+          <p className="text-sm font-medium text-slate-800 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
+            {item.title}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// ── Generic Card (Product / CaseStudy) ───────────────────────────────────
+
+function GenericCard({
+  item,
+  meta,
+}: {
+  item: RelatedContentItem;
+  meta: RelatedContentMeta;
+}) {
+  const safeLink = sanitizeUrl(item.link) || '#';
+  const ctaText = item.cta_text ?? meta.ctaLabel;
+
+  return (
+    <div className="overflow-hidden rounded-lg shadow-sm border border-gray-100 flex flex-col transition-shadow hover:shadow-md bg-white">
+      {item.image_url && (
+        <div className="relative aspect-video w-full bg-gray-200">
+          <Image
+            src={item.image_url}
             alt={item.image_alt || item.title || ''}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 33vw"
-            onError={() => undefined}
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-10 w-10 text-gray-400">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 9h18M9 21V9" strokeLinecap="round" />
-            </svg>
-          </div>
-        )}
-        {isVideo && <PlayButtonOverlay />}
-      </div>
-
-      {/* Card body */}
-      <div className="flex flex-col flex-1 p-4 gap-3">
+        </div>
+      )}
+      <div className="flex flex-col flex-1 p-4 gap-2">
         {meta.showTitle && item.title && (
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2">
-            {item.title}
-          </h3>
+          <h3 className="text-sm font-semibold leading-snug line-clamp-2 text-slate-900">{item.title}</h3>
         )}
-
         {meta.showCTA && (
           <div className="mt-auto">
-            {isVideo ? (
-              <button
-                type="button"
-                onClick={handleClick}
-                className="text-xs font-semibold underline underline-offset-2 transition-opacity hover:opacity-70"
-              >
-                {ctaText}
-              </button>
-            ) : (
-              <Link
-                href={sanitizeUrl(item.link) || '#'}
-                className="text-xs font-semibold underline underline-offset-2 transition-opacity hover:opacity-70"
-              >
-                {ctaText}
-              </Link>
-            )}
+            <Link
+              href={safeLink}
+              className="text-xs font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800 transition-colors"
+            >
+              {ctaText}
+            </Link>
           </div>
         )}
       </div>
@@ -231,113 +255,131 @@ function ContentCard({
   );
 }
 
+// ── Content type icons for headings ──────────────────────────────────────────
+
+function ContentTypeIcon({ type }: { type: RelatedContentMeta['contentType'] }) {
+  const base = 'flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white flex-shrink-0';
+  switch (type) {
+    case 'Video':
+      return (
+        <span className={base}>
+          <svg className="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+      );
+    case 'Blog':
+      return (
+        <span className={base}>
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h10" />
+          </svg>
+        </span>
+      );
+    case 'Product':
+      return (
+        <span className={base}>
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </span>
+      );
+    case 'CaseStudy':
+      return (
+        <span className={base}>
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </span>
+      );
+    default:
+      return (
+        <span className={base}>
+          <span className="text-xs font-bold">+</span>
+        </span>
+      );
+  }
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function RelatedContentBlock({ data }: RelatedContentBlockProps) {
   const parsed = data as unknown as RelatedContentData;
   const meta: RelatedContentMeta = { ...DEFAULT_META, ...parsed.meta };
+  const heading = parsed.content?.heading;
   const allItems: RelatedContentItem[] = parsed.content?.items ?? [];
   const isVideo = meta.contentType === 'Video';
+  const isBlog = meta.contentType === 'Blog';
 
-  // Video modal state — lifted here so only one video plays at a time
-  const { activeVideoUrl, isOpen: isModalOpen, open: openVideo, close: closeVideo } = useVideoModal();
+  const {
+    activeVideoUrl,
+    isOpen: isModalOpen,
+    open: openVideo,
+    close: closeVideo,
+  } = useVideoModal();
 
-  // Slider state — only used when sliderMode is enabled
-  const { activeIndex, goTo, next, prev, pause } = useSlider(
-    allItems.length,
-    0, // no autoplay on content cards
-  );
-
-  // When in slider mode, show a window of displayCount items starting at activeIndex
-  const visibleItems = meta.sliderMode
-    ? (() => {
-        const result: RelatedContentItem[] = [];
-        for (let i = 0; i < meta.displayCount; i++) {
-          const idx = (activeIndex + i) % allItems.length;
-          if (allItems[idx]) result.push(allItems[idx]!);
-        }
-        return result;
-      })()
-    : allItems.slice(0, meta.displayCount);
+  const visibleItems = allItems.slice(0, meta.displayCount);
 
   if (allItems.length === 0) return null;
 
-  const gridCols: Record<number, string> = {
-    1: 'grid-cols-1',
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
-  };
-
-  const canSlide = meta.sliderMode && allItems.length > meta.displayCount;
-
-  // Find the title of the active video for the modal
   const activeVideoItem = activeVideoUrl
     ? allItems.find((item) => item.link === activeVideoUrl)
     : null;
 
   return (
     <div className="w-full" style={{ width: meta.width }}>
-      <div className="relative">
-        {/* Cards grid */}
-        <div className={`grid gap-5 ${gridCols[meta.displayCount] ?? 'grid-cols-3'}`}>
+      {/* Section heading with icon */}
+      {heading && (
+        <h2 className="flex items-center gap-2 text-base font-bold text-slate-900 mb-4">
+          <ContentTypeIcon type={meta.contentType} />
+          {heading}
+        </h2>
+      )}
+
+      {/* ═══ Video layout: vertical stacked cards ═══ */}
+      {isVideo && (
+        <div className="space-y-4">
           {visibleItems.map((item, i) => (
-            <ContentCard
-              key={`${item.link}-${i}`}
-              item={item}
-              meta={meta}
-              isVideo={isVideo}
-              onVideoOpen={(url) => {
-                pause();
-                openVideo(url);
-              }}
-            />
+            <VideoCard key={`video-${i}`} item={item} onVideoOpen={openVideo} />
+          ))}
+          {allItems.length > meta.displayCount && meta.showCTA && (
+            <div className="flex justify-center pt-1">
+              <button
+                type="button"
+                className="rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-slate-700 hover:border-blue-400 hover:text-blue-600 transition-colors"
+              >
+                More videos
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ Blog/Article layout: horizontal mini-cards stacked ═══ */}
+      {isBlog && (
+        <div className="space-y-3">
+          {visibleItems.map((item, i) => (
+            <ArticleCard key={`article-${i}`} item={item} />
           ))}
         </div>
+      )}
 
-        {/* Slider navigation */}
-        {canSlide && (
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              aria-label="Previous"
-              onClick={() => { pause(); prev(); }}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:border-gray-500 transition-colors"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="flex gap-1.5">
-              {Array.from({ length: allItems.length }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-label={`Go to item ${i + 1}`}
-                  onClick={() => { pause(); goTo(i); }}
-                  className={`h-2 rounded-full transition-all ${
-                    i >= activeIndex && i < activeIndex + meta.displayCount
-                      ? 'w-4 bg-gray-700'
-                      : 'w-2 bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              aria-label="Next"
-              onClick={() => { pause(); next(); }}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:border-gray-500 transition-colors"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        )}
-      </div>
+      {/* ═══ Product / CaseStudy layout: grid cards ═══ */}
+      {!isVideo && !isBlog && (
+        <div
+          className={`grid gap-4 ${
+            meta.displayCount <= 2
+              ? 'grid-cols-1 sm:grid-cols-2'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+          }`}
+        >
+          {visibleItems.map((item, i) => (
+            <GenericCard key={`card-${i}`} item={item} meta={meta} />
+          ))}
+        </div>
+      )}
 
-      {/* Video modal — rendered once at this level; iframe unmounted when closed */}
+      {/* Video modal */}
       {isModalOpen && activeVideoUrl && isYouTubeUrl(activeVideoUrl) && (
         <VideoModal
           videoUrl={activeVideoUrl}

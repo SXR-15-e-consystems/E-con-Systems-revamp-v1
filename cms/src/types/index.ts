@@ -19,7 +19,8 @@ export type BlockType =
   | 'ProductDescription'
   | 'SamplePrice'
   | 'ImageOnly'
-  | 'ActionButton';
+  | 'ActionButton'
+  | 'EvaluationSection';
 
 export interface BlockEnvelope {
   block_id: string;

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status
 from typing import Any
 
 from app.database import get_db
@@ -14,6 +14,9 @@ from app.services.page_service import (
     list_pages,
     update_page,
 )
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -108,3 +111,60 @@ async def cms_delete_page(
         from fastapi import HTTPException
 
         raise HTTPException(status_code=exc.status_code, detail=_service_error_response(exc)) from exc
+
+
+@router.post("/uploads/documents")
+async def cms_upload_document(
+    file: UploadFile,
+    current_user: dict = Depends(require_role(_EDITORS)),
+) -> dict[str, str]:
+    """Upload a document file (PDF, ZIP, Word, STP, etc.) to S3.
+
+    Returns the public URL for the uploaded file.
+    Only CMS editors/admins can upload.
+    """
+    from app.services.storage_service import (
+        MAX_FILE_SIZE,
+        upload_file_to_s3,
+        validate_upload,
+    )
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": "VALIDATION_ERROR", "message": "Filename is required", "details": []}},
+        )
+
+    # Read file content with size limit
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        max_mb = MAX_FILE_SIZE // (1024 * 1024)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": "FILE_TOO_LARGE", "message": f"File exceeds {max_mb} MB limit", "details": []}},
+        )
+
+    content_type = file.content_type or "application/octet-stream"
+    validation_error = validate_upload(file.filename, content_type, len(contents))
+    if validation_error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": "VALIDATION_ERROR", "message": validation_error, "details": []}},
+        )
+
+    try:
+        url = upload_file_to_s3(contents, file.filename, content_type)
+    except ValueError as exc:
+        logger.error("Storage not configured: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": {"code": "STORAGE_ERROR", "message": "File storage is not configured", "details": []}},
+        ) from exc
+    except Exception as exc:
+        logger.exception("File upload failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": {"code": "UPLOAD_FAILED", "message": "File upload failed. Please try again.", "details": []}},
+        ) from exc
+
+    return {"url": url, "filename": file.filename}

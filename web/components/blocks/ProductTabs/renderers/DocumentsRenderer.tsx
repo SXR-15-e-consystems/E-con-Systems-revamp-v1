@@ -5,11 +5,14 @@ import { useCallback, useState } from 'react';
 import { sanitizeUrl } from '@/lib/security';
 import type { DocumentsTabContent } from '@/types/templates';
 
+import { DownloadFormModal } from './DownloadFormModal';
+
 interface Props {
   data: DocumentsTabContent;
+  recaptchaSiteKey?: string;
 }
 
-export function DocumentsRenderer({ data }: Props) {
+export function DocumentsRenderer({ data, recaptchaSiteKey = '' }: Props) {
   const groups = data.groups ?? [];
 
   const [selected, setSelected] = useState<Set<string>>(() => {
@@ -17,6 +20,8 @@ export function DocumentsRenderer({ data }: Props) {
     groups.forEach((g) => g.items.forEach((item) => all.add(item.url)));
     return all;
   });
+
+  const [showForm, setShowForm] = useState(false);
 
   const toggleItem = useCallback((url: string) => {
     setSelected((prev) => {
@@ -31,13 +36,23 @@ export function DocumentsRenderer({ data }: Props) {
   }, []);
 
   const handleDownload = useCallback(() => {
-    selected.forEach((url) => {
-      const safeUrl = sanitizeUrl(url);
-      if (safeUrl) {
-        window.open(safeUrl, '_blank', 'noopener,noreferrer');
-      }
-    });
+    if (selected.size === 0) return;
+    setShowForm(true);
   }, [selected]);
+
+  const handleCloseForm = useCallback(() => {
+    setShowForm(false);
+  }, []);
+
+  // Build list of selected documents with names for the modal
+  const selectedDocuments = groups.flatMap((g) =>
+    g.items
+      .filter((item) => selected.has(item.url))
+      .map((item) => ({
+        name: item.name,
+        url: sanitizeUrl(item.url) || item.url,
+      })),
+  );
 
   if (groups.length === 0) {
     return <p className="text-sm text-slate-400">No documents available.</p>;
@@ -87,6 +102,13 @@ export function DocumentsRenderer({ data }: Props) {
         </svg>
         Documents
       </button>
+
+      <DownloadFormModal
+        open={showForm}
+        onClose={handleCloseForm}
+        documents={selectedDocuments}
+        recaptchaSiteKey={recaptchaSiteKey}
+      />
     </div>
   );
 }

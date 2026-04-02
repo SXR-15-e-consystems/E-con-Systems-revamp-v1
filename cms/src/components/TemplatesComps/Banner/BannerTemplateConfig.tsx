@@ -1,5 +1,6 @@
 import type { BannerData, BannerMeta, CTAPosition, BannerVariant } from '../../../types/templates';
 import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
+import { DimensionInput } from '../shared/DimensionInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // L1: Template Config Editor — layout & style metadata only, no content values
@@ -72,14 +73,20 @@ export function BannerTemplateConfig({ block, onChange }: BlockEditorProps) {
       <fieldset className="border border-gray-200 rounded p-3 space-y-3">
         <legend className="text-xs font-bold text-gray-700 px-1">Dimensions</legend>
         <div className="grid grid-cols-2 gap-3">
-          <label>
-            {label('Width')}
-            {textInput(meta.width, (v) => updateMeta({ width: v }), '100% or 1200px')}
-          </label>
-          <label>
-            {label('Height')}
-            {textInput(meta.height, (v) => updateMeta({ height: v }), '480px or 60vh')}
-          </label>
+          <div>
+            <DimensionInput
+              label="Width"
+              value={meta.width}
+              onChange={(v) => updateMeta({ width: v })}
+            />
+          </div>
+          <div>
+            <DimensionInput
+              label="Height"
+              value={meta.height}
+              onChange={(v) => updateMeta({ height: v })}
+            />
+          </div>
         </div>
         <label>
           {label('Fallback BG Colour')}

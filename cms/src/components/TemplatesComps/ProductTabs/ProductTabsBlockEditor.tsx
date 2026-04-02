@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
+import { uploadDocument } from '../../../api/endpoints';
 import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
 import type {
   ComplianceCategory,
   ComplianceTableTabContent,
+  DatasheetCTA,
   DocumentGroup,
   DocumentsTabContent,
   FAQTabContent,
@@ -54,6 +56,8 @@ const DEFAULT_META: ProductTabsMeta = {
   active_color: '#2563eb',
   mobile_layout: 'horizontal_scroll',
   max_custom_tabs: 2,
+  recaptchaSiteKey: '',
+  datasheet_cta: { enabled: true, label: 'Datasheet' },
 };
 
 function emptyContent(type: TabContentType): TabContent {
@@ -91,15 +95,22 @@ function RichTextTabEditor({
   return (
     <div className="space-y-3">
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-semibold text-gray-600">HTML Content</span>
+        <span className="text-xs font-semibold text-gray-600">
+          HTML Content
+          <span className="ml-1 font-normal text-gray-400">
+            (paste or type HTML directly — use &lt;a href=&quot;…&quot;&gt; for links)
+          </span>
+        </span>
         <textarea
-          className="rounded border border-gray-300 px-3 py-2 text-sm font-mono resize-y min-h-[120px]"
+          className="rounded border border-gray-300 px-3 py-2 text-sm font-mono resize-y min-h-[180px] focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
           value={content.html}
           onChange={(e) => onChange({ ...content, html: e.target.value })}
+          placeholder={'<p>Enter HTML content here.</p>\n<a href="https://example.com" target="_blank" rel="noopener noreferrer">Link text</a>'}
+          spellCheck={false}
         />
       </label>
       <div>
-        <span className="text-xs font-semibold text-gray-600 block mb-1">Links</span>
+        <span className="text-xs font-semibold text-gray-600 block mb-1">External Links (shown below content)</span>
         {links.map((link, i) => (
           <div key={i} className="flex items-center gap-2 mb-2">
             <input
@@ -151,6 +162,7 @@ function SpecListTabEditor({
   onChange: (c: SpecListTabContent) => void;
 }) {
   const sections = content.sections ?? [];
+  const html = content.html ?? '';
 
   function updateSection(si: number, patch: Partial<SpecSection>) {
     const updated = sections.map((s, i) => (i === si ? { ...s, ...patch } : s));
@@ -164,6 +176,30 @@ function SpecListTabEditor({
 
   return (
     <div className="space-y-4">
+      {/* HTML Editor */}
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-gray-700">
+          Key Specifications HTML
+          <span className="ml-1 text-gray-400 font-normal">
+            (use &lt;ul&gt;&lt;li&gt; for green tick list)
+          </span>
+        </label>
+        <textarea
+          className="w-full rounded border border-gray-300 px-3 py-2 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          rows={10}
+          placeholder="<ul>\n  <li>Feature one</li>\n  <li>Feature two</li>\n</ul>"
+          value={html}
+          onChange={(e) => onChange({ ...content, html: e.target.value })}
+        />
+        <p className="text-xs text-gray-500">
+          Lists (&lt;ul&gt;&lt;li&gt;) render with green ✓ tick marks on the public site.
+        </p>
+      </div>
+
+      {/* Structured Sections (below HTML) */}
+      <div className="border-t border-gray-200 pt-4">
+        <p className="text-xs font-semibold text-gray-700 mb-2">Structured Sections</p>
+      </div>
       {sections.map((section, si) => (
         <div key={si} className="border border-gray-200 rounded p-3 space-y-2">
           <div className="flex items-center justify-between">
@@ -238,6 +274,8 @@ function SpecListTabEditor({
   );
 }
 
+const ALLOWED_DOC_EXTENSIONS = '.pdf,.zip,.doc,.docx,.stp,.step,.igs,.iges';
+
 function DocumentsTabEditor({
   content,
   onChange,
@@ -246,14 +284,69 @@ function DocumentsTabEditor({
   onChange: (c: DocumentsTabContent) => void;
 }) {
   const groups = content.groups ?? [];
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   function updateGroup(gi: number, patch: Partial<DocumentGroup>) {
     const updated = groups.map((g, i) => (i === gi ? { ...g, ...patch } : g));
     onChange({ ...content, groups: updated });
   }
 
+  async function handleFileUpload(gi: number, ii: number, file: File) {
+    const key = `${gi}-${ii}`;
+    setUploadingKey(key);
+    setUploadError(null);
+
+    try {
+      const result = await uploadDocument(file);
+      const items = [...groups[gi].items];
+      items[ii] = {
+        name: items[ii].name || file.name.replace(/\.[^.]+$/, ''),
+        url: result.url,
+      };
+      updateGroup(gi, { items });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      setUploadError(msg);
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  async function handleUploadNewDocument(gi: number, file: File) {
+    setUploadingKey(`new-${gi}`);
+    setUploadError(null);
+
+    try {
+      const result = await uploadDocument(file);
+      const docName = file.name.replace(/\.[^.]+$/, '');
+      updateGroup(gi, {
+        items: [...groups[gi].items, { name: docName, url: result.url }],
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      setUploadError(msg);
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {uploadError && (
+        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {uploadError}
+          <button
+            type="button"
+            onClick={() => setUploadError(null)}
+            className="ml-2 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {groups.map((group, gi) => (
         <div key={gi} className="border border-gray-200 rounded p-3 space-y-2">
           <div className="flex items-center justify-between">
@@ -271,48 +364,123 @@ function DocumentsTabEditor({
               Remove
             </button>
           </div>
-          {group.items.map((item, ii) => (
-            <div key={ii} className="flex items-center gap-2">
-              <input
-                className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
-                placeholder="Document name"
-                value={item.name}
-                onChange={(e) => {
-                  const items = [...group.items];
-                  items[ii] = { ...item, name: e.target.value };
-                  updateGroup(gi, { items });
-                }}
-              />
-              <input
-                className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
-                placeholder="Download URL"
-                value={item.url}
-                onChange={(e) => {
-                  const items = [...group.items];
-                  items[ii] = { ...item, url: e.target.value };
-                  updateGroup(gi, { items });
-                }}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  updateGroup(gi, { items: group.items.filter((_, j) => j !== ii) })
-                }
-                className="text-red-500 text-xs font-bold"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() =>
-              updateGroup(gi, { items: [...group.items, { name: '', url: '' }] })
-            }
-            className="text-xs text-blue-600 hover:text-blue-800"
-          >
-            + Add Document
-          </button>
+          {group.items.map((item, ii) => {
+            const itemKey = `${gi}-${ii}`;
+            const isUploading = uploadingKey === itemKey;
+            return (
+              <div key={ii} className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <input
+                    className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                    placeholder="Document name"
+                    value={item.name}
+                    onChange={(e) => {
+                      const items = [...group.items];
+                      items[ii] = { ...item, name: e.target.value };
+                      updateGroup(gi, { items });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateGroup(gi, { items: group.items.filter((_, j) => j !== ii) })
+                    }
+                    className="text-red-500 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm text-gray-500"
+                    placeholder="Download URL (auto-filled on upload)"
+                    value={item.url}
+                    onChange={(e) => {
+                      const items = [...group.items];
+                      items[ii] = { ...item, url: e.target.value };
+                      updateGroup(gi, { items });
+                    }}
+                  />
+                  <input
+                    ref={(el) => { fileInputRefs.current[itemKey] = el; }}
+                    type="file"
+                    accept={ALLOWED_DOC_EXTENSIONS}
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(gi, ii, file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUploading}
+                    onClick={() => fileInputRefs.current[itemKey]?.click()}
+                    className="flex-shrink-0 inline-flex items-center gap-1 rounded border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                    title="Upload or replace file"
+                  >
+                    {isUploading ? (
+                      <span className="animate-pulse">Uploading…</span>
+                    ) : (
+                      <>
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        {item.url ? 'Replace' : 'Upload'}
+                      </>
+                    )}
+                  </button>
+                </div>
+                {item.url && (
+                  <p className="text-[10px] text-green-600 truncate pl-0.5" title={item.url}>
+                    ✓ {item.url}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Upload new document button */}
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              ref={(el) => { fileInputRefs.current[`new-${gi}`] = el; }}
+              type="file"
+              accept={ALLOWED_DOC_EXTENSIONS}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleUploadNewDocument(gi, file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              disabled={uploadingKey === `new-${gi}`}
+              onClick={() => fileInputRefs.current[`new-${gi}`]?.click()}
+              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+            >
+              {uploadingKey === `new-${gi}` ? (
+                <span className="animate-pulse">Uploading…</span>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload Document
+                </>
+              )}
+            </button>
+            <span className="text-gray-300">|</span>
+            <button
+              type="button"
+              onClick={() =>
+                updateGroup(gi, { items: [...group.items, { name: '', url: '' }] })
+              }
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              + Add Manually
+            </button>
+          </div>
         </div>
       ))}
       <button
@@ -472,12 +640,17 @@ function VideoGridTabEditor({
             value={item.video_url}
             onChange={(e) => updateItem(i, { video_url: e.target.value })}
           />
-          <input
-            className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-            placeholder="Thumbnail URL"
-            value={item.thumbnail_url}
-            onChange={(e) => updateItem(i, { thumbnail_url: e.target.value })}
-          />
+          <div>
+            <input
+              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+              placeholder="Thumbnail URL (optional — auto-derived from YouTube)"
+              value={item.thumbnail_url}
+              onChange={(e) => updateItem(i, { thumbnail_url: e.target.value })}
+            />
+            <span className="text-[10px] text-gray-400 mt-0.5 block">
+              Leave empty to use the default YouTube thumbnail
+            </span>
+          </div>
         </div>
       ))}
       <button
@@ -771,6 +944,14 @@ export function ProductTabsBlockEditor({ block, onChange }: BlockEditorProps) {
     } as unknown as Record<string, unknown>);
   }
 
+  function updateMeta(patch: Partial<ProductTabsMeta>) {
+    onChange({
+      ...data,
+      meta: { ...meta, ...patch },
+      content: contentData,
+    } as unknown as Record<string, unknown>);
+  }
+
   function toggleTab(tabId: string) {
     const updated = tabs.map((t) =>
       t.tab_id === tabId ? { ...t, enabled: !t.enabled } : t,
@@ -839,6 +1020,39 @@ export function ProductTabsBlockEditor({ block, onChange }: BlockEditorProps) {
         <span>
           <strong>Custom slots:</strong> {customTabs.length}/{maxCustom}
         </span>
+      </div>
+
+      {/* Datasheet CTA toggle */}
+      <div className="rounded border border-gray-200 bg-white px-3 py-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="datasheet-cta-toggle"
+            checked={meta.datasheet_cta?.enabled ?? false}
+            onChange={(e) => {
+              const current: DatasheetCTA = meta.datasheet_cta ?? { enabled: false, label: 'Datasheet' };
+              updateMeta({ datasheet_cta: { ...current, enabled: e.target.checked } });
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+          />
+          <label htmlFor="datasheet-cta-toggle" className="text-xs font-semibold text-gray-700">
+            Show &quot;Refer Datasheet&quot; line below Overview content
+          </label>
+        </div>
+        {meta.datasheet_cta?.enabled && (
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-semibold text-gray-500">Display label (shown as link text)</span>
+            <input
+              className="rounded border border-gray-300 px-2 py-1.5 text-sm w-60"
+              placeholder="Datasheet"
+              value={meta.datasheet_cta?.label ?? 'Datasheet'}
+              onChange={(e) => {
+                const current: DatasheetCTA = meta.datasheet_cta ?? { enabled: true, label: 'Datasheet' };
+                updateMeta({ datasheet_cta: { ...current, label: e.target.value } });
+              }}
+            />
+          </label>
+        )}
       </div>
 
       {/* ══ Default Tabs ══ */}

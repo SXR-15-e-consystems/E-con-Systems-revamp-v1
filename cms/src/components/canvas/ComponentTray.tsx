@@ -214,7 +214,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       textColor: '#374151',
       textFontSize: '15px',
       bulletStyle: 'disc',
-      bulletColor: '#374151',
+      bulletColor: '#16a34a',
       lineSpacing: '1.7',
       width: '100%',
     },
@@ -284,6 +284,25 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
       align: 'left',
     },
     defaultSpan: { cols: 10, rows: 3 },
+  },
+
+  // ── Evaluation Section ──
+  {
+    type: 'EvaluationSection',
+    label: 'Evaluation Section',
+    description: 'Horizontal product cards with image, name & optional badge',
+    icon: '🧪',
+    category: 'content',
+    defaultMeta: {
+      bgColor: '#ffffff',
+      headingColor: '#1f2937',
+      nameColor: '#2563eb',
+      badgeBgColor: '#16a34a',
+      badgeTextColor: '#ffffff',
+      cardWidth: '180px',
+      cardGap: '24px',
+    },
+    defaultSpan: { cols: 40, rows: 6 },
   },
 ];
 

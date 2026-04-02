@@ -24,7 +24,7 @@ export function sanitizeHtml(html: string): string {
       'src', 'alt', 'width', 'height',
       'class', 'id',
     ],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):)/i,
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[/])/i,
     ALLOW_DATA_ATTR: false,
   });
 }

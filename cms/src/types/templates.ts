@@ -83,9 +83,11 @@ export interface RelatedContentItem {
   title?: string;
   link: string; // YouTube URL for Video type; page URL for others
   cta_text?: string;
+  category?: string; // e.g., "CAMERA", "IOS" — shows as label on Blog/Article cards
 }
 
 export interface RelatedContentContent {
+  heading?: string;
   items: RelatedContentItem[];
 }
 
@@ -232,6 +234,7 @@ export interface SpecSection {
 }
 
 export interface SpecListTabContent {
+  html?: string;
   sections: SpecSection[];
 }
 
@@ -292,11 +295,18 @@ export type TabContent =
   | ComplianceTableTabContent
   | FAQTabContent;
 
+export interface DatasheetCTA {
+  enabled: boolean;
+  label: string;
+}
+
 export interface ProductTabsMeta {
   sidebar_width: string;
   active_color: string;
   mobile_layout: 'horizontal_scroll' | 'dropdown';
   max_custom_tabs: number;
+  recaptchaSiteKey: string;
+  datasheet_cta?: DatasheetCTA;
 }
 
 export interface ProductTabsContent {
@@ -352,6 +362,7 @@ export interface TagMeta {
 
 export interface TagItem {
   label: string;
+  href?: string;
 }
 
 export interface TagContent {
@@ -501,4 +512,36 @@ export interface ActionButtonContent {
 export interface ActionButtonData {
   meta: ActionButtonMeta;
   content: ActionButtonContent;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVALUATION SECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface EvaluationSectionMeta {
+  bgColor: string;
+  headingColor: string;
+  nameColor: string;
+  badgeBgColor: string;
+  badgeTextColor: string;
+  cardWidth: string;
+  cardGap: string;
+}
+
+export interface EvaluationItem {
+  image_url: string;
+  image_alt: string;
+  name: string;
+  link: string;
+  badge?: string;
+}
+
+export interface EvaluationSectionContent {
+  heading: string;
+  items: EvaluationItem[];
+}
+
+export interface EvaluationSectionData {
+  meta: EvaluationSectionMeta;
+  content: EvaluationSectionContent;
 }

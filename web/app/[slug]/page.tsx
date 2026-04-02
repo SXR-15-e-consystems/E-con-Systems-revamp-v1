@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { fetchPublicPage } from '@/lib/api';
 
@@ -28,6 +29,12 @@ export default async function SlugPage({ params }: Props) {
     notFound();
   }
 
-  // template_config is now embedded in the page response
-  return <BlockRenderer page={page} template={page.template_config} />;
+  const breadcrumbItems = [{ label: page.title }];
+
+  return (
+    <>
+      <Breadcrumbs items={breadcrumbItems} />
+      <BlockRenderer page={page} template={page.template_config} />
+    </>
+  );
 }

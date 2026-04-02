@@ -26,6 +26,7 @@ class BlockType(str, Enum):
     SAMPLE_PRICE = "SamplePrice"
     IMAGE_ONLY = "ImageOnly"
     ACTION_BUTTON = "ActionButton"
+    EVALUATION_SECTION = "EvaluationSection"
 
 
 class BlockEnvelope(BaseModel):

@@ -16,6 +16,7 @@ import { ProductDescriptionBlock } from '@/components/TemplatesComps/ProductDesc
 import { SamplePriceBlock } from '@/components/TemplatesComps/SamplePrice/SamplePriceBlock';
 import { ImageOnlyBlock } from '@/components/TemplatesComps/ImageOnly/ImageOnlyBlock';
 import { ActionButtonBlock } from '@/components/TemplatesComps/ActionButton/ActionButtonBlock';
+import { EvaluationSectionBlock } from '@/components/TemplatesComps/EvaluationSection/EvaluationSectionBlock';
 
 export interface BlockProps {
   data: Record<string, unknown>;
@@ -37,6 +38,7 @@ const registry: Partial<Record<BlockType, ComponentType<BlockProps>>> = {
   SamplePrice: SamplePriceBlock,
   ImageOnly: ImageOnlyBlock,
   ActionButton: ActionButtonBlock,
+  EvaluationSection: EvaluationSectionBlock,
 };
 
 export function getBlockComponent(type: string): ComponentType<BlockProps> | null {

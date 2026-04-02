@@ -18,7 +18,7 @@ const DEFAULT_META: ProductDescriptionMeta = {
   textColor: '#374151',
   textFontSize: '15px',
   bulletStyle: 'disc',
-  bulletColor: '#374151',
+  bulletColor: '#16a34a',
   lineSpacing: '1.7',
   width: '100%',
 };

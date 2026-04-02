@@ -53,21 +53,26 @@ function fi(
 export function RelatedContentBlockEditor({ block, onChange }: BlockEditorProps) {
   const data = block.data as unknown as RelatedContentData;
   const meta: RelatedContentMeta = { ...DEFAULT_META, ...data.meta };
+  const heading: string = data.content?.heading ?? '';
   const items: RelatedContentItem[] = data.content?.items ?? [{ ...EMPTY_ITEM }];
   const isVideo = meta.contentType === 'Video';
 
+  function updateContent(patch: Partial<{ heading: string; items: RelatedContentItem[] }>) {
+    onChange({ ...data, content: { heading, items, ...patch } });
+  }
+
   function updateItem(index: number, patch: Partial<RelatedContentItem>) {
     const updated = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
-    onChange({ ...data, content: { items: updated } });
+    updateContent({ items: updated });
   }
 
   function addItem() {
-    onChange({ ...data, content: { items: [...items, { ...EMPTY_ITEM }] } });
+    updateContent({ items: [...items, { ...EMPTY_ITEM }] });
   }
 
   function removeItem(index: number) {
     if (items.length <= 1) return;
-    onChange({ ...data, content: { items: items.filter((_, i) => i !== index) } });
+    updateContent({ items: items.filter((_, i) => i !== index) });
   }
 
   return (
@@ -79,6 +84,14 @@ export function RelatedContentBlockEditor({ block, onChange }: BlockEditorProps)
         <span><strong>Slider:</strong> {meta.sliderMode ? 'yes' : 'no'}</span>
         {meta.showCTA && <span><strong>CTA label:</strong> {meta.ctaLabel}</span>}
       </div>
+
+      {/* Section heading */}
+      {fi(
+        'Section Heading',
+        heading,
+        (v) => updateContent({ heading: v }),
+        'e.g., Related Products',
+      )}
 
       {isVideo && (
         <p className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-3 py-2">
@@ -118,6 +131,14 @@ export function RelatedContentBlockEditor({ block, onChange }: BlockEditorProps)
             )}
 
             {meta.showTitle && fi('Title', item.title ?? '', (v) => updateItem(index, { title: v }))}
+
+            {!isVideo && fi(
+              'Category Label',
+              item.category ?? '',
+              (v) => updateItem(index, { category: v }),
+              'e.g., CAMERA, IOS, LINUX',
+              'Shown as uppercase badge on Blog/Article cards',
+            )}
 
             {meta.showCTA && fi(
               'CTA Text (overrides default)',
