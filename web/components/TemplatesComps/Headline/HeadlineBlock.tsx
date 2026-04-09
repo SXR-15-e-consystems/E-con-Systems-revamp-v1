@@ -13,10 +13,10 @@ interface HeadlineBlockProps {
 
 const DEFAULT_META: HeadlineMeta = {
   tag: 'h2',
-  fontFamily: 'Inter, sans-serif',
-  fontSize: '28px',
+  fontFamily: 'Arial, Helvetica, sans-serif',
+  fontSize: '20px',
   fontWeight: '700',
-  textColor: '#1a1a2e',
+  textColor: '#1e4ea2',
   bgColor: 'transparent',
   align: 'left',
   width: '100%',
@@ -45,7 +45,7 @@ export function HeadlineBlock({ data }: HeadlineBlockProps) {
 
   return (
     <section
-      className="mx-auto"
+      className="w-full"
       style={{
         width: meta.width,
         maxWidth: '100%',

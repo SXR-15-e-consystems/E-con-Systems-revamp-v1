@@ -331,7 +331,7 @@ export interface ProductImageSliderData {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type TagLayout = 'grid' | 'list';
+export type TagLayout = 'grid' | 'list' | 'row';
 
 export interface TagMeta {
   layout: TagLayout;

@@ -51,6 +51,53 @@ function pointerToCell(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helper: detect & resolve overlapping components
+// Pushes overlapped blocks down so nothing visually collides.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function rectsOverlap(
+  a: { col_start: number; col_end: number; row_start: number; row_end: number },
+  b: { col_start: number; col_end: number; row_start: number; row_end: number },
+): boolean {
+  return (
+    a.col_start < b.col_end &&
+    a.col_end > b.col_start &&
+    a.row_start < b.row_end &&
+    a.row_end > b.row_start
+  );
+}
+
+function resolveOverlaps(
+  components: TemplateComponent[],
+  movedId: string,
+): TemplateComponent[] {
+  const result = components.map((c) => ({ ...c, grid_placement: { ...c.grid_placement } }));
+  const moved = result.find((c) => c.component_id === movedId);
+  if (!moved) return result;
+
+  // Iteratively push down any block that overlaps with the moved block
+  let changed = true;
+  let iterations = 0;
+  const MAX_ITERATIONS = result.length * 2; // safety valve
+
+  while (changed && iterations < MAX_ITERATIONS) {
+    changed = false;
+    iterations++;
+    for (const other of result) {
+      if (other.component_id === movedId) continue;
+      if (rectsOverlap(moved.grid_placement, other.grid_placement)) {
+        // Push `other` below `moved`
+        const rowSpan = other.grid_placement.row_end - other.grid_placement.row_start;
+        other.grid_placement.row_start = moved.grid_placement.row_end;
+        other.grid_placement.row_end = other.grid_placement.row_start + rowSpan;
+        changed = true;
+      }
+    }
+  }
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TemplateBuilderPage
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -103,7 +150,17 @@ export function TemplateBuilderPage() {
         ...template.grid,
         columns: template.grid.columns < 40 ? 40 : template.grid.columns,
       });
-      setComponents(template.components);
+      // Migrate: ensure __order is set (derive from row_start for legacy templates)
+      const migratedComponents = template.components.map((c) => ({
+        ...c,
+        meta: {
+          ...c.meta,
+          __order: typeof c.meta.__order === 'number'
+            ? c.meta.__order
+            : c.grid_placement.row_start,
+        },
+      }));
+      setComponents(migratedComponents);
       setInitialized(true);
     }
   }, [template, initialized]);
@@ -177,11 +234,13 @@ export function TemplateBuilderPage() {
             row_start: row,
             row_end: row + def.defaultSpan.rows,
           },
-          meta: { ...def.defaultMeta },
+          meta: { ...def.defaultMeta, __height: 'auto', __order: components.length },
           required: true,
           order: components.length,
         };
-        setComponents((prev) => [...prev, newComponent]);
+        setComponents((prev) =>
+          resolveOverlaps([...prev, newComponent], newComponent.component_id),
+        );
         setSelectedId(newComponent.component_id);
         return;
       }
@@ -192,8 +251,8 @@ export function TemplateBuilderPage() {
         const { col, row } = computeCell();
         const colSpan = comp.grid_placement.col_end - comp.grid_placement.col_start;
         const rowSpan = comp.grid_placement.row_end - comp.grid_placement.row_start;
-        setComponents((prev) =>
-          prev.map((c) =>
+        setComponents((prev) => {
+          const updated = prev.map((c) =>
             c.component_id === comp.component_id
               ? {
                   ...c,
@@ -205,8 +264,9 @@ export function TemplateBuilderPage() {
                   },
                 }
               : c,
-          ),
-        );
+          );
+          return resolveOverlaps(updated, comp.component_id);
+        });
         return;
       }
     },
@@ -219,9 +279,12 @@ export function TemplateBuilderPage() {
   }, []);
 
   const handleComponentUpdate = useCallback((updated: TemplateComponent) => {
-    setComponents((prev) =>
-      prev.map((c) => (c.component_id === updated.component_id ? updated : c)),
-    );
+    setComponents((prev) => {
+      const list = prev.map((c) =>
+        c.component_id === updated.component_id ? updated : c,
+      );
+      return resolveOverlaps(list, updated.component_id);
+    });
   }, []);
 
   const selectedComponent = components.find((c) => c.component_id === selectedId) ?? null;
@@ -403,6 +466,7 @@ export function TemplateBuilderPage() {
         <ComponentConfigPanel
           component={selectedComponent}
           onChange={handleComponentUpdate}
+          grid={grid}
         />
       </div>
     </div>

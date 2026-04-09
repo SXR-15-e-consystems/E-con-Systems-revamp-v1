@@ -20,15 +20,15 @@ interface ActionButtonBlockProps {
 }
 
 const DEFAULT_META: ActionButtonMeta = {
-  bgColor: '#2952cc',
+  bgColor: '#1e4ea2',
   textColor: '#ffffff',
-  fontSize: '16px',
+  fontSize: '14px',
   fontWeight: '700',
-  subTextColor: '#1f2937',
-  subTextFontSize: '13px',
+  subTextColor: '#374151',
+  subTextFontSize: '12px',
   borderRadius: '6px',
-  paddingX: '28px',
-  paddingY: '12px',
+  paddingX: '24px',
+  paddingY: '10px',
   icon: 'cart',
   iconPosition: 'left',
   width: 'auto',

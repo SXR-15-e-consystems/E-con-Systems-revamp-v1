@@ -17,9 +17,9 @@ const DEFAULT_META: SamplePriceMeta = {
   currency: 'USD',
   bgColor: '#ffffff',
   labelColor: '#374151',
-  priceColor: '#2563eb',
-  labelFontSize: '14px',
-  priceFontSize: '22px',
+  priceColor: '#1e4ea2',
+  labelFontSize: '12px',
+  priceFontSize: '18px',
   borderRadius: '10px',
   borderColor: '#e5e7eb',
   width: '100%',
@@ -36,7 +36,7 @@ export function SamplePriceBlock({ data }: SamplePriceBlockProps) {
 
   return (
     <div
-      className="inline-flex flex-col gap-0.5 px-5 py-3"
+      className="inline-flex flex-col gap-0.5 px-4 py-2"
       style={{
         backgroundColor: meta.bgColor,
         borderRadius: meta.borderRadius,

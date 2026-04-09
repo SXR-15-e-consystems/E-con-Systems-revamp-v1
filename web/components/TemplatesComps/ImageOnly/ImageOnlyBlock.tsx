@@ -17,9 +17,9 @@ interface ImageOnlyBlockProps {
 const DEFAULT_META: ImageOnlyMeta = {
   bgColor: '#ffffff',
   borderRadius: '0px',
-  objectFit: 'cover',
+  objectFit: 'none',
   width: '100%',
-  height: '100%',
+  height: 'auto',
 };
 
 export function ImageOnlyBlock({ data }: ImageOnlyBlockProps) {
@@ -44,6 +44,32 @@ export function ImageOnlyBlock({ data }: ImageOnlyBlockProps) {
         }}
       >
         No image available
+      </div>
+    );
+  }
+
+  const useNaturalSize = meta.objectFit === 'none' || meta.height === 'auto';
+
+  if (useNaturalSize) {
+    return (
+      <div
+        style={{
+          width: meta.width,
+          backgroundColor: meta.bgColor,
+          borderRadius: meta.borderRadius,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={safeUrl}
+          alt={content.image_alt || 'Image'}
+          style={{
+            width: '100%',
+            height: 'auto',
+            display: 'block',
+            borderRadius: meta.borderRadius,
+          }}
+        />
       </div>
     );
   }

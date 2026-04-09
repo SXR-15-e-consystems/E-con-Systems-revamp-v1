@@ -117,7 +117,7 @@ export function TagBlockEditor({ block, onChange }: BlockEditorProps) {
           <p className="text-xs text-gray-400 italic py-2">No tags added yet. Use the input above to add tags.</p>
         )}
 
-        <div className={meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
+        <div className={meta.layout === 'list' ? 'flex flex-col gap-2' : 'flex flex-wrap gap-2'}>
           {tags.map((tag, i) => {
             const hasLink = Boolean(tag.href);
             const pillBg = hasLink ? '#d5e8ff' : meta.tagBgColor;
@@ -161,13 +161,16 @@ export function TagBlockEditor({ block, onChange }: BlockEditorProps) {
         <div className="rounded border border-gray-200 bg-gray-50 p-3">
           <span className="text-xs font-semibold text-gray-500 mb-2 block">Live Preview</span>
           <div className="rounded p-4" style={{ backgroundColor: meta.bgColor }}>
-            {title && (
+            {title && meta.layout !== 'row' && (
               <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
                 {meta.showIcon && <span className="text-blue-600">▦</span>}
                 {title}
               </h3>
             )}
-            <div className={meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
+            <div className={meta.layout === 'row' ? 'flex flex-wrap items-center gap-2' : meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
+              {meta.layout === 'row' && title && (
+                <span className="text-xs font-medium text-gray-600 mr-1">{title}</span>
+              )}
               {tags.map((tag, i) => (
                 <span
                   key={i}

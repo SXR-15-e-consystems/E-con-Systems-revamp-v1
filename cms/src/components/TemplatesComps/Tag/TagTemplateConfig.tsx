@@ -18,6 +18,7 @@ const DEFAULT_META: TagMeta = {
 const LAYOUT_OPTIONS: { value: TagLayout; label: string }[] = [
   { value: 'grid', label: 'Grid — tags wrap in rows' },
   { value: 'list', label: 'List — tags stack vertically' },
+  { value: 'row', label: 'Row — title and tags inline in a row' },
 ];
 
 function label(text: string) {
@@ -133,7 +134,10 @@ export function TagTemplateConfig({ block, onChange }: BlockEditorProps) {
       <fieldset className="border border-gray-200 rounded p-3 space-y-3">
         <legend className="text-xs font-bold text-gray-700 px-1">Preview</legend>
         <div className="rounded p-3" style={{ backgroundColor: meta.bgColor }}>
-          <div className={meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
+          <div className={meta.layout === 'row' ? 'flex flex-wrap items-center gap-2' : meta.layout === 'grid' ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}>
+            {meta.layout === 'row' && (
+              <span className="text-xs font-medium text-gray-600 mr-1">Tags</span>
+            )}
             {['Sample Tag 1', 'Sample Tag 2', 'Sample Tag 3'].map((t) => (
               <span
                 key={t}

@@ -84,7 +84,7 @@ export function ProductImageSliderBlock({ data }: ProductImageSliderBlockProps) 
 
   return (
     <section
-      className="mx-auto"
+      className="w-full"
       style={{
         width: meta.width,
         maxWidth: '100%',
@@ -150,7 +150,7 @@ export function ProductImageSliderBlock({ data }: ProductImageSliderBlockProps) 
         <div className="flex-1 relative min-h-0 min-w-0">
           <div
             ref={imageContainerRef}
-            className="relative flex items-center justify-center h-full w-full overflow-hidden p-4 cursor-crosshair"
+            className="relative flex items-start justify-start h-full w-full overflow-hidden p-4 cursor-crosshair"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onMouseMove={handleMouseMove}

@@ -8,7 +8,7 @@ import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
 
 const DEFAULT_META: HeadlineMeta = {
   tag: 'h2',
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: 'Arial, Helvetica, sans-serif',
   fontSize: '28px',
   fontWeight: '700',
   textColor: '#1a1a2e',

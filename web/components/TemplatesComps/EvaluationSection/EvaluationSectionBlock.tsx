@@ -23,8 +23,8 @@ interface EvaluationSectionBlockProps {
 const DEFAULT_META: EvaluationSectionMeta = {
   bgColor: '#ffffff',
   headingColor: '#1f2937',
-  nameColor: '#2563eb',
-  badgeBgColor: '#16a34a',
+  nameColor: '#1e4ea2',
+  badgeBgColor: '#059f46',
   badgeTextColor: '#ffffff',
   cardWidth: '180px',
   cardGap: '24px',
@@ -89,7 +89,7 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
 
   return (
     <section
-      className="w-full py-6"
+      className="w-full py-4"
       style={{ backgroundColor: meta.bgColor }}
     >
       {content.heading && (

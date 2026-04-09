@@ -186,7 +186,7 @@ export const TRAY_COMPONENTS: TrayComponentDef[] = [
     category: 'content',
     defaultMeta: {
       tag: 'h2',
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'Arial, Helvetica, sans-serif',
       fontSize: '28px',
       fontWeight: '700',
       textColor: '#1a1a2e',

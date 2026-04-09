@@ -18,14 +18,14 @@ interface ProductDescriptionBlockProps {
 
 const DEFAULT_META: ProductDescriptionMeta = {
   bgColor: '#ffffff',
-  titleColor: '#1a1a2e',
-  titleFontSize: '18px',
+  titleColor: '#1f2937',
+  titleFontSize: '15px',
   titleFontWeight: '700',
   textColor: '#374151',
-  textFontSize: '15px',
+  textFontSize: '13px',
   bulletStyle: 'disc',
-  bulletColor: '#16a34a',
-  lineSpacing: '1.7',
+  bulletColor: '#1f2937',
+  lineSpacing: '1.6',
   width: '100%',
 };
 
@@ -49,12 +49,12 @@ export function ProductDescriptionBlock({ data }: ProductDescriptionBlockProps) 
 
   return (
     <section
-      className="mx-auto overflow-hidden"
+      className="overflow-hidden"
       style={{
         width: meta.width,
         maxWidth: '100%',
         backgroundColor: meta.bgColor,
-        padding: '1.5rem',
+        padding: '0.75rem',
       }}
     >
       {title && (

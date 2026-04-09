@@ -13,7 +13,7 @@ import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
 
 const DEFAULT_META: HeadlineMeta = {
   tag: 'h2',
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: 'Arial, Helvetica, sans-serif',
   fontSize: '28px',
   fontWeight: '700',
   textColor: '#1a1a2e',
@@ -50,7 +50,7 @@ const ALIGN_OPTIONS: { value: HeadlineAlign; label: string; icon: string }[] = [
 ];
 
 const FONT_OPTIONS: string[] = [
-  'Inter, sans-serif',
+  'Arial, Helvetica, sans-serif',
   'Arial, sans-serif',
   'Helvetica, sans-serif',
   'Georgia, serif',

@@ -10,7 +10,7 @@ export function RichTextBlock({ data }: Props) {
   const sanitizedHtml = sanitizeHtml(richText.html ?? '');
 
   return (
-    <section className="mx-auto max-w-8xl px-6 py-10">
+    <section className="w-full px-4 py-4">
       <div
         className="prose prose-slate max-w-none"
         dangerouslySetInnerHTML={{ __html: sanitizedHtml }}

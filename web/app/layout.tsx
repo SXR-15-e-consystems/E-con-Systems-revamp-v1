@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import './globals.css';
+import { SiteHeader } from '@/components/SiteHeader';
 
 export const metadata: Metadata = {
   title: 'e-con Systems',
@@ -12,28 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen bg-white text-slate-900 antialiased">
         <div className="mx-auto max-w-[2000px]">
-        <header className="border-b bg-slate-50">
-  <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-    
-    {/* Logo - Left */}
-    <Image
-      src="https://d2u56hfpsewfc3.cloudfront.net/images/e-con-twenty-plus-years-logo-register.svg"
-      alt="e-con logo"
-      title="e-conSystems"
-      className="h-10"
-      width={120}
-      height={40}
-      priority
-    />
-
-    {/* Center Text */}
-    <div className="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold">
-      e-con Systems
-    </div>
-
-  </div>
-</header>
-        <main className="px-[1em]">{children}</main>
+          <SiteHeader />
+          <main className='px-[2em]'>{children}</main>
         </div>
       </body>
     </html>
