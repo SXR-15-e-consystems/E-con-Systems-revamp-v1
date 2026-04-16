@@ -92,3 +92,13 @@ class PageListItem(BaseModel):
     title: str
     status: PageStatus
     updated_at: datetime
+
+
+class PageSummary(BaseModel):
+    """Lightweight page summary for product picker dropdowns in hub pages."""
+    id: str
+    slug: str
+    title: str
+    meta_description: str
+    og_image_url: str | None
+    status: PageStatus

@@ -17,6 +17,15 @@ import { SamplePriceBlock } from '@/components/TemplatesComps/SamplePrice/Sample
 import { ImageOnlyBlock } from '@/components/TemplatesComps/ImageOnly/ImageOnlyBlock';
 import { ActionButtonBlock } from '@/components/TemplatesComps/ActionButton/ActionButtonBlock';
 import { EvaluationSectionBlock } from '@/components/TemplatesComps/EvaluationSection/EvaluationSectionBlock';
+import { HubHeroBlock } from '@/components/TemplatesComps/HubHero/HubHeroBlock';
+import { CategoryFilterBlock } from '@/components/TemplatesComps/CategoryFilter/CategoryFilterBlock';
+import { VariantsTableBlock } from '@/components/TemplatesComps/VariantsTable/VariantsTableBlock';
+import { VideoGalleryBlock } from '@/components/TemplatesComps/VideoGallery/VideoGalleryBlock';
+import { FAQAccordionBlock } from '@/components/TemplatesComps/FAQAccordion/FAQAccordionBlock';
+import { RelatedBlogsGridBlock } from '@/components/TemplatesComps/RelatedBlogsGrid/RelatedBlogsGridBlock';
+import { TargetApplicationsBlock } from '@/components/TemplatesComps/TargetApplications/TargetApplicationsBlock';
+import { SpotlightsBlock } from '@/components/TemplatesComps/Spotlights/SpotlightsBlock';
+import { DocumentDownloadBlock } from '@/components/TemplatesComps/DocumentDownload/DocumentDownloadBlock';
 
 export interface BlockProps {
   data: Record<string, unknown>;
@@ -39,6 +48,15 @@ const registry: Partial<Record<BlockType, ComponentType<BlockProps>>> = {
   ImageOnly: ImageOnlyBlock,
   ActionButton: ActionButtonBlock,
   EvaluationSection: EvaluationSectionBlock,
+  HubHero: HubHeroBlock,
+  CategoryFilter: CategoryFilterBlock,
+  VariantsTable: VariantsTableBlock,
+  VideoGallery: VideoGalleryBlock,
+  FAQAccordion: FAQAccordionBlock,
+  RelatedBlogsGrid: RelatedBlogsGridBlock,
+  TargetApplications: TargetApplicationsBlock,
+  Spotlights: SpotlightsBlock,
+  DocumentDownload: DocumentDownloadBlock,
 };
 
 export function getBlockComponent(type: string): ComponentType<BlockProps> | null {

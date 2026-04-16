@@ -121,8 +121,8 @@ function VideoModal({
 function PlayButtonOverlay() {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-[68px] h-[48px] rounded-xl bg-[#FF0000] flex items-center justify-center shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all">
-        <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+      <div className="w-10 h-7 sm:w-[52px] sm:h-[36px] md:w-[68px] md:h-[48px] rounded-lg md:rounded-xl bg-[#FF0000] flex items-center justify-center shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all">
+        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
         </svg>
       </div>

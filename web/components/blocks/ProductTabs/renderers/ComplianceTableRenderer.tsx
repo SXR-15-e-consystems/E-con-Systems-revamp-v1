@@ -12,8 +12,8 @@ export function ComplianceTableRenderer({ data }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto -mx-2">
-      <table className="w-full text-sm border-collapse min-w-[480px]">
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b-2 border-slate-200">
             <th className="text-left py-3 px-2 font-bold text-slate-900 w-14">S.No</th>

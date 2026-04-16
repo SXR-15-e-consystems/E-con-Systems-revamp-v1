@@ -235,22 +235,38 @@ function renderBandItem(
   const minHeight =
     typeof meta.__minHeight === 'string' && meta.__minHeight ? meta.__minHeight : undefined;
 
+  const marginOverride =
+    typeof meta.__marginOverride === 'string' && meta.__marginOverride.trim()
+      ? meta.__marginOverride.trim()
+      : undefined;
+  const paddingOverride =
+    typeof meta.__paddingOverride === 'string' && meta.__paddingOverride.trim()
+      ? meta.__paddingOverride.trim()
+      : undefined;
+
+  const hasMargin = marginOverride || margin.top || margin.right || margin.bottom || margin.left;
+
   const wrapperStyle: React.CSSProperties = {
     flexBasis: `${widthPct}%`,
-    flexShrink: 0,
+    flexShrink: hasMargin ? 1 : 0,
     flexGrow: 0,
     minWidth: 0,
+    maxWidth: `${widthPct}%`,
     boxSizing: 'border-box',
     overflow: 'hidden',
     ...(heightVal ? { height: heightVal } : {}),
-    // Margin
-    ...(margin.top || margin.right || margin.bottom || margin.left
-      ? { margin: `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px` }
-      : {}),
-    // Padding
-    ...(padding.top || padding.right || padding.bottom || padding.left
-      ? { padding: `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px` }
-      : {}),
+    // Margin — CSS override takes priority
+    ...(marginOverride
+      ? { margin: marginOverride }
+      : margin.top || margin.right || margin.bottom || margin.left
+        ? { margin: `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px` }
+        : {}),
+    // Padding — CSS override takes priority
+    ...(paddingOverride
+      ? { padding: paddingOverride }
+      : padding.top || padding.right || padding.bottom || padding.left
+        ? { padding: `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px` }
+        : {}),
     // Border
     ...(border
       ? {
@@ -317,7 +333,7 @@ export function GridLayout({ page, templateConfig }: Props) {
         // Single lane covering full width — render directly
         if (lanes.length === 1 && lanes[0].colEnd - lanes[0].colStart >= columns) {
           return (
-            <div key={`band-${bandIdx}`} style={{ width: '100%' }}>
+            <div key={`band-${bandIdx}`} style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
               {lanes[0].items.length === 1 ? (
                 renderBandItem(lanes[0].items[0], columns, gap)
               ) : (
@@ -343,6 +359,8 @@ export function GridLayout({ page, templateConfig }: Props) {
               flexDirection: 'row',
               alignItems: 'flex-start',
               width: '100%',
+              maxWidth: '100%',
+              overflow: 'hidden',
             }}
           >
             {(() => {

@@ -42,15 +42,15 @@ function CountdownDisplay({
   if (expired) return null;
 
   const unit = (value: string, label: string) => (
-    <div className="flex flex-col items-center min-w-[3rem]">
+    <div className="flex flex-col items-center min-w-[2.2rem] sm:min-w-[3rem]">
       <span 
-        className="text-2xl font-bold tabular-nums leading-none" 
+        className="text-lg sm:text-2xl font-bold tabular-nums leading-none" 
         style={{ color: textColor }}
         suppressHydrationWarning
       >
         {value}
       </span>
-      <span className="text-xs opacity-70 mt-0.5" style={{ color: textColor }}>
+      <span className="text-[10px] sm:text-xs opacity-70 mt-0.5" style={{ color: textColor }}>
         {label}
       </span>
     </div>
@@ -94,7 +94,7 @@ function TimerInner({
 
   return (
     <div
-      className={`flex items-center gap-4 ${isPopup ? 'flex-col p-5' : 'flex-row flex-wrap justify-center gap-x-6 px-6 py-3'}`}
+      className={`flex items-center gap-3 sm:gap-4 ${isPopup ? 'flex-col p-5' : 'flex-col sm:flex-row flex-wrap justify-center gap-x-4 sm:gap-x-6 px-3 sm:px-6 py-3'}`}
       style={{ backgroundColor: meta.bgColor, color: meta.textColor }}
     >
       {/* Optional image */}

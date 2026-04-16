@@ -450,6 +450,12 @@ export interface ImageOnlyMeta {
   objectFit: 'cover' | 'contain' | 'fill' | 'none';
   width: string;
   height: string;
+  alignX: 'left' | 'center' | 'right';
+  margin: string;
+  maxWidth: string;
+  maxHeight: string;
+  minWidth: string;
+  minHeight: string;
 }
 
 export interface ImageOnlyContent {
@@ -521,4 +527,372 @@ export interface EvaluationSectionContent {
 export interface EvaluationSectionData {
   meta: EvaluationSectionMeta;
   content: EvaluationSectionContent;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HUB PAGE BLOCK TYPES
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── HubHero ─────────────────────────────────────────────────
+export interface HubHeroMeta {
+  bgColor: string;
+  titleColor: string;
+  titleFontSize: string;
+  titleAlign: 'left' | 'center' | 'right';
+  descriptionColor: string;
+  descriptionFontSize: string;
+  imagePosition: 'right' | 'left';
+  contentWidth: string;
+  mediaWidth: string;
+  mediaMode: 'single' | 'slider';
+  width: string;
+  ctaBgColor: string;
+  ctaTextColor: string;
+  brandBadgePosition: 'below-image' | 'title-row-right';
+  brandBadgeWidth: string;
+  brandBadgeHeight: string;
+}
+
+export interface HubHeroSlide {
+  image_url: string;
+  image_alt: string;
+}
+
+export interface HubHeroDocument {
+  name: string;
+  url: string;
+  file_type: string;
+}
+
+export interface HubHeroContent {
+  title: string;
+  description: string;
+  image_url: string;
+  image_alt: string;
+  images: HubHeroSlide[];
+  brand_badge_url: string;
+  brand_badge_alt: string;
+  cta_text: string;
+  cta_link: string;
+  cta_type: 'link' | 'contact' | 'download';
+  cta_contact_title: string;
+  cta_documents: HubHeroDocument[];
+}
+
+export interface HubHeroData {
+  meta: HubHeroMeta;
+  content: HubHeroContent;
+}
+
+// ─── CategoryFilter ──────────────────────────────────────────
+export interface CategoryFilterMeta {
+  bgColor: string;
+  cardBgColor: string;
+  cardBorderRadius: string;
+  sidebarWidth: string;
+  columns: 2 | 3 | 4;
+  width: string;
+  activeFilterColor: string;
+  badgeBgColor: string;
+  badgeTextColor: string;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  titleColor: string;
+  titleFontSize: string;
+  titleBold: boolean;
+  titleItalic: boolean;
+  descColor: string;
+  descFontSize: string;
+  descBold: boolean;
+  descItalic: boolean;
+}
+
+export interface CategoryItem {
+  label: string;
+  filter_key: string;
+}
+
+export interface ProductReference {
+  page_slug: string;
+  categories: string[];
+  badge: string;
+  sort_order: number;
+  description: string;
+}
+
+export interface CategoryFilterContent {
+  section_title: string;
+  section_icon: string;
+  categories: CategoryItem[];
+  products: ProductReference[];
+}
+
+export interface CategoryFilterData {
+  meta: CategoryFilterMeta;
+  content: CategoryFilterContent;
+}
+
+// ─── VariantsTable ───────────────────────────────────────────
+export type VariantColumnKey =
+  | 'product_name'
+  | 'interface'
+  | 'supported_platforms'
+  | 'resolution'
+  | 'wavelength'
+  | 'suitable_for'
+  | 'frame_rate'
+  | 'output'
+  | 'lens_option'
+  | 'chroma'
+  | 'isp'
+  | 'max_cameras'
+  | 'documents'
+  | 'promotional_sample_price'
+  | 'custom';
+
+export interface VariantColumn {
+  key: VariantColumnKey;
+  label: string;
+  visible: boolean;
+  width: string;
+}
+
+export interface VariantActionButton {
+  type: 'buy_now' | 'pre_order' | 'contact_us' | 'download';
+  label: string;
+  bgColor: string;
+  textColor: string;
+}
+
+export interface VariantsTableMeta {
+  bgColor: string;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  headerBgColor: string;
+  headerTextColor: string;
+  rowBgColor: string;
+  rowAltBgColor: string;
+  rowTextColor: string;
+  highlightRowColor: string;
+  width: string;
+  columns: VariantColumn[];
+  actionButtons: VariantActionButton[];
+}
+
+export interface VariantRow {
+  page_slug: string;
+  badge: string;
+  highlighted: boolean;
+  custom_fields: Record<string, string>;
+}
+
+export interface VariantsTableContent {
+  heading: string;
+  rows: VariantRow[];
+}
+
+export interface VariantsTableData {
+  meta: VariantsTableMeta;
+  content: VariantsTableContent;
+}
+
+// ─── VideoGallery ────────────────────────────────────────────
+export interface VideoGalleryMeta {
+  bgColor: string;
+  columns: 2 | 3 | 4 | 5;
+  layout: 'grid' | 'slider';
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  cardAlign: 'left' | 'center' | 'right';
+  cardBgColor: string;
+  cardBorderRadius: string;
+  titleColor: string;
+  width: string;
+}
+
+export interface VideoGalleryItem {
+  title: string;
+  subtitle: string;
+  video_url: string;
+  thumbnail_url: string;
+}
+
+export interface VideoGalleryContent {
+  heading: string;
+  items: VideoGalleryItem[];
+}
+
+export interface VideoGalleryData {
+  meta: VideoGalleryMeta;
+  content: VideoGalleryContent;
+}
+
+// ─── FAQAccordion ────────────────────────────────────────────
+export interface FAQAccordionMeta {
+  bgColor: string;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  questionColor: string;
+  questionFontSize: string;
+  answerColor: string;
+  answerFontSize: string;
+  borderColor: string;
+  numbered: boolean;
+  width: string;
+}
+
+export interface FAQAccordionItem {
+  question: string;
+  answer: string;
+}
+
+export interface FAQAccordionContent {
+  heading: string;
+  items: FAQAccordionItem[];
+  know_more_link: string;
+  know_more_text: string;
+}
+
+export interface FAQAccordionData {
+  meta: FAQAccordionMeta;
+  content: FAQAccordionContent;
+}
+
+// ─── RelatedBlogsGrid ────────────────────────────────────────
+export interface RelatedBlogsGridMeta {
+  bgColor: string;
+  cardBgColor: string;
+  cardBorderRadius: string;
+  columns: 2 | 3 | 4;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  cardAlign: 'left' | 'center' | 'right';
+  titleColor: string;
+  ctaBgColor: string;
+  ctaTextColor: string;
+  width: string;
+}
+
+export interface RelatedBlogItem {
+  image_url: string;
+  image_alt: string;
+  title: string;
+  excerpt: string;
+  link: string;
+  cta_text: string;
+}
+
+export interface RelatedBlogsGridContent {
+  heading: string;
+  items: RelatedBlogItem[];
+}
+
+export interface RelatedBlogsGridData {
+  meta: RelatedBlogsGridMeta;
+  content: RelatedBlogsGridContent;
+}
+
+// ─── TargetApplications ──────────────────────────────────────
+export interface TargetApplicationsMeta {
+  bgColor: string;
+  cardBorderRadius: string;
+  captionColor: string;
+  columns: 3 | 4 | 5;
+  layout: 'grid' | 'slider';
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  cardAlign: 'left' | 'center' | 'right';
+  autoplay: boolean;
+  autoplayInterval: number;
+  width: string;
+}
+
+export interface TargetApplicationItem {
+  image_url: string;
+  image_alt: string;
+  caption: string;
+  link: string;
+}
+
+export interface TargetApplicationsContent {
+  heading: string;
+  items: TargetApplicationItem[];
+}
+
+export interface TargetApplicationsData {
+  meta: TargetApplicationsMeta;
+  content: TargetApplicationsContent;
+}
+
+// ─── Spotlights ──────────────────────────────────────────────
+export interface SpotlightsMeta {
+  bgColor: string;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  iconSize: string;
+  titleColor: string;
+  titleFontSize: string;
+  descriptionColor: string;
+  descriptionFontSize: string;
+  columns: 2 | 3 | 4 | 5;
+  layout: 'grid' | 'slider';
+  cardAlign: 'left' | 'center';
+  width: string;
+}
+
+export interface SpotlightItem {
+  icon_url: string;
+  icon_alt: string;
+  title: string;
+  description: string;
+}
+
+export interface SpotlightsContent {
+  heading: string;
+  items: SpotlightItem[];
+}
+
+export interface SpotlightsData {
+  meta: SpotlightsMeta;
+  content: SpotlightsContent;
+}
+
+// ─── DocumentDownload ────────────────────────────────────────
+export interface DocumentDownloadMeta {
+  bgColor: string;
+  headingColor: string;
+  headingAlign: 'left' | 'center' | 'right';
+  headerColor: string;
+  linkColor: string;
+  checkboxColor: string;
+  columns: 1 | 2;
+  width: string;
+}
+
+export interface DocumentFile {
+  name: string;
+  url: string;
+  file_type: string;
+}
+
+export interface DocumentCategory {
+  category_name: string;
+  icon: string;
+  files: DocumentFile[];
+}
+
+export interface DocumentDownloadProduct {
+  page_slug: string;
+  label: string;
+  categories: DocumentCategory[];
+}
+
+export interface DocumentDownloadContent {
+  heading: string;
+  products: DocumentDownloadProduct[];
+}
+
+export interface DocumentDownloadData {
+  meta: DocumentDownloadMeta;
+  content: DocumentDownloadContent;
 }

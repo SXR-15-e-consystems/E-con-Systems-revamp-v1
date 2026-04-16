@@ -55,7 +55,7 @@ export function HeadlineBlock({ data }: HeadlineBlockProps) {
       <Tag
         style={{
           fontFamily: meta.fontFamily,
-          fontSize: meta.fontSize,
+          fontSize: `clamp(${Math.max(Math.round(parseFloat(meta.fontSize) * 0.6), 14)}px, 4vw, ${meta.fontSize})`,
           fontWeight: Number(meta.fontWeight),
           color: meta.textColor,
           textAlign: meta.align,
@@ -63,6 +63,8 @@ export function HeadlineBlock({ data }: HeadlineBlockProps) {
           lineHeight: meta.lineHeight,
           margin: 0,
           padding: '0.5em 0',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
         }}
       >
         {text}

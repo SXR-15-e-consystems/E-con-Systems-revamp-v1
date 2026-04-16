@@ -20,7 +20,16 @@ export type BlockType =
   | 'SamplePrice'
   | 'ImageOnly'
   | 'ActionButton'
-  | 'EvaluationSection';
+  | 'EvaluationSection'
+  | 'HubHero'
+  | 'CategoryFilter'
+  | 'VariantsTable'
+  | 'VideoGallery'
+  | 'FAQAccordion'
+  | 'RelatedBlogsGrid'
+  | 'TargetApplications'
+  | 'Spotlights'
+  | 'DocumentDownload';
 
 export interface BlockEnvelope {
   block_id: string;

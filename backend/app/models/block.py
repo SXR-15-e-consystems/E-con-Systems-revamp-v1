@@ -27,6 +27,16 @@ class BlockType(str, Enum):
     IMAGE_ONLY = "ImageOnly"
     ACTION_BUTTON = "ActionButton"
     EVALUATION_SECTION = "EvaluationSection"
+    # ── Hub page block types ──
+    HUB_HERO = "HubHero"
+    CATEGORY_FILTER = "CategoryFilter"
+    VARIANTS_TABLE = "VariantsTable"
+    VIDEO_GALLERY = "VideoGallery"
+    FAQ_ACCORDION = "FAQAccordion"
+    RELATED_BLOGS_GRID = "RelatedBlogsGrid"
+    TARGET_APPLICATIONS = "TargetApplications"
+    SPOTLIGHTS = "Spotlights"
+    DOCUMENT_DOWNLOAD = "DocumentDownload"
 
 
 class BlockEnvelope(BaseModel):

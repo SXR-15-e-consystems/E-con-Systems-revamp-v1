@@ -14,6 +14,35 @@ export class ApiError extends Error {
   }
 }
 
+export async function fetchPublicPagesBatch(slugs: string[]): Promise<PageResponse[]> {
+  if (slugs.length === 0) return [];
+  const joined = slugs.map(encodeURIComponent).join(',');
+  const endpoint = `${API_BASE_URL}/public/pages/batch?slugs=${joined}`;
+
+  try {
+    const res = await fetch(endpoint, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+
+    if (!res.ok) {
+      throw new ApiError(
+        `Failed to batch-fetch pages`,
+        res.status,
+        endpoint,
+      );
+    }
+
+    return (await res.json()) as PageResponse[];
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(
+      `Network error batch-fetching pages: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      500,
+      endpoint,
+    );
+  }
+}
+
 export async function fetchPublicPage(slug: string): Promise<PageResponse | null> {
   const cleanSlug = slug
     .split('/')

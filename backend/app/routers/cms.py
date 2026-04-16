@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, sta
 from typing import Any
 
 from app.database import get_db
-from app.models.page import PageCreate, PageListItem, PageResponse, PageUpdate
+from app.models.page import PageCreate, PageListItem, PageResponse, PageSummary, PageUpdate
 from app.models.user import UserRole
 from app.security.dependencies import require_role
 from app.services.audit_service import fire_audit_event
@@ -41,6 +41,17 @@ async def cms_list_pages(
     db: Any = Depends(get_db),
 ) -> list[PageListItem]:
     return await list_pages(db)
+
+
+@router.get("/pages/summaries", response_model=list[PageSummary])
+async def cms_page_summaries(
+    current_user: dict = Depends(require_role(_ALL_CMS)),
+    db: Any = Depends(get_db),
+) -> list[PageSummary]:
+    """Lightweight page summaries for product picker dropdowns."""
+    from app.services.page_service import list_page_summaries
+
+    return await list_page_summaries(db)
 
 
 @router.get("/pages/{slug:path}", response_model=PageResponse)

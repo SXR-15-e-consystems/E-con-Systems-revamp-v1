@@ -20,6 +20,12 @@ const DEFAULT_META: ImageOnlyMeta = {
   objectFit: 'none',
   width: '100%',
   height: 'auto',
+  alignX: 'left',
+  margin: '0px',
+  maxWidth: '',
+  maxHeight: '',
+  minWidth: '',
+  minHeight: '',
 };
 
 export function ImageOnlyBlock({ data }: ImageOnlyBlockProps) {
@@ -32,18 +38,45 @@ export function ImageOnlyBlock({ data }: ImageOnlyBlockProps) {
 
   const safeUrl = sanitizeUrl(content.image_url, false);
 
+  const JUSTIFY_MAP: Record<string, string> = {
+    left: 'flex-start',
+    center: 'center',
+    right: 'flex-end',
+  };
+
+  // Outer wrapper handles horizontal alignment via flexbox
+  const outerStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: JUSTIFY_MAP[meta.alignX] ?? 'flex-start',
+    width: '100%',
+  };
+
+  // Inner container holds the image with its own sizing/margin
+  const containerStyle: React.CSSProperties = {
+    width: meta.width,
+    backgroundColor: meta.bgColor,
+    borderRadius: meta.borderRadius,
+    ...(meta.margin && meta.margin !== '0px' && meta.margin !== '0'
+      ? { margin: meta.margin }
+      : {}),
+    ...(meta.maxWidth ? { maxWidth: meta.maxWidth } : {}),
+    ...(meta.maxHeight ? { maxHeight: meta.maxHeight } : {}),
+    ...(meta.minWidth ? { minWidth: meta.minWidth } : {}),
+    ...(meta.minHeight ? { minHeight: meta.minHeight } : {}),
+  };
+
   if (!safeUrl) {
     return (
-      <div
-        className="flex items-center justify-center text-slate-400 text-sm"
-        style={{
-          width: meta.width,
-          height: meta.height,
-          backgroundColor: meta.bgColor,
-          borderRadius: meta.borderRadius,
-        }}
-      >
-        No image available
+      <div style={outerStyle}>
+        <div
+          className="flex items-center justify-center text-slate-400 text-sm"
+          style={{
+            ...containerStyle,
+            height: meta.height,
+          }}
+        >
+          No image available
+        </div>
       </div>
     );
   }
@@ -52,47 +85,44 @@ export function ImageOnlyBlock({ data }: ImageOnlyBlockProps) {
 
   if (useNaturalSize) {
     return (
-      <div
-        style={{
-          width: meta.width,
-          backgroundColor: meta.bgColor,
-          borderRadius: meta.borderRadius,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={safeUrl}
-          alt={content.image_alt || 'Image'}
-          style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-            borderRadius: meta.borderRadius,
-          }}
-        />
+      <div style={outerStyle}>
+        <div style={containerStyle}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={safeUrl}
+            alt={content.image_alt || 'Image'}
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              borderRadius: meta.borderRadius,
+              ...(meta.maxHeight ? { maxHeight: meta.maxHeight, objectFit: 'contain' as const } : {}),
+            }}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        width: meta.width,
-        height: meta.height,
-        backgroundColor: meta.bgColor,
-        borderRadius: meta.borderRadius,
-      }}
-    >
-      <Image
-        src={safeUrl}
-        alt={content.image_alt || 'Image'}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        className="h-full w-full"
-        style={{ objectFit: meta.objectFit }}
-        unoptimized
-      />
+    <div style={outerStyle}>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          ...containerStyle,
+          height: meta.height,
+        }}
+      >
+        <Image
+          src={safeUrl}
+          alt={content.image_alt || 'Image'}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="h-full w-full"
+          style={{ objectFit: meta.objectFit }}
+          unoptimized
+        />
+      </div>
     </div>
   );
 }

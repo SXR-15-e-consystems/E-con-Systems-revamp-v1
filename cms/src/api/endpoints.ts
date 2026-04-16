@@ -33,6 +33,24 @@ export async function fetchPages(): Promise<PageListItem[]> {
   }
 }
 
+export interface PageSummary {
+  id: string;
+  slug: string;
+  title: string;
+  meta_description: string;
+  og_image_url: string | null;
+  status: 'draft' | 'published' | 'archived';
+}
+
+export async function fetchPageSummaries(): Promise<PageSummary[]> {
+  try {
+    const { data } = await apiClient.get<PageSummary[]>('/cms/pages/summaries');
+    return data;
+  } catch (error) {
+    throw new ApiError(extractErrorMessage(error), (error as AxiosError)?.response?.status);
+  }
+}
+
 export async function fetchPage(slug: string): Promise<Page> {
   try {
     const { data } = await apiClient.get<Page>(`/cms/pages/${encodeURIComponent(slug)}`);

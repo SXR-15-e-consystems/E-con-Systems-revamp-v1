@@ -223,8 +223,8 @@ export function FormBlock({ data }: FormBlockProps) {
   if (status === 'success') {
     return (
       <div
-        className="flex flex-col items-center justify-center gap-3 rounded-xl border border-green-200 bg-green-50 px-8 py-10 text-center"
-        style={{ width: meta.width, backgroundColor: meta.bgColor }}
+        className="flex flex-col items-center justify-center gap-3 rounded-xl border border-green-200 bg-green-50 px-6 sm:px-8 py-8 sm:py-10 text-center"
+        style={{ width: meta.width, maxWidth: '100%', backgroundColor: meta.bgColor }}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-10 w-10 text-green-500">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -239,11 +239,11 @@ export function FormBlock({ data }: FormBlockProps) {
 
   return (
     <div
-      className="rounded-xl border border-gray-200 p-6 shadow-sm"
-      style={{ width: meta.width, backgroundColor: meta.bgColor }}
+      className="rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm"
+      style={{ width: meta.width, maxWidth: '100%', backgroundColor: meta.bgColor }}
     >
       {content.heading && (
-        <h2 className="text-xl font-bold text-gray-900 mb-1">{content.heading}</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{content.heading}</h2>
       )}
       {content.subheading && (
         <p className="text-sm text-gray-500 mb-5">{content.subheading}</p>

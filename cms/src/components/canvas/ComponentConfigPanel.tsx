@@ -475,20 +475,45 @@ export function ComponentConfigPanel({ component, onChange, grid }: ComponentCon
             <FourSideInput
               label="Margin"
               value={margin}
-              onChange={(v) => updateMeta({ __margin: v })}
+              onChange={(v) => updateMeta({ __margin: v, __marginOverride: '' })}
               max={200}
               accentColor="violet"
             />
             <FourSideInput
               label="Padding"
               value={padding}
-              onChange={(v) => updateMeta({ __padding: v })}
+              onChange={(v) => updateMeta({ __padding: v, __paddingOverride: '' })}
               max={200}
               accentColor="blue"
             />
           </div>
           <p className="text-[10px] text-slate-400 mt-1">
             Margin adds space outside the block. Padding adds space inside.
+          </p>
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-medium text-slate-500">Margin CSS Override</span>
+              <input
+                type="text"
+                className="w-full rounded border border-slate-300 px-2 py-1.5 text-xs font-mono"
+                placeholder="e.g. 0 auto, 10px 20px"
+                value={typeof meta.__marginOverride === 'string' ? meta.__marginOverride : ''}
+                onChange={(e) => updateMeta({ __marginOverride: e.target.value })}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-medium text-slate-500">Padding CSS Override</span>
+              <input
+                type="text"
+                className="w-full rounded border border-slate-300 px-2 py-1.5 text-xs font-mono"
+                placeholder="e.g. 10px 20px 10px 20px"
+                value={typeof meta.__paddingOverride === 'string' ? meta.__paddingOverride : ''}
+                onChange={(e) => updateMeta({ __paddingOverride: e.target.value })}
+              />
+            </label>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-1">
+            CSS override takes priority when filled. Supports any CSS shorthand (e.g. <code>0 auto</code>).
           </p>
         </Section>
 

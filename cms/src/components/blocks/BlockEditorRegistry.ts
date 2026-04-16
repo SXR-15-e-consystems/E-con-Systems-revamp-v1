@@ -31,6 +31,24 @@ import { ActionButtonBlockEditor } from '../TemplatesComps/ActionButton/ActionBu
 import { ActionButtonTemplateConfig } from '../TemplatesComps/ActionButton/ActionButtonTemplateConfig';
 import { EvaluationSectionBlockEditor } from '../TemplatesComps/EvaluationSection/EvaluationSectionBlockEditor';
 import { EvaluationSectionTemplateConfig } from '../TemplatesComps/EvaluationSection/EvaluationSectionTemplateConfig';
+import { HubHeroBlockEditor } from '../TemplatesComps/HubHero/HubHeroBlockEditor';
+import { HubHeroTemplateConfig } from '../TemplatesComps/HubHero/HubHeroTemplateConfig';
+import { CategoryFilterBlockEditor } from '../TemplatesComps/CategoryFilter/CategoryFilterBlockEditor';
+import { CategoryFilterTemplateConfig } from '../TemplatesComps/CategoryFilter/CategoryFilterTemplateConfig';
+import { VariantsTableBlockEditor } from '../TemplatesComps/VariantsTable/VariantsTableBlockEditor';
+import { VariantsTableTemplateConfig } from '../TemplatesComps/VariantsTable/VariantsTableTemplateConfig';
+import { VideoGalleryBlockEditor } from '../TemplatesComps/VideoGallery/VideoGalleryBlockEditor';
+import { VideoGalleryTemplateConfig } from '../TemplatesComps/VideoGallery/VideoGalleryTemplateConfig';
+import { FAQAccordionBlockEditor } from '../TemplatesComps/FAQAccordion/FAQAccordionBlockEditor';
+import { FAQAccordionTemplateConfig } from '../TemplatesComps/FAQAccordion/FAQAccordionTemplateConfig';
+import { RelatedBlogsGridBlockEditor } from '../TemplatesComps/RelatedBlogsGrid/RelatedBlogsGridBlockEditor';
+import { RelatedBlogsGridTemplateConfig } from '../TemplatesComps/RelatedBlogsGrid/RelatedBlogsGridTemplateConfig';
+import { TargetApplicationsBlockEditor } from '../TemplatesComps/TargetApplications/TargetApplicationsBlockEditor';
+import { TargetApplicationsTemplateConfig } from '../TemplatesComps/TargetApplications/TargetApplicationsTemplateConfig';
+import { SpotlightsBlockEditor } from '../TemplatesComps/Spotlights/SpotlightsBlockEditor';
+import { SpotlightsTemplateConfig } from '../TemplatesComps/Spotlights/SpotlightsTemplateConfig';
+import { DocumentDownloadBlockEditor } from '../TemplatesComps/DocumentDownload/DocumentDownloadBlockEditor';
+import { DocumentDownloadTemplateConfig } from '../TemplatesComps/DocumentDownload/DocumentDownloadTemplateConfig';
 
 export interface BlockEditorProps {
   block: BlockEnvelope;
@@ -59,6 +77,15 @@ const templateConfigRegistry: Partial<Record<BlockType, ComponentType<BlockEdito
   ImageOnly: ImageOnlyTemplateConfig,
   ActionButton: ActionButtonTemplateConfig,
   EvaluationSection: EvaluationSectionTemplateConfig,
+  HubHero: HubHeroTemplateConfig,
+  CategoryFilter: CategoryFilterTemplateConfig,
+  VariantsTable: VariantsTableTemplateConfig,
+  VideoGallery: VideoGalleryTemplateConfig,
+  FAQAccordion: FAQAccordionTemplateConfig,
+  RelatedBlogsGrid: RelatedBlogsGridTemplateConfig,
+  TargetApplications: TargetApplicationsTemplateConfig,
+  Spotlights: SpotlightsTemplateConfig,
+  DocumentDownload: DocumentDownloadTemplateConfig,
 };
 
 const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorProps>>> = {
@@ -78,6 +105,15 @@ const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorPr
   ImageOnly: ImageOnlyBlockEditor,
   ActionButton: ActionButtonBlockEditor,
   EvaluationSection: EvaluationSectionBlockEditor,
+  HubHero: HubHeroBlockEditor,
+  CategoryFilter: CategoryFilterBlockEditor,
+  VariantsTable: VariantsTableBlockEditor,
+  VideoGallery: VideoGalleryBlockEditor,
+  FAQAccordion: FAQAccordionBlockEditor,
+  RelatedBlogsGrid: RelatedBlogsGridBlockEditor,
+  TargetApplications: TargetApplicationsBlockEditor,
+  Spotlights: SpotlightsBlockEditor,
+  DocumentDownload: DocumentDownloadBlockEditor,
 };
 
 /** Returns the L1 template config editor for a block type, or null if not applicable. */

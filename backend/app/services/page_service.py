@@ -5,7 +5,14 @@ from typing import Any
 from bson import ObjectId
 
 from app.models.block import BlockEnvelope, BlockType
-from app.models.page import PageCreate, PageListItem, PageResponse, PageStatus, PageUpdate
+from app.models.page import (
+    PageCreate,
+    PageListItem,
+    PageResponse,
+    PageStatus,
+    PageSummary,
+    PageUpdate,
+)
 from app.utils.validators import sanitize_html
 
 
@@ -129,6 +136,9 @@ BLOCK_VALIDATORS = {
     BlockType.FAQ: _validate_faq,
     BlockType.CTA_STRIP: _validate_cta_strip,
     BlockType.TESTIMONIALS: _validate_testimonials,
+    # Hub page blocks use template-based meta+content structure;
+    # validation is handled by Pydantic in the frontend types.
+    # No server-side deep validation needed beyond envelope check.
 }
 
 
@@ -192,6 +202,27 @@ async def list_pages(db: Any) -> list[PageListItem]:
                 title=row["title"],
                 status=row["status"],
                 updated_at=row["updated_at"],
+            )
+        )
+    return items
+
+
+async def list_page_summaries(db: Any) -> list[PageSummary]:
+    """Lightweight summaries for product picker dropdowns in hub pages."""
+    cursor = db.pages.find(
+        {},
+        {"slug": 1, "title": 1, "meta_description": 1, "og_image_url": 1, "status": 1},
+    ).sort("title", 1)
+    items: list[PageSummary] = []
+    async for row in cursor:
+        items.append(
+            PageSummary(
+                id=str(row["_id"]),
+                slug=row["slug"],
+                title=row["title"],
+                meta_description=row.get("meta_description", ""),
+                og_image_url=row.get("og_image_url"),
+                status=row["status"],
             )
         )
     return items
@@ -317,3 +348,22 @@ async def get_public_page(db: Any, slug: str) -> PageResponse:
     visible_blocks = [block for block in document.get("blocks", []) if block.get("visible", True)]
     document["blocks"] = visible_blocks
     return await _to_page_response(document, db)
+
+
+async def get_public_pages_batch(db: Any, slugs: list[str]) -> list[PageResponse]:
+    """Fetch multiple published pages by slug list. Returns in requested order."""
+    normalized = [s.strip("/").lower() for s in slugs]
+    cursor = db.pages.find(
+        {"slug": {"$in": normalized}, "status": PageStatus.PUBLISHED.value}
+    )
+    docs_by_slug: dict[str, dict[str, Any]] = {}
+    async for doc in cursor:
+        visible_blocks = [b for b in doc.get("blocks", []) if b.get("visible", True)]
+        doc["blocks"] = visible_blocks
+        docs_by_slug[doc["slug"]] = doc
+
+    results: list[PageResponse] = []
+    for slug in normalized:
+        if slug in docs_by_slug:
+            results.append(await _to_page_response(docs_by_slug[slug], db))
+    return results

@@ -5,7 +5,12 @@ from app.database import get_db
 from app.models.download import DownloadRequest, DownloadResponse
 from app.models.page import PageListItem, PageResponse
 from app.services.download_service import process_download_request
-from app.services.page_service import ServiceError, get_public_page, list_public_pages
+from app.services.page_service import (
+    ServiceError,
+    get_public_page,
+    get_public_pages_batch,
+    list_public_pages,
+)
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,6 +31,39 @@ def _service_error_response(exc: ServiceError) -> dict[str, dict[str, object]]:
 @router.get("/pages", response_model=list[PageListItem])
 async def public_list_pages(db: Any = Depends(get_db)) -> list[PageListItem]:
     return await list_public_pages(db)
+
+
+@router.get("/pages/batch", response_model=list[PageResponse])
+async def public_batch_pages(
+    slugs: str,
+    db: Any = Depends(get_db),
+) -> list[PageResponse]:
+    """Fetch multiple published pages by comma-separated slugs.
+
+    Example: GET /pages/batch?slugs=e-cam51-usb,see3cam-30
+    Returns pages in the same order as requested. Missing pages are omitted.
+    Maximum 20 slugs per request.
+    """
+    slug_list = [s.strip().lower() for s in slugs.split(",") if s.strip()]
+    if not slug_list:
+        return []
+    if len(slug_list) > 20:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Maximum 20 slugs per batch request",
+                    "details": [],
+                }
+            },
+        )
+    try:
+        return await get_public_pages_batch(db, slug_list)
+    except ServiceError as exc:
+        raise HTTPException(
+            status_code=exc.status_code, detail=_service_error_response(exc)
+        ) from exc
 
 
 @router.get("/pages/{slug:path}", response_model=PageResponse)

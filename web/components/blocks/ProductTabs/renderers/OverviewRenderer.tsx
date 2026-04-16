@@ -29,7 +29,7 @@ export function OverviewRenderer({ data, datasheetCta, documentsData, recaptchaS
         <div
           className="prose prose-sm max-w-none text-slate-700
             [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-slate-700
-            [&_a]:text-blue-600 [&_a]:underline [&_a]:text-sm
+            [&_a]:text-[#1762af] [&_a]:underline [&_a]:text-sm
             [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-1.5
             [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:text-sm
             [&_ul>li:not(.nobullet)]:relative [&_ul>li:not(.nobullet)]:pl-6 [&_ul>li:not(.nobullet)]:text-sm [&_ul>li:not(.nobullet)]:leading-relaxed [&_ul>li:not(.nobullet)]:text-slate-700

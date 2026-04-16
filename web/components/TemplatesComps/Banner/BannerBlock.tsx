@@ -30,22 +30,29 @@ const DEFAULT_META: BannerMeta = {
 
 function ctaPositionClasses(position: CTAPosition): string {
   const map: Record<CTAPosition, string> = {
-    'top-left': 'top-6 left-6',
-    'top-right': 'top-6 right-6',
-    'bottom-left': 'bottom-6 left-6',
-    'bottom-right': 'bottom-6 right-6',
+    'top-left': 'top-3 left-3 sm:top-6 sm:left-6',
+    'top-right': 'top-3 right-3 sm:top-6 sm:right-6',
+    'bottom-left': 'bottom-3 left-3 sm:bottom-6 sm:left-6',
+    'bottom-right': 'bottom-3 right-3 sm:bottom-6 sm:right-6',
     center: 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
   };
-  return map[position] ?? 'bottom-6 left-6';
+  return map[position] ?? 'bottom-3 left-3 sm:bottom-6 sm:left-6';
 }
 
 function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta }) {
   const isType2 = meta.variant === 'type2';
 
+  // Make height responsive: use clamp so mobile gets ~60% of configured height
+  const rawHeight = meta.height;
+  const heightPx = parseInt(rawHeight);
+  const responsiveHeight = heightPx
+    ? `clamp(${Math.round(heightPx * 0.45)}px, 50vw, ${heightPx}px)`
+    : rawHeight;
+
   const inner = (
     <div
       className="relative w-full overflow-hidden select-none"
-      style={{ height: meta.height, backgroundColor: meta.bgColor }}
+      style={{ height: responsiveHeight, backgroundColor: meta.bgColor }}
     >
       {/* Background image */}
       {slide.image_url ? (
@@ -64,15 +71,15 @@ function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta })
       {/* type2 overlay content */}
       {isType2 && (slide.title || slide.description || slide.cta_text) && (
         <div
-          className={`absolute ${ctaPositionClasses(meta.ctaPosition)} max-w-sm z-10`}
+          className={`absolute ${ctaPositionClasses(meta.ctaPosition)} z-10 max-w-[85vw] sm:max-w-sm`}
         >
           {slide.title && (
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-2">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white drop-shadow-lg mb-2">
               {slide.title}
             </h2>
           )}
           {slide.description && (
-            <p className="text-sm text-white/90 drop-shadow mb-4">
+            <p className="text-xs sm:text-sm text-white/90 drop-shadow mb-4">
               {slide.description}
             </p>
           )}
@@ -87,7 +94,7 @@ function SlideContent({ slide, meta }: { slide: BannerSlide; meta: BannerMeta })
                   borderRadius: meta.ctaStyle.borderRadius,
                   fontSize: meta.ctaStyle.fontSize,
                 }}
-                className="inline-block font-semibold px-5 py-2.5 shadow transition-opacity hover:opacity-90"
+                className="inline-block font-semibold px-3 py-2 sm:px-5 sm:py-2.5 shadow transition-opacity hover:opacity-90"
               >
                 {slide.cta_text}
               </Link>

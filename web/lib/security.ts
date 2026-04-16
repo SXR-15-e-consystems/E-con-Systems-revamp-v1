@@ -22,7 +22,7 @@ export function sanitizeHtml(html: string): string {
     ALLOWED_ATTR: [
       'href', 'title', 'target', 'rel',
       'src', 'alt', 'width', 'height',
-      'class', 'id',
+      'class', 'id', 'style',
     ],
     ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[/])/i,
     ALLOW_DATA_ATTR: false,

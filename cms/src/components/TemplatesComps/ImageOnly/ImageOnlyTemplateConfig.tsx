@@ -12,6 +12,12 @@ const DEFAULT_META: ImageOnlyMeta = {
   objectFit: 'cover',
   width: '100%',
   height: '100%',
+  alignX: 'left',
+  margin: '0px',
+  maxWidth: '',
+  maxHeight: '',
+  minWidth: '',
+  minHeight: '',
 };
 
 const FIT_OPTIONS: { value: ImageOnlyMeta['objectFit']; label: string }[] = [
@@ -19,6 +25,12 @@ const FIT_OPTIONS: { value: ImageOnlyMeta['objectFit']; label: string }[] = [
   { value: 'contain', label: 'Contain (fit inside, letterbox)' },
   { value: 'fill', label: 'Fill (stretch to fit)' },
   { value: 'none', label: 'None (original size)' },
+];
+
+const ALIGN_OPTIONS: { value: ImageOnlyMeta['alignX']; label: string }[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Center' },
+  { value: 'right', label: 'Right' },
 ];
 
 function label(text: string) {
@@ -88,6 +100,69 @@ export function ImageOnlyTemplateConfig({ block, onChange }: BlockEditorProps) {
               label="Height"
               value={meta.height}
               onChange={(v) => updateMeta({ height: v })}
+            />
+          </div>
+        </div>
+      </fieldset>
+
+      {/* Position */}
+      <fieldset className="border border-gray-200 rounded p-3 space-y-3">
+        <legend className="text-xs font-bold text-gray-700 px-1">Position</legend>
+        <div>
+          {label('Horizontal Alignment')}
+          <div className="flex gap-2">
+            {ALIGN_OPTIONS.map(({ value, label: lbl }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => updateMeta({ alignX: value })}
+                className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${
+                  meta.alignX === value
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label>
+          {label('Margin (CSS shorthand)')}
+          {textInput(meta.margin, (v) => updateMeta({ margin: v }), '0px')}
+        </label>
+      </fieldset>
+
+      {/* Size Constraints */}
+      <fieldset className="border border-gray-200 rounded p-3 space-y-3">
+        <legend className="text-xs font-bold text-gray-700 px-1">Size Constraints</legend>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <DimensionInput
+              label="Max Width"
+              value={meta.maxWidth}
+              onChange={(v) => updateMeta({ maxWidth: v })}
+            />
+          </div>
+          <div>
+            <DimensionInput
+              label="Max Height"
+              value={meta.maxHeight}
+              onChange={(v) => updateMeta({ maxHeight: v })}
+            />
+          </div>
+          <div>
+            <DimensionInput
+              label="Min Width"
+              value={meta.minWidth}
+              onChange={(v) => updateMeta({ minWidth: v })}
+            />
+          </div>
+          <div>
+            <DimensionInput
+              label="Min Height"
+              value={meta.minHeight}
+              onChange={(v) => updateMeta({ minHeight: v })}
             />
           </div>
         </div>

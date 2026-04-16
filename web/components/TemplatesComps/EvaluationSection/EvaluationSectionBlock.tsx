@@ -42,8 +42,8 @@ function EvalCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
-      style={{ width: meta.cardWidth, minWidth: meta.cardWidth }}
+      className="group relative flex flex-col items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md es-eval-card"
+      style={{ '--card-w': meta.cardWidth } as React.CSSProperties}
     >
       {item.badge && (
         <span
@@ -92,6 +92,23 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
       className="w-full py-4"
       style={{ backgroundColor: meta.bgColor }}
     >
+      <style>{`
+        .es-eval-card {
+          width: 100%;
+          min-width: 0;
+        }
+        @media (min-width: 480px) {
+          .es-eval-card {
+            width: calc(50% - ${meta.cardGap});
+          }
+        }
+        @media (min-width: 768px) {
+          .es-eval-card {
+            width: var(--card-w);
+            min-width: var(--card-w);
+          }
+        }
+      `}</style>
       {content.heading && (
         <h3
           className="mb-5 text-lg font-bold"
