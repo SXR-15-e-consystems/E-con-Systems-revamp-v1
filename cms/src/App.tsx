@@ -8,6 +8,7 @@ import { PageEditorPage } from './pages/PageEditorPage';
 import { TemplateListPage } from './pages/TemplateListPage';
 import { TemplateBuilderPage } from './pages/TemplateBuilderPage';
 import { UserManagementPage } from './pages/UserManagementPage';
+import { NavigationPage } from './pages/NavigationPage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/templates/new" element={<ProtectedRoute allowedRoles={['admin']}><TemplateBuilderPage /></ProtectedRoute>} />
         <Route path="/templates/:templateId/edit" element={<ProtectedRoute allowedRoles={['admin']}><TemplateBuilderPage /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
+        <Route path="/navigation" element={<ProtectedRoute allowedRoles={['admin', 'marketing']}><NavigationPage /></ProtectedRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

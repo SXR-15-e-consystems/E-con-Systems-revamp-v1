@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, connect_db
-from app.routers import auth, cms, public, templates, users
+from app.routers import auth, cms, navigation, public, templates, users
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -123,8 +123,10 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
     app.include_router(cms.router, prefix="/api/v1/cms", tags=["CMS"])
     app.include_router(templates.router, prefix="/api/v1/cms", tags=["Templates"])
+    app.include_router(navigation.cms_router, prefix="/api/v1/cms", tags=["Navigation"])
     app.include_router(users.router, prefix="/api/v1/cms", tags=["Users"])
     app.include_router(public.router, prefix="/api/v1/public", tags=["Public"])
+    app.include_router(navigation.public_router, prefix="/api/v1/public", tags=["Navigation"])
 
     @app.get("/health", tags=["System"])
     async def health_check() -> dict[str, str]:

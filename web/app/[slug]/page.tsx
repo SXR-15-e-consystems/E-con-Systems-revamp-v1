@@ -9,6 +9,7 @@ export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ locale?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -22,8 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function SlugPage({ params }: Props) {
+export default async function SlugPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { locale } = await searchParams;
+  // locale is available for future localized content fetching
+  // e.g. fetchPublicPage(slug, locale) — currently serves same page
   const page = await fetchPublicPage(slug);
   if (!page) {
     notFound();

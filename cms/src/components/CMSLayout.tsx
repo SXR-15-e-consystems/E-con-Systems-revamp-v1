@@ -6,9 +6,12 @@ export function CMSLayout() {
   const location = useLocation();
   const isAdmin = hasRole(['admin']);
 
+  const isEditor = hasRole(['admin', 'marketing']);
+
   const navItems = [
     { to: '/', label: 'Pages' },
     { to: '/templates', label: 'Templates' },
+    ...(isEditor ? [{ to: '/navigation', label: 'Navigation' }] : []),
     ...(isAdmin ? [{ to: '/users', label: 'Users' }] : []),
   ];
 

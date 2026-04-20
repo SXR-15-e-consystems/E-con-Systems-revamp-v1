@@ -5,7 +5,13 @@ import { fetchPublicPage, fetchTemplate } from '@/lib/api';
 
 export const revalidate = 60; // ISR: revalidate every 60 seconds
 
-export default async function HomePage() {
+interface Props {
+  searchParams: Promise<{ locale?: string }>;
+}
+
+export default async function HomePage({ searchParams }: Props) {
+  const { locale } = await searchParams;
+  // locale is available for future localized content fetching
   const page = await fetchPublicPage('homepage');
   if (!page) {
     notFound();

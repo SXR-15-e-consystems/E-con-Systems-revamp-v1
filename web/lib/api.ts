@@ -1,5 +1,6 @@
 import type { PageResponse } from '@/types';
 import type { Template } from '@/types/template';
+import type { NavigationPublicResponse } from '@/types/navigation';
 
 import { API_BASE_URL, REVALIDATE_SECONDS } from './constants';
 
@@ -111,6 +112,37 @@ export async function fetchTemplate(templateId: string): Promise<Template | null
     // Network errors, JSON parse errors, etc.
     throw new ApiError(
       `Network error fetching template "${templateId}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+      500,
+      endpoint,
+    );
+  }
+}
+
+export async function fetchNavigation(): Promise<NavigationPublicResponse | null> {
+  const endpoint = `${API_BASE_URL}/public/navigation`;
+
+  try {
+    const res = await fetch(endpoint, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+
+    if (res.status === 404) {
+      return null;
+    }
+
+    if (!res.ok) {
+      throw new ApiError(
+        'Failed to fetch navigation',
+        res.status,
+        endpoint,
+      );
+    }
+
+    return (await res.json()) as NavigationPublicResponse;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(
+      `Network error fetching navigation: ${error instanceof Error ? error.message : 'Unknown error'}`,
       500,
       endpoint,
     );
