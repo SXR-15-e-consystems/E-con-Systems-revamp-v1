@@ -1,9 +1,11 @@
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt as pyjwt
+from bson import ObjectId
 
 from app.database import get_db
 from app.models.user import UserRole
+from app.services.token_service import is_token_revoked
 from .jwt import decode_token
 
 _bearer_scheme = HTTPBearer(auto_error=False)
@@ -43,9 +45,16 @@ async def get_current_user(
             detail={"code": "UNAUTHORIZED", "message": "Invalid token type"},
         )
 
-    from bson import ObjectId
-
     db = get_db()
+
+    # Check token blacklist (handles logout revocation)
+    jti = payload.get("jti")
+    if jti and await is_token_revoked(db, jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "UNAUTHORIZED", "message": "Token has been revoked"},
+        )
+
     user = await db.users.find_one({"_id": ObjectId(payload["sub"])})
     if user is None:
         raise HTTPException(

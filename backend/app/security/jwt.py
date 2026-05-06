@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -34,6 +35,7 @@ def create_access_token(subject: str, role: str, extra: dict[str, Any] | None = 
         "sub": subject,
         "role": role,
         "type": "access",
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + timedelta(minutes=_get_access_expire_minutes()),
     }
@@ -48,6 +50,7 @@ def create_refresh_token(subject: str) -> str:
     payload = {
         "sub": subject,
         "type": "refresh",
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + timedelta(days=_get_refresh_expire_days()),
     }

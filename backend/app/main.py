@@ -24,8 +24,10 @@ logger = get_logger(__name__)
 async def _seed_admin_if_needed() -> None:
     """Create a default admin user on first startup if no users exist."""
     from app.database import get_db
+    from app.models.user import _check_password_complexity
     from app.security.hashing import hash_password
     from datetime import datetime, timezone
+    from pydantic import ValidationError
 
     db = get_db()
     count = await db.users.count_documents({})
@@ -45,6 +47,12 @@ async def _seed_admin_if_needed() -> None:
         logger.error("ADMIN_PASSWORD must be at least 12 characters. Skipping admin seed.")
         return
 
+    try:
+        _check_password_complexity(admin_password)
+    except ValueError as exc:
+        logger.error("ADMIN_PASSWORD does not meet complexity requirements: %s. Skipping admin seed.", exc)
+        return
+
     now = datetime.now(timezone.utc)
     await db.users.insert_one({
         "email": admin_email.lower(),
@@ -56,7 +64,7 @@ async def _seed_admin_if_needed() -> None:
         "created_at": now,
         "updated_at": now,
     })
-    logger.info("Default admin user created: %s", admin_email)
+    logger.info("Default admin user created successfully")
 
 
 @asynccontextmanager

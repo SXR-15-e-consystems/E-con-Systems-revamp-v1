@@ -13,6 +13,22 @@ class UserRole(str, Enum):
     INVENTORY = "inventory"
 
 
+def _check_password_complexity(v: str) -> str:
+    """Shared password complexity validator used by UserCreate and PasswordChange."""
+    errors: list[str] = []
+    if not any(c.isupper() for c in v):
+        errors.append("one uppercase letter")
+    if not any(c.islower() for c in v):
+        errors.append("one lowercase letter")
+    if not any(c.isdigit() for c in v):
+        errors.append("one digit")
+    if not any(c in "!@#$%^&*()-_=+[]{}|;:',.<>?/`~" for c in v):
+        errors.append("one special character")
+    if errors:
+        raise ValueError(f"Password must contain at least: {', '.join(errors)}")
+    return v
+
+
 class UserInDB(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
     id: PyObjectId = Field(default=None, alias="_id")
@@ -34,18 +50,7 @@ class UserCreate(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password_complexity(cls, v: str) -> str:
-        errors: list[str] = []
-        if not any(c.isupper() for c in v):
-            errors.append("one uppercase letter")
-        if not any(c.islower() for c in v):
-            errors.append("one lowercase letter")
-        if not any(c.isdigit() for c in v):
-            errors.append("one digit")
-        if not any(c in "!@#$%^&*()-_=+[]{}|;:',.<>?/`~" for c in v):
-            errors.append("one special character")
-        if errors:
-            raise ValueError(f"Password must contain at least: {', '.join(errors)}")
-        return v
+        return _check_password_complexity(v)
 
 
 class UserUpdate(BaseModel):
@@ -69,15 +74,4 @@ class PasswordChange(BaseModel):
     @field_validator("new_password")
     @classmethod
     def validate_password_complexity(cls, v: str) -> str:
-        errors: list[str] = []
-        if not any(c.isupper() for c in v):
-            errors.append("one uppercase letter")
-        if not any(c.islower() for c in v):
-            errors.append("one lowercase letter")
-        if not any(c.isdigit() for c in v):
-            errors.append("one digit")
-        if not any(c in "!@#$%^&*()-_=+[]{}|;:',.<>?/`~" for c in v):
-            errors.append("one special character")
-        if errors:
-            raise ValueError(f"Password must contain at least: {', '.join(errors)}")
-        return v
+        return _check_password_complexity(v)

@@ -6,13 +6,18 @@ import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DEFAULT_META: EvaluationSectionMeta = {
-  bgColor: '#ffffff',
+  bgColor: '#f3f4f6',
   headingColor: '#1f2937',
-  nameColor: '#2563eb',
+  nameColor: '#1f2937',
   badgeBgColor: '#16a34a',
   badgeTextColor: '#ffffff',
+  cardBgColor: '#f3f4f6',
   cardWidth: '180px',
   cardGap: '24px',
+  headingSize: '1.125rem',
+  nameSize: '0.875rem',
+  imageHeight: '128px',
+  sectionPadding: '32px 0',
 };
 
 function label(text: string) {
@@ -62,6 +67,7 @@ export function EvaluationSectionTemplateConfig({ block, onChange }: BlockEditor
 
       <div className="grid grid-cols-2 gap-3">
         <div>{label('Background')}{colorInput(meta.bgColor, (v) => updateMeta({ bgColor: v }))}</div>
+        <div>{label('Card Background')}{colorInput(meta.cardBgColor, (v) => updateMeta({ cardBgColor: v }))}</div>
         <div>{label('Heading Colour')}{colorInput(meta.headingColor, (v) => updateMeta({ headingColor: v }))}</div>
         <div>{label('Name Colour')}{colorInput(meta.nameColor, (v) => updateMeta({ nameColor: v }))}</div>
         <div>{label('Badge BG')}{colorInput(meta.badgeBgColor, (v) => updateMeta({ badgeBgColor: v }))}</div>
@@ -76,6 +82,26 @@ export function EvaluationSectionTemplateConfig({ block, onChange }: BlockEditor
         <div>
           {label('Card Gap')}
           {textInput(meta.cardGap, (v) => updateMeta({ cardGap: v }), '24px')}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          {label('Heading Size (rem/px)')}
+          {textInput(meta.headingSize, (v) => updateMeta({ headingSize: v }), '1.125rem')}
+        </div>
+        <div>
+          {label('Name Size (rem/px)')}
+          {textInput(meta.nameSize, (v) => updateMeta({ nameSize: v }), '0.875rem')}
+        </div>
+        <div>
+          {label('Image Height (px)')}
+          {textInput(meta.imageHeight, (v) => updateMeta({ imageHeight: v }), '128px')}
+        </div>
+        <div>
+          {label('Section Padding (CSS)')}
+          {textInput(meta.sectionPadding, (v) => updateMeta({ sectionPadding: v }), '32px 0')}
+          <span className="text-[10px] text-gray-400">e.g. "32px 0" or "32px 48px"</span>
         </div>
       </div>
     </div>

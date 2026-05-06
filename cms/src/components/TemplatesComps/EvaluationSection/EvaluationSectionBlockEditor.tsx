@@ -12,13 +12,18 @@ import type { BlockEditorProps } from '../../blocks/BlockEditorRegistry';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DEFAULT_META: EvaluationSectionMeta = {
-  bgColor: '#ffffff',
+  bgColor: '#f3f4f6',
   headingColor: '#1f2937',
-  nameColor: '#2563eb',
+  nameColor: '#1f2937',
   badgeBgColor: '#16a34a',
   badgeTextColor: '#ffffff',
+  cardBgColor: '#f3f4f6',
   cardWidth: '180px',
   cardGap: '24px',
+  headingSize: '1.125rem',
+  nameSize: '0.875rem',
+  imageHeight: '128px',
+  sectionPadding: '32px 0',
 };
 
 function emptyItem(): EvaluationItem {

@@ -64,8 +64,14 @@ async def cms_get_page(
         return await get_page(db, slug)
     except ServiceError as exc:
         from fastapi import HTTPException
-
         raise HTTPException(status_code=exc.status_code, detail=_service_error_response(exc)) from exc
+    except Exception as exc:
+        logger.exception("Unexpected error loading page slug=%s", slug, exc_info=exc)
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=500,
+            detail={"error": {"code": "INTERNAL_ERROR", "message": "Failed to load page"}},
+        ) from exc
 
 
 @router.post("/pages", response_model=PageResponse, status_code=201)

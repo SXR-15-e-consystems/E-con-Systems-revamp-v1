@@ -37,6 +37,14 @@ class BlockType(str, Enum):
     TARGET_APPLICATIONS = "TargetApplications"
     SPOTLIGHTS = "Spotlights"
     DOCUMENT_DOWNLOAD = "DocumentDownload"
+    # ── Product page v2 block types ──
+    PRODUCT_HERO = "ProductHero"
+    PRODUCT_TABS_V2 = "ProductTabsV2"
+    PRODUCT_HERO_NEW = "ProductHeroNew"
+    NEWSLETTER_SUBSCRIBE = "NewsletterSubscribe"
+    TARGETED_APPLICATIONS = "TargetedApplications"
+    RESOURCE_TAB = "ResourceTab"
+    FAQ_NEW = "FAQNew"
 
 
 class BlockEnvelope(BaseModel):

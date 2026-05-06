@@ -10,6 +10,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [throttle, setThrottle] = useState(false);
+  const [throttleDelay, setThrottleDelay] = useState(2000);
 
   // If already logged in, redirect to dashboard
   if (isAuthenticated && !isLoading) {
@@ -28,9 +29,10 @@ export function LoginPage() {
       navigate('/', { replace: true });
     } catch {
       setError('Invalid email or password');
-      // 2-second throttle after failure
+      // Exponential backoff: 2s → 4s → 8s … capped at 60s
       setThrottle(true);
-      setTimeout(() => setThrottle(false), 2000);
+      setTimeout(() => setThrottle(false), throttleDelay);
+      setThrottleDelay((prev) => Math.min(prev * 2, 60_000));
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +80,7 @@ export function LoginPage() {
           </div>
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <div role="alert" aria-live="assertive" className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}

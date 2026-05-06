@@ -49,6 +49,17 @@ import { SpotlightsBlockEditor } from '../TemplatesComps/Spotlights/SpotlightsBl
 import { SpotlightsTemplateConfig } from '../TemplatesComps/Spotlights/SpotlightsTemplateConfig';
 import { DocumentDownloadBlockEditor } from '../TemplatesComps/DocumentDownload/DocumentDownloadBlockEditor';
 import { DocumentDownloadTemplateConfig } from '../TemplatesComps/DocumentDownload/DocumentDownloadTemplateConfig';
+import { ProductHeroNewBlockEditor } from '../TemplatesComps/ProductHeroNew/ProductHeroNewBlockEditor';
+import { ProductHeroNewTemplateConfig } from '../TemplatesComps/ProductHeroNew/ProductHeroNewTemplateConfig';
+import { NewsletterSubscribeBlockEditor } from '../TemplatesComps/NewsletterSubscribe/NewsletterSubscribeBlockEditor';
+import { NewsletterSubscribeTemplateConfig } from '../TemplatesComps/NewsletterSubscribe/NewsletterSubscribeTemplateConfig';
+import { ProductTabsV2TemplateConfig } from '../TemplatesComps/ProductTabsV2/ProductTabsV2TemplateConfig';
+import { TargetedApplicationsBlockEditor } from '../TemplatesComps/TargetedApplications/TargetedApplicationsBlockEditor';
+import { TargetedApplicationsTemplateConfig } from '../TemplatesComps/TargetedApplications/TargetedApplicationsTemplateConfig';
+import { ResourceTabBlockEditor } from '../TemplatesComps/ResourceTab/ResourceTabBlockEditor';
+import { ResourceTabTemplateConfig } from '../TemplatesComps/ResourceTab/ResourceTabTemplateConfig';
+import { FAQNewBlockEditor } from '../TemplatesComps/FAQNew/FAQNewBlockEditor';
+import { FAQNewTemplateConfig } from '../TemplatesComps/FAQNew/FAQNewTemplateConfig';
 
 export interface BlockEditorProps {
   block: BlockEnvelope;
@@ -86,6 +97,12 @@ const templateConfigRegistry: Partial<Record<BlockType, ComponentType<BlockEdito
   TargetApplications: TargetApplicationsTemplateConfig,
   Spotlights: SpotlightsTemplateConfig,
   DocumentDownload: DocumentDownloadTemplateConfig,
+  ProductHeroNew: ProductHeroNewTemplateConfig,
+  NewsletterSubscribe: NewsletterSubscribeTemplateConfig,
+  ProductTabsV2: ProductTabsV2TemplateConfig,
+  TargetedApplications: TargetedApplicationsTemplateConfig,
+  ResourceTab: ResourceTabTemplateConfig,
+  FAQNew: FAQNewTemplateConfig,
 };
 
 const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorProps>>> = {
@@ -97,6 +114,7 @@ const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorPr
   Form: FormBlockEditor,
   CTAButton: CTAButtonBlockEditor,
   ProductTabs: ProductTabsBlockEditor,
+  ProductTabsV2: ProductTabsBlockEditor, // same content shape; only meta differs
   ProductImageSlider: ProductImageSliderBlockEditor,
   Tag: TagBlockEditor,
   Headline: HeadlineBlockEditor,
@@ -114,6 +132,11 @@ const blockEditorRegistry: Partial<Record<BlockType, ComponentType<BlockEditorPr
   TargetApplications: TargetApplicationsBlockEditor,
   Spotlights: SpotlightsBlockEditor,
   DocumentDownload: DocumentDownloadBlockEditor,
+  ProductHeroNew: ProductHeroNewBlockEditor,
+  NewsletterSubscribe: NewsletterSubscribeBlockEditor,
+  TargetedApplications: TargetedApplicationsBlockEditor,
+  ResourceTab: ResourceTabBlockEditor,
+  FAQNew: FAQNewBlockEditor,
 };
 
 /** Returns the L1 template config editor for a block type, or null if not applicable. */

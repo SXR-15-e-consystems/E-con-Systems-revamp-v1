@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -37,7 +36,6 @@ export function setAccessToken(token: string | null): void {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const mountedRef = useRef(true);
 
   // Wire up the Axios interceptor access token getter/setter
   useEffect(() => {
@@ -48,19 +46,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Silent refresh on mount
   useEffect(() => {
     let cancelled = false;
+    let tokenSet = false;
 
     async function tryRefresh() {
       try {
         const resp = await refreshTokenApi();
         if (cancelled) return;
         setAccessToken(resp.access_token);
+        tokenSet = true;
         const me = await fetchMe();
-        if (cancelled) return;
+        if (cancelled) {
+          // Component unmounted between setting token and fetching user — clean up
+          setAccessToken(null);
+          return;
+        }
         setUser(me);
       } catch {
-        if (cancelled) return;
-        setAccessToken(null);
-        setUser(null);
+        if (tokenSet) setAccessToken(null); // clear inconsistent token state
+        if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -72,11 +75,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Listen for session expiry events dispatched by the Axios interceptor
   useEffect(() => {
-    return () => {
-      mountedRef.current = false;
+    const handleSessionExpired = () => {
+      setAccessToken(null);
+      setUser(null);
     };
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
   }, []);
+
+  // Session idle timeout — auto-logout after inactivity while authenticated
+  useEffect(() => {
+    if (!user) return;
+    const timeoutMs = Number(
+      (import.meta.env.VITE_IDLE_TIMEOUT_MS as string | undefined) ?? 30 * 60 * 1000,
+    );
+    let timer: ReturnType<typeof setTimeout>;
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
+      }, timeoutMs);
+    };
+    const events = ['mousemove', 'keydown', 'pointerdown', 'scroll', 'touchstart'] as const;
+    events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [user]);
 
   const login = useCallback(async (email: string, password: string) => {
     const resp = await loginApi({ email: email.trim().toLowerCase(), password });

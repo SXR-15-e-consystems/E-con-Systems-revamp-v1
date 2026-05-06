@@ -1,11 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { AxiosError } from 'axios';
 
-import { createUser, deleteUser, fetchUsers, updateUser } from '../api/userEndpoints';
+import { createUser, deactivateUser, fetchUsers, updateUser } from '../api/userEndpoints';
 import type { UserCreatePayload, UserUpdatePayload } from '../api/userEndpoints';
 import type { AuthUser, UserRole } from '../types/auth';
 import { useAuth } from '../auth/AuthProvider';
+
+interface ApiErrorResponse {
+  error?: { message?: string };
+}
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'admin', label: 'Admin' },
@@ -32,7 +37,7 @@ export function UserManagementPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteUser,
+    mutationFn: deactivateUser,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   });
 
@@ -98,7 +103,7 @@ export function UserManagementPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">
-                      {new Date(u.created_at).toLocaleDateString()}
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
@@ -163,11 +168,33 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('marketing');
   const [error, setError] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const focusable = el.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
+    };
+    el.addEventListener('keydown', handleKeyDown);
+    return () => el.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const mutation = useMutation({
     mutationFn: (payload: UserCreatePayload) => createUser(payload),
     onSuccess,
-    onError: (err: any) => {
+    onError: (err: AxiosError<ApiErrorResponse>) => {
       const msg = err?.response?.data?.error?.message ?? err?.message ?? 'Failed to create user';
       setError(msg);
     },
@@ -181,10 +208,10 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-modal-title" className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-800">Create User</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+          <h2 id="create-modal-title" className="text-lg font-bold text-slate-800">Create User</h2>
+          <button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -226,7 +253,7 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
           </div>
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>
+            <div role="alert" aria-live="assertive" className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>
           )}
 
           <div className="flex justify-end gap-2 pt-2">
@@ -265,11 +292,33 @@ function EditUserModal({
   const [role, setRole] = useState<UserRole>(user.role);
   const [isActive, setIsActive] = useState(user.is_active);
   const [error, setError] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const focusable = el.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
+    };
+    el.addEventListener('keydown', handleKeyDown);
+    return () => el.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const mutation = useMutation({
     mutationFn: (payload: UserUpdatePayload) => updateUser(user.id, payload),
     onSuccess,
-    onError: (err: any) => {
+    onError: (err: AxiosError<ApiErrorResponse>) => {
       const msg = err?.response?.data?.error?.message ?? err?.message ?? 'Failed to update user';
       setError(msg);
     },
@@ -290,10 +339,10 @@ function EditUserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="edit-modal-title" className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-800">Edit User</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+          <h2 id="edit-modal-title" className="text-lg font-bold text-slate-800">Edit User</h2>
+          <button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-slate-600">✕</button>
         </div>
 
         <p className="text-sm text-slate-500 mb-4">{user.email}</p>
@@ -317,6 +366,9 @@ function EditUserModal({
               <label className="text-sm font-medium text-slate-700">Active</label>
               <button
                 type="button"
+                role="switch"
+                aria-checked={isActive}
+                aria-label="Toggle user active status"
                 onClick={() => setIsActive(!isActive)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isActive ? 'bg-green-500' : 'bg-slate-300'}`}
               >
@@ -327,7 +379,7 @@ function EditUserModal({
           )}
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>
+            <div role="alert" aria-live="assertive" className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</div>
           )}
 
           <div className="flex justify-end gap-2 pt-2">

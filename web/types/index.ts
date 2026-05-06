@@ -29,7 +29,14 @@ export type BlockType =
   | 'RelatedBlogsGrid'
   | 'TargetApplications'
   | 'Spotlights'
-  | 'DocumentDownload';
+  | 'DocumentDownload'
+  | 'ProductHero'
+  | 'ProductTabsV2'
+  | 'ProductHeroNew'
+  | 'NewsletterSubscribe'
+  | 'TargetedApplications'
+  | 'ResourceTab'
+  | 'FAQNew';
 
 export interface BlockEnvelope {
   block_id: string;

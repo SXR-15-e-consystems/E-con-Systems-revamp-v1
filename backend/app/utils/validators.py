@@ -1,21 +1,26 @@
-import re
+import nh3
+
+_ALLOWED_TAGS = {
+    "a", "abbr", "b", "blockquote", "br", "code", "em", "h1", "h2", "h3",
+    "h4", "h5", "h6", "i", "img", "li", "ol", "p", "pre", "s", "span",
+    "strong", "table", "tbody", "td", "th", "thead", "tr", "ul",
+}
+
+_ALLOWED_ATTRS: dict[str, set[str]] = {
+    "a": {"href", "title", "target"},
+    "img": {"src", "alt", "width", "height"},
+    "td": {"colspan", "rowspan"},
+    "th": {"colspan", "rowspan"},
+    "*": {"class"},
+}
 
 
 def sanitize_html(html: str) -> str:
-    html = re.sub(r"<script[\\s\\S]*?</script>", "", html, flags=re.IGNORECASE)
-    html = re.sub(r"<style[\\s\\S]*?</style>", "", html, flags=re.IGNORECASE)
-    html = re.sub(r"\\s+on\\w+\\s*=\\s*[\"\'][^\"\']*[\"\']", "", html, flags=re.IGNORECASE)
-    html = re.sub(r"\\s+on\\w+\\s*=\\s*\\S+", "", html, flags=re.IGNORECASE)
-    html = re.sub(
-        r"href\\s*=\\s*[\"\']javascript:[^\"\']*[\"\']",
-        'href="#"',
+    """Sanitize HTML using nh3 (Rust-backed ammonia library). Safe against XSS bypass."""
+    return nh3.clean(
         html,
-        flags=re.IGNORECASE,
+        tags=_ALLOWED_TAGS,
+        attributes=_ALLOWED_ATTRS,
+        url_schemes={"http", "https", "mailto"},
+        link_rel=None,
     )
-    html = re.sub(
-        r"src\\s*=\\s*[\"\']javascript:[^\"\']*[\"\']",
-        'src=""',
-        html,
-        flags=re.IGNORECASE,
-    )
-    return html

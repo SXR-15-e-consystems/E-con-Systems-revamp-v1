@@ -45,4 +45,13 @@ def fire_audit_event(
             log_event(event_type, user_id, target_id, details, ip_address)
         )
     except RuntimeError:
-        logger.warning("No running event loop — audit event '%s' dropped", event_type)
+        # No running loop (e.g., during startup or sync tests) — attempt synchronous write
+        logger.error(
+            "No running event loop when firing audit event '%s' — attempting sync fallback",
+            event_type,
+        )
+        try:
+            import asyncio as _asyncio
+            _asyncio.run(log_event(event_type, user_id, target_id, details, ip_address))
+        except Exception:
+            logger.exception("Audit event '%s' permanently dropped — fallback write failed", event_type)

@@ -499,6 +499,62 @@ export interface ActionButtonData {
   content: ActionButtonContent;
 }
 
+// ─── ProductHero ────────────────────────────────────────────
+export interface ProductHeroMeta {
+  bgColor: string;
+  badgeBgColor: string;
+  badgeTextColor: string;
+  titleColor: string;
+  highlightBulletColor: string;
+  imageBgColor: string;
+  buyNowBgColor: string;
+  buyNowTextColor: string;
+  downloadBgColor: string;
+  downloadTextColor: string;
+  partnerLogosHeight: string;
+}
+
+export interface ProductHeroPartnerLogo {
+  image_url: string;
+  image_alt: string;
+  href?: string;
+}
+
+export interface ProductHeroContent {
+  sku_badge: string;
+  title: string;
+  images: { image_url: string; image_alt: string }[];
+  partner_logos: ProductHeroPartnerLogo[];
+  highlights: string[];
+  variant_options: string[];
+  sample_price: string;
+  sample_currency: string;
+  volume_price?: string;
+  volume_currency?: string;
+  buy_now_url?: string;
+  download_url?: string;
+}
+
+export interface ProductHeroData {
+  meta: ProductHeroMeta;
+  content: ProductHeroContent;
+}
+
+// ─── ProductTabsV2 ────────────────────────────────────────────
+export interface ProductTabsV2Meta {
+  active_color: string;
+  tabBarBorderColor: string;
+  tabsBgColor: string;
+  contentBgColor: string;
+  recaptchaSiteKey: string;
+  datasheet_cta?: DatasheetCTA;
+}
+
+export interface ProductTabsV2Data {
+  meta: ProductTabsV2Meta;
+  content: ProductTabsContent;
+}
+
 // ─── EvaluationSection ──────────────────────────────────────
 
 export interface EvaluationSectionMeta {
@@ -507,8 +563,13 @@ export interface EvaluationSectionMeta {
   nameColor: string;
   badgeBgColor: string;
   badgeTextColor: string;
+  cardBgColor: string;
   cardWidth: string;
   cardGap: string;
+  headingSize: string;
+  nameSize: string;
+  imageHeight: string;
+  sectionPadding: string;
 }
 
 export interface EvaluationItem {
@@ -895,4 +956,217 @@ export interface DocumentDownloadContent {
 export interface DocumentDownloadData {
   meta: DocumentDownloadMeta;
   content: DocumentDownloadContent;
+}
+
+// ─── ProductHeroNew ──────────────────────────────────────────
+export interface ProductHighlightIcon {
+  icon_url: string;
+  icon_alt?: string;
+  icon_label: string;
+}
+
+export interface ProductHeroAdItem {
+  image_url: string;
+  image_alt: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  cta_link?: string;
+}
+
+export interface ProductHeroNewMeta {
+  bgColor: string;
+  badgeBgColor: string;
+  badgeTextColor: string;
+  titleColor: string;
+  highlightsHeadingColor: string;
+  highlightBulletColor: string;
+  imageBgColor: string;
+  buyNowBgColor: string;
+  buyNowTextColor: string;
+  downloadBgColor: string;
+  downloadTextColor: string;
+  partnerLogosHeight: string;
+  priceLabelColor: string;
+  priceValueColor: string;
+}
+
+export interface ProductHeroNewPartnerLogo {
+  image_url: string;
+  image_alt: string;
+  href?: string;
+}
+
+export interface ProductHeroNewContent {
+  sku_badge: string;
+  title: string;
+  images: { image_url: string; image_alt: string }[];
+  partner_logos: ProductHeroNewPartnerLogo[];
+  highlights: string[];
+  highlight_icons?: ProductHighlightIcon[];
+  show_highlight_icons?: boolean;
+  variant_options: string[];
+  sample_price: string;
+  sample_currency: string;
+  volume_price?: string;
+  volume_currency?: string;
+  buy_now_url?: string;
+  download_url?: string;
+  download_label: string;
+  download_sub_label?: string;
+  tags?: { label: string; href?: string }[];
+  ad?: ProductHeroAdItem;
+  template_ad?: ProductHeroAdItem;
+  hide_ad?: boolean;
+}
+
+export interface ProductHeroNewData {
+  meta: ProductHeroNewMeta;
+  content: ProductHeroNewContent;
+}
+
+// ─── NewsletterSubscribe ─────────────────────────────────────
+export interface NewsletterSubscribeMeta {
+  bgColor: string;
+  headingColor: string;
+  headingFontSize: string;
+  headingFontWeight: string;
+  inputBorderColor: string;
+  inputBgColor: string;
+  inputTextColor: string;
+  buttonBgColor: string;
+  buttonTextColor: string;
+  buttonLabel: string;
+  placeholderText: string;
+  successMessage: string;
+  errorMessage: string;
+  width: string;
+}
+
+export interface NewsletterSubscribeContent {
+  heading: string;
+  form_action_url?: string;
+}
+
+export interface NewsletterSubscribeData {
+  meta: NewsletterSubscribeMeta;
+  content: NewsletterSubscribeContent;
+}
+
+// ─── TargetedApplications ────────────────────────────────────────────────────
+
+export interface TargetedApplicationsMeta {
+  bgColor: string;
+  headingColor: string;
+  headingSize: string;
+  headingAlign: 'left' | 'center' | 'right';
+  cardBgColor: string;
+  cardBorderRadius: string;
+  cardGap: string;
+  titleColor: string;
+  titleSize: string;
+  imageAspectRatio: string;
+  visibleCards: 2 | 3 | 4 | 5;
+  sectionPadding: string;
+}
+
+export interface TargetedApplicationItem {
+  image_url: string;
+  image_alt: string;
+  title: string;
+  link?: string;
+}
+
+export interface TargetedApplicationsContent {
+  heading: string;
+  items: TargetedApplicationItem[];
+}
+
+export interface TargetedApplicationsData {
+  meta: TargetedApplicationsMeta;
+  content: TargetedApplicationsContent;
+}
+
+// ─── ResourceTab ─────────────────────────────────────────────────────────────
+
+export interface ResourceTabMeta {
+  bgColor: string;
+  sidebarBgColor: string;
+  tabActiveColor: string;
+  tabInactiveColor: string;
+  tabFontSize: string;
+  cardBgColor: string;
+  cardBorderRadius: string;
+  cardGap: string;
+  titleColor: string;
+  titleSize: string;
+  descColor: string;
+  descSize: string;
+  ctaBgColor: string;
+  ctaTextColor: string;
+  ctaBorderRadius: string;
+  ctaSize: string;
+  imageAspectRatio: string;
+  visibleCards: 1 | 2 | 3 | 4;
+  tabCount: 1 | 2 | 3 | 4 | 5;
+  sectionPadding: string;
+}
+
+export interface ResourceTabCard {
+  image_url: string;
+  image_alt: string;
+  title: string;
+  description?: string;
+  cta_text?: string;
+  cta_link?: string;
+}
+
+export interface ResourceTabItem {
+  name: string;
+  cards: ResourceTabCard[];
+}
+
+export interface ResourceTabContent {
+  tabs: ResourceTabItem[];
+}
+
+export interface ResourceTabData {
+  meta: ResourceTabMeta;
+  content: ResourceTabContent;
+}
+
+// ─── FAQNew ─────────────────────────────────────────────────
+export interface FAQNewMeta {
+  bgColor: string;
+  headingColor: string;
+  headingSize: string;
+  headingAlign: 'left' | 'center' | 'right';
+  cardCollapsedBg: string;
+  cardExpandedBg: string;
+  cardBorderRadius: string;
+  questionColor: string;
+  questionFontSize: string;
+  answerColor: string;
+  answerFontSize: string;
+  linkColor: string;
+  btnBgColor: string;
+  btnIconColor: string;
+  sectionPadding: string;
+}
+
+export interface FAQNewItem {
+  question: string;
+  answer: string;
+  link_text?: string;
+  link_href?: string;
+}
+
+export interface FAQNewContent {
+  heading: string;
+  items: FAQNewItem[];
+}
+
+export interface FAQNewData {
+  meta: FAQNewMeta;
+  content: FAQNewContent;
 }

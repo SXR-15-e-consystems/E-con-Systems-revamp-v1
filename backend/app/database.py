@@ -39,3 +39,6 @@ async def _ensure_indexes() -> None:
     await db.users.create_index("email", unique=True)
     await db.audit_log.create_index("timestamp")
     await db.audit_log.create_index("user_id")
+    # TTL index: MongoDB auto-expires blacklisted token documents after their expiry time
+    await db.token_blacklist.create_index("expires_at", expireAfterSeconds=0)
+    await db.token_blacklist.create_index("jti", unique=True)

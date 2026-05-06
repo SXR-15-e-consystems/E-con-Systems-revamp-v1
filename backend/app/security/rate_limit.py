@@ -17,8 +17,15 @@ def is_rate_limited(key: str, max_requests: int, window_seconds: int) -> bool:
     """
     now = time.monotonic()
     with _lock:
-        _store[key] = [t for t in _store[key] if now - t < window_seconds]
-        if len(_store[key]) >= max_requests:
+        timestamps = [t for t in _store[key] if now - t < window_seconds]
+        if len(timestamps) >= max_requests:
+            _store[key] = timestamps  # keep trimmed list, do not append
             return True
-        _store[key].append(now)
+        timestamps.append(now)
+        _store[key] = timestamps
+        # Prune keys whose windows have fully elapsed to prevent unbounded growth
+        if len(timestamps) == 1:  # just started a new window — opportunistic cleanup
+            expired = [k for k, v in _store.items() if not v]
+            for k in expired:
+                del _store[k]
         return False

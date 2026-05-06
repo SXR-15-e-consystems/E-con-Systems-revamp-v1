@@ -1,14 +1,14 @@
 import { apiClient } from './client';
-import type { AuthUser } from '../types/auth';
+import type { AuthUser, UserRole } from '../types/auth';
 
 export interface UserCreatePayload {
   email: string;
   password: string;
-  role: 'admin' | 'marketing' | 'inventory';
+  role: UserRole;
 }
 
 export interface UserUpdatePayload {
-  role?: 'admin' | 'marketing' | 'inventory';
+  role?: UserRole;
   is_active?: boolean;
 }
 
@@ -29,5 +29,11 @@ export async function updateUser(userId: string, payload: UserUpdatePayload): Pr
 
 export async function deleteUser(userId: string): Promise<AuthUser> {
   const { data } = await apiClient.delete<AuthUser>(`/cms/users/${userId}`);
+  return data;
+}
+
+/** Soft-deactivates a user via PUT (semantically correct — does not delete the resource). */
+export async function deactivateUser(userId: string): Promise<AuthUser> {
+  const { data } = await apiClient.put<AuthUser>(`/cms/users/${userId}`, { is_active: false });
   return data;
 }

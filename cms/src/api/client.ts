@@ -12,7 +12,6 @@ export const apiClient = axios.create({
   withCredentials: true, // Send HttpOnly cookies with every request
   headers: {
     'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
@@ -43,15 +42,25 @@ apiClient.interceptors.request.use((config) => {
 
 // --- Refresh queue to prevent concurrent refresh calls ---
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+
+type RefreshSubscriber = {
+  onSuccess: (token: string) => void;
+  onFailure: (error: unknown) => void;
+};
+let refreshSubscribers: RefreshSubscriber[] = [];
 
 function onTokenRefreshed(token: string) {
-  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers.forEach(({ onSuccess }) => onSuccess(token));
   refreshSubscribers = [];
 }
 
-function addRefreshSubscriber(cb: (token: string) => void) {
-  refreshSubscribers.push(cb);
+function onRefreshFailed(error: unknown) {
+  refreshSubscribers.forEach(({ onFailure }) => onFailure(error));
+  refreshSubscribers = [];
+}
+
+function addRefreshSubscriber(sub: RefreshSubscriber) {
+  refreshSubscribers.push(sub);
 }
 
 // Retry transient failures (network errors, 503, 429) up to 2 times with backoff
@@ -72,11 +81,14 @@ apiClient.interceptors.response.use(
     if (status === 401 && !config.url?.includes('/auth/refresh') && !config._isRetryAfterRefresh) {
       if (isRefreshing) {
         // Queue this request until the refresh completes
-        return new Promise((resolve) => {
-          addRefreshSubscriber((newToken: string) => {
-            config.headers.Authorization = `Bearer ${newToken}`;
-            config._isRetryAfterRefresh = true;
-            resolve(apiClient(config));
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber({
+            onSuccess: (newToken: string) => {
+              config.headers.Authorization = `Bearer ${newToken}`;
+              config._isRetryAfterRefresh = true;
+              resolve(apiClient(config));
+            },
+            onFailure: (err) => reject(err),
           });
         });
       }
@@ -97,11 +109,12 @@ apiClient.interceptors.response.use(
         config.headers.Authorization = `Bearer ${newToken}`;
         config._isRetryAfterRefresh = true;
         return apiClient(config);
-      } catch {
-        // Refresh failed — force logout
-        refreshSubscribers = [];
+      } catch (refreshError) {
+        // Notify all queued requests of the failure so they don't hang
+        onRefreshFailed(refreshError);
         _setAccessToken(null);
-        window.location.href = '/login';
+        // Dispatch custom event so AuthProvider can update React state without a page reload
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
         return Promise.reject(error);
       } finally {
         isRefreshing = false;

@@ -21,13 +21,18 @@ interface EvaluationSectionBlockProps {
 }
 
 const DEFAULT_META: EvaluationSectionMeta = {
-  bgColor: '#ffffff',
+  bgColor: '#f3f4f6',
   headingColor: '#1f2937',
-  nameColor: '#1e4ea2',
+  nameColor: '#1f2937',
   badgeBgColor: '#059f46',
   badgeTextColor: '#ffffff',
+  cardBgColor: '#f3f4f6',
   cardWidth: '180px',
   cardGap: '24px',
+  headingSize: '1.125rem',
+  nameSize: '0.875rem',
+  imageHeight: '128px',
+  sectionPadding: '32px 0',
 };
 
 function EvalCard({
@@ -42,8 +47,8 @@ function EvalCard({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md es-eval-card"
-      style={{ '--card-w': meta.cardWidth } as React.CSSProperties}
+      className="group relative flex flex-col items-center rounded-lg p-4 transition hover:shadow-md es-eval-card"
+      style={{ '--card-w': meta.cardWidth, backgroundColor: meta.cardBgColor } as React.CSSProperties}
     >
       {item.badge && (
         <span
@@ -57,7 +62,10 @@ function EvalCard({
         </span>
       )}
 
-      <div className="relative mb-3 flex h-28 w-full items-center justify-center">
+      <div
+        className="relative mb-3 w-full"
+        style={{ height: meta.imageHeight }}
+      >
         <Image
           src={item.image_url}
           alt={item.image_alt}
@@ -68,8 +76,8 @@ function EvalCard({
       </div>
 
       <span
-        className="text-center text-sm font-semibold leading-snug group-hover:underline"
-        style={{ color: meta.nameColor }}
+        className="text-center font-semibold leading-snug group-hover:underline"
+        style={{ color: meta.nameColor, fontSize: meta.nameSize }}
       >
         {item.name}
       </span>
@@ -89,8 +97,8 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
 
   return (
     <section
-      className="w-full py-4"
-      style={{ backgroundColor: meta.bgColor }}
+      className="w-full"
+      style={{ backgroundColor: meta.bgColor, padding: meta.sectionPadding }}
     >
       <style>{`
         .es-eval-card {
@@ -111,8 +119,8 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
       `}</style>
       {content.heading && (
         <h3
-          className="mb-5 text-lg font-bold"
-          style={{ color: meta.headingColor }}
+          className="mb-5 font-bold"
+          style={{ color: meta.headingColor, fontSize: meta.headingSize }}
         >
           {content.heading}
         </h3>

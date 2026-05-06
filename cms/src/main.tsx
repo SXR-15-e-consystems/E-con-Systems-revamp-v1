@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AuthProvider } from './auth/AuthProvider';
+import { AuthErrorBoundary } from './auth/AuthErrorBoundary';
 import App from './App';
 import './styles.css';
 
@@ -13,9 +14,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <AuthErrorBoundary>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </AuthErrorBoundary>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,

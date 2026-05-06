@@ -26,6 +26,13 @@ import { RelatedBlogsGridBlock } from '@/components/TemplatesComps/RelatedBlogsG
 import { TargetApplicationsBlock } from '@/components/TemplatesComps/TargetApplications/TargetApplicationsBlock';
 import { SpotlightsBlock } from '@/components/TemplatesComps/Spotlights/SpotlightsBlock';
 import { DocumentDownloadBlock } from '@/components/TemplatesComps/DocumentDownload/DocumentDownloadBlock';
+import { ProductHeroBlock } from '@/components/TemplatesComps/ProductHero/ProductHeroBlock';
+import { ProductTabsV2Block } from '@/components/TemplatesComps/ProductTabsV2/ProductTabsV2Block';
+import { ProductHeroNewBlock } from '@/components/TemplatesComps/ProductHeroNew/ProductHeroNewBlock';
+import { NewsletterSubscribeBlock } from '@/components/TemplatesComps/NewsletterSubscribe/NewsletterSubscribeBlock';
+import { TargetedApplicationsBlock } from '@/components/TemplatesComps/TargetedApplications/TargetedApplicationsBlock';
+import { ResourceTabBlock } from '@/components/TemplatesComps/ResourceTab/ResourceTabBlock';
+import { FAQNewBlock } from '@/components/TemplatesComps/FAQNew/FAQNewBlock';
 
 export interface BlockProps {
   data: Record<string, unknown>;
@@ -57,6 +64,13 @@ const registry: Partial<Record<BlockType, ComponentType<BlockProps>>> = {
   TargetApplications: TargetApplicationsBlock,
   Spotlights: SpotlightsBlock,
   DocumentDownload: DocumentDownloadBlock,
+  ProductHero: ProductHeroBlock,
+  ProductTabsV2: ProductTabsV2Block,
+  ProductHeroNew: ProductHeroNewBlock,
+  NewsletterSubscribe: NewsletterSubscribeBlock,
+  TargetedApplications: TargetedApplicationsBlock,
+  ResourceTab: ResourceTabBlock,
+  FAQNew: FAQNewBlock,
 };
 
 export function getBlockComponent(type: string): ComponentType<BlockProps> | null {
