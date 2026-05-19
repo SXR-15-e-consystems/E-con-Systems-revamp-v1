@@ -540,6 +540,12 @@ function OrderTableTabEditor({
           </div>
           <input
             className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+            placeholder="NopCommerce Product ID (for live pricing)"
+            value={row.nop_product_id ?? ''}
+            onChange={(e) => updateRow(ri, { nop_product_id: e.target.value.replace(/\D/g, '') || undefined })}
+          />
+          <input
+            className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
             placeholder="Contact URL"
             value={row.contact_url}
             onChange={(e) => updateRow(ri, { contact_url: e.target.value })}
@@ -587,7 +593,7 @@ function OrderTableTabEditor({
         onClick={() =>
           onChange({
             ...content,
-            rows: [...rows, { part_no: '', kit_contents: [], price: '', contact_url: '' }],
+            rows: [...rows, { part_no: '', kit_contents: [], price: '', contact_url: '', nop_product_id: undefined }],
           })
         }
         className="text-xs text-blue-600 hover:text-blue-800 font-medium border border-dashed border-blue-300 rounded px-3 py-1.5"
@@ -1020,6 +1026,20 @@ export function ProductTabsBlockEditor({ block, onChange }: BlockEditorProps) {
         <span>
           <strong>Custom slots:</strong> {customTabs.length}/{maxCustom}
         </span>
+      </div>
+
+      {/* Product Name for download/contact popups */}
+      <div className="rounded border border-gray-200 bg-white px-3 py-3 space-y-1">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-semibold text-gray-700">Product Name (for download &amp; contact popups)</span>
+          <input
+            className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+            placeholder="e.g. See3CAM_CU27"
+            value={meta.product_name ?? ''}
+            onChange={(e) => updateMeta({ product_name: e.target.value })}
+          />
+        </label>
+        <p className="text-[10px] text-gray-400">Shown as the title in the Download and Contact Us popup forms.</p>
       </div>
 
       {/* Datasheet CTA toggle */}

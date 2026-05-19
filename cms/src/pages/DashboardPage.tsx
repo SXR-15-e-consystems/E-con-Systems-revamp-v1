@@ -146,6 +146,7 @@ function CreatePageFlow({ onClose, onCreateSuccess }: { onClose: () => void, onC
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
+  const [productName, setProductName] = useState('');
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['templates'],
@@ -166,6 +167,7 @@ function CreatePageFlow({ onClose, onCreateSuccess }: { onClose: () => void, onC
       slug,
       title,
       meta_description: metaDescription,
+      product_name: productName,
       template_id: selectedTemplateId ?? undefined,
     });
   };
@@ -284,6 +286,16 @@ function CreatePageFlow({ onClose, onCreateSuccess }: { onClose: () => void, onC
                   value={metaDescription}
                   onChange={(event) => setMetaDescription(event.target.value)}
                   placeholder="Search engine snippet..."
+                />
+              </label>
+
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-semibold text-slate-700">Product Name</span>
+                <input
+                  className="rounded-md border border-slate-300 px-3 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={productName}
+                  onChange={(event) => setProductName(event.target.value)}
+                  placeholder="e.g. See3CAM_CU27"
                 />
               </label>
               

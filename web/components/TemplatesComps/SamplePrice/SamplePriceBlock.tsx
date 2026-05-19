@@ -1,6 +1,8 @@
 'use client';
 
 import type { SamplePriceData, SamplePriceMeta, SamplePriceContent } from '@/types/templates';
+import { getUiStrings, EN_DEFAULTS } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // L3: Public renderer — SamplePriceBlock
@@ -26,10 +28,21 @@ const DEFAULT_META: SamplePriceMeta = {
 };
 
 export function SamplePriceBlock({ data }: SamplePriceBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[SamplePrice] __ui present:', !!data.__ui, '| samplePrice:', t.samplePrice);
+  }
   const raw = data as unknown as SamplePriceData;
-  const meta: SamplePriceMeta = { ...DEFAULT_META, ...raw.meta };
+  const meta: SamplePriceMeta = { ...DEFAULT_META, ...raw.meta, label: raw.meta?.label || t.samplePrice };
+  // When the locale has a translated samplePrice UI string, it always wins over the
+  // English label baked into the block's content/meta fields.
+  const label =
+    t.samplePrice !== EN_DEFAULTS.samplePrice
+      ? t.samplePrice
+      : (raw.content?.label ?? meta.label);
   const content: SamplePriceContent = {
-    label: raw.content?.label ?? meta.label,
+    label,
     price: raw.content?.price ?? meta.price,
     currency: raw.content?.currency ?? meta.currency,
   };

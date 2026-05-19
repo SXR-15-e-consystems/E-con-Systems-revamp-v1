@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { sanitizeUrl } from '@/lib/security';
 import { fetchPublicPagesBatch } from '@/lib/api';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type {
   VariantsTableData,
   VariantsTableMeta,
@@ -73,6 +75,7 @@ function extractColumnValue(
 }
 
 export function VariantsTableBlock({ data }: VariantsTableBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const raw = data as unknown as VariantsTableData;
   const meta: VariantsTableMeta = {
     ...DEFAULT_META,
@@ -172,7 +175,7 @@ export function VariantsTableBlock({ data }: VariantsTableBlockProps) {
           </div>
         ) : resolvedRows.length === 0 ? (
           <div className="rounded-lg border border-gray-200 px-4 py-8 text-center text-gray-400">
-            No variants available.
+            {t.noVariants}
           </div>
         ) : (
           <>
@@ -202,7 +205,7 @@ export function VariantsTableBlock({ data }: VariantsTableBlockProps) {
                           color: meta.headerTextColor,
                         }}
                       >
-                        Actions
+                        {t.actionsHeader}
                       </th>
                     )}
                   </tr>

@@ -137,3 +137,63 @@ def upload_file_to_s3(
         return f"{cdn.rstrip('/')}/{s3_key}"
 
     return f"https://{bucket}.s3.{region}.amazonaws.com/{s3_key}"
+
+
+# ── Pre-signed URL generation ─────────────────────────────────────────────────
+
+_S3_URL_PATTERNS = [
+    # https://bucket.s3.amazonaws.com/key
+    r"^https?://([^.]+)\.s3\.amazonaws\.com/(.+)$",
+    # https://bucket.s3.region.amazonaws.com/key
+    r"^https?://([^.]+)\.s3\.[^.]+\.amazonaws\.com/(.+)$",
+    # https://s3.amazonaws.com/bucket/key
+    r"^https?://s3\.amazonaws\.com/([^/]+)/(.+)$",
+    # https://s3.region.amazonaws.com/bucket/key
+    r"^https?://s3\.[^.]+\.amazonaws\.com/([^/]+)/(.+)$",
+]
+
+
+def _extract_s3_bucket_and_key(url: str) -> tuple[str, str] | None:
+    """Extract (bucket, key) from a known S3 URL pattern. Returns None if not S3."""
+    import re as _re
+    for pattern in _S3_URL_PATTERNS:
+        m = _re.match(pattern, url.strip())
+        if m:
+            return m.group(1), m.group(2)
+    return None
+
+
+def generate_presigned_url(url_or_key: str, expiry_seconds: int = 604800) -> str:
+    """Return a pre-signed GET URL for an S3 object.
+
+    - If *url_or_key* is an S3 URL for the configured bucket, generates a
+      pre-signed URL valid for *expiry_seconds* (default 7 days).
+    - If it cannot be matched to the configured bucket, returns the original
+      URL unchanged (CDN / external URLs fall through silently).
+
+    Raises nothing — always returns a usable URL.
+    """
+    if not url_or_key:
+        return url_or_key
+
+    configured_bucket = _s3_bucket()
+    parsed = _extract_s3_bucket_and_key(url_or_key)
+
+    if parsed is None or not configured_bucket:
+        # Not an S3 URL we recognise, or S3 not configured — return as-is
+        return url_or_key
+
+    bucket_in_url, key = parsed
+    if bucket_in_url != configured_bucket:
+        return url_or_key  # Different bucket — do not sign
+
+    try:
+        s3 = _get_s3_client()
+        return s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": configured_bucket, "Key": key},
+            ExpiresIn=expiry_seconds,
+        )
+    except ClientError:
+        logger.exception("Failed to generate pre-signed URL for key: %s", key)
+        return url_or_key  # Fall back gracefully

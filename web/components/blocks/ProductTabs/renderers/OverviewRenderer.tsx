@@ -12,9 +12,10 @@ interface Props {
   datasheetCta?: DatasheetCTA;
   documentsData?: DocumentsTabContent;
   recaptchaSiteKey?: string;
+  productName?: string;
 }
 
-export function OverviewRenderer({ data, datasheetCta, documentsData, recaptchaSiteKey }: Props) {
+export function OverviewRenderer({ data, datasheetCta, documentsData, productName }: Props) {
   const safeHtml = sanitizeHtml(data.html ?? '');
   const [showDownloadForm, setShowDownloadForm] = useState(false);
 
@@ -101,7 +102,7 @@ export function OverviewRenderer({ data, datasheetCta, documentsData, recaptchaS
             open={showDownloadForm}
             onClose={() => setShowDownloadForm(false)}
             documents={allDocs}
-            recaptchaSiteKey={recaptchaSiteKey ?? ''}
+            productName={productName}
           />
         </>
       )}

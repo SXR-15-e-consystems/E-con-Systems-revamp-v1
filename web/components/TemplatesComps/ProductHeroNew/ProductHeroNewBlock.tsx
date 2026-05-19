@@ -5,12 +5,19 @@ import Link from 'next/link';
 import { useState, useCallback } from 'react';
 
 import { sanitizeUrl } from '@/lib/security';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
+import { useLivePricing } from '@/hooks/useLivePricing';
+import { useModal } from '@/hooks/useModal';
+import { ContactUsModal } from './ContactUsModal';
+import { DownloadFormModal } from '../../blocks/ProductTabs/renderers/DownloadFormModal';
 import type {
   ProductHeroNewData,
   ProductHeroNewMeta,
   ProductHeroNewContent,
   ProductHighlightIcon,
   ProductHeroAdItem,
+  ProductPriceResult,
 } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,6 +86,25 @@ function DownloadIcon() {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <polyline points="2,4 12,13 22,4" />
     </svg>
   );
 }
@@ -158,7 +184,9 @@ function AdBanner({ ad }: { ad: ProductHeroAdItem }) {
 // ── Main block ─────────────────────────────────────────────────────────────
 export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
   const typed = data as unknown as ProductHeroNewData;
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const meta: ProductHeroNewMeta = { ...DEFAULT_META, ...typed.meta };
+  const pageProductName = (data.__page_product_name as string) ?? '';
   const content: ProductHeroNewContent = {
     sku_badge: typed.content?.sku_badge ?? '',
     title: typed.content?.title ?? '',
@@ -168,6 +196,8 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
     highlight_icons: typed.content?.highlight_icons ?? [],
     show_highlight_icons: typed.content?.show_highlight_icons ?? false,
     variant_options: typed.content?.variant_options ?? [],
+    variant_product_codes: typed.content?.variant_product_codes,
+    product_codes: typed.content?.product_codes,
     sample_price: typed.content?.sample_price ?? '',
     sample_currency: typed.content?.sample_currency ?? 'USD',
     volume_price: typed.content?.volume_price,
@@ -181,6 +211,10 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
     template_ad: typed.content?.template_ad,
     hide_ad: typed.content?.hide_ad ?? false,
   };
+
+  // ── Live pricing ─────────────────────────────────────────────────────────
+  const { priceMap, loading: priceLoading } = useLivePricing(content.product_codes);
+  const contactModal = useModal();
 
   // Active ad: page-level .ad overrides template_ad; hide_ad suppresses both
   const activeAd: ProductHeroAdItem | null = content.hide_ad
@@ -205,8 +239,24 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
     [],
   );
 
+  // Resolve live pricing for the currently selected variant
+  const currentCode = content.variant_product_codes?.[selectedVariant];
+  const livePrice: ProductPriceResult | null =
+    currentCode && priceMap[currentCode] ? priceMap[currentCode] : null;
+
+  const isContactUs = livePrice?.purchaseType === 'contact_us';
+  const displayPrice = livePrice?.price != null
+    ? String(livePrice.price)
+    : content.sample_price;
+
   const safeDownloadUrl = content.download_url ? sanitizeUrl(content.download_url) : '#';
+  void safeDownloadUrl; // kept for potential use; DOWNLOAD button now opens modal
+  const [showDownloadForm, setShowDownloadForm] = useState(false);
   const safeBuyNowUrl = content.buy_now_url ? sanitizeUrl(content.buy_now_url) : '#';
+  // If product has a code, append it as a query param for the webstore
+  const buyNowHref = currentCode
+    ? `${safeBuyNowUrl}${safeBuyNowUrl.includes('?') ? '&' : '?'}productId=${encodeURIComponent(currentCode)}`
+    : safeBuyNowUrl;
   const hasTags = Array.isArray(content.tags) && content.tags.length > 0;
 
   return (
@@ -251,15 +301,15 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
           flex: 1;
           min-width: 0;
           background-color: ${meta.bgColor};
-          padding: clamp(20px, 3vw, 40px) clamp(20px, 3.5vw, 40px);
+          padding: clamp(12px, 2vw, 24px) clamp(16px, 2.5vw, 32px);
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 8px;
         }
 
         /* Icon strip — same gray bg as the left panel */
         .phn-icon-strip {
-          width: 72px;
+          width: 88px;
           flex-shrink: 0;
           background-color: ${meta.bgColor};
           display: flex;
@@ -267,7 +317,7 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
           justify-content: center;
           align-items: center;
           gap: 20px;
-          padding: 24px 8px;
+          padding: 36px 16px 36px 8px;
         }
 
         /* Indicators row — inside gray strip, centered */
@@ -285,7 +335,7 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
 
         /* Right col */
         .phn-right-col {
-          padding: clamp(16px, 3vw, 40px) clamp(16px, 4vw, 48px);
+          padding: clamp(12px, 2vw, 28px) clamp(16px, 3vw, 40px);
         }
 
         /* Ad col */
@@ -425,7 +475,7 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
               {activeImage && (
                 <div
                   className="relative w-full overflow-hidden rounded-sm"
-                  style={{ aspectRatio: '4/3' }}
+                  style={{ aspectRatio: '16/9' }}
                 >
                   <Image
                     src={sanitizeUrl(activeImage.image_url, false)}
@@ -495,7 +545,7 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
         </div>
 
         {/* ── MIDDLE COL: partner logos · highlights · variant · price · CTAs ── */}
-        <div className="phn-right-col flex flex-col gap-5">
+        <div className="phn-right-col flex flex-col gap-3">
 
           {/* Partner logos */}
           {content.partner_logos.length > 0 && (
@@ -504,23 +554,19 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
                 const logoSrc = sanitizeUrl(logo.image_url, false);
                 const logoHref = logo.href ? sanitizeUrl(logo.href) : null;
                 const imgEl = (
-                  <div
-                    className="relative flex-shrink-0"
+                  <Image
+                    src={logoSrc}
+                    alt={logo.image_alt}
+                    width={0}
+                    height={0}
+                    sizes="120px"
                     style={{
                       height: meta.partnerLogosHeight,
                       width: 'auto',
-                      minWidth: '40px',
-                      aspectRatio: 'auto',
+                      maxWidth: '120px',
                     }}
-                  >
-                    <Image
-                      src={logoSrc}
-                      alt={logo.image_alt}
-                      fill
-                      className="object-contain"
-                      sizes="100px"
-                    />
-                  </div>
+                    className="object-contain flex-shrink-0"
+                  />
                 );
                 return logoHref ? (
                   <Link
@@ -528,11 +574,12 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
                     href={logoHref}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="flex-shrink-0"
                   >
                     {imgEl}
                   </Link>
                 ) : (
-                  <div key={i}>{imgEl}</div>
+                  <div key={i} className="flex-shrink-0">{imgEl}</div>
                 );
               })}
             </div>
@@ -551,11 +598,11 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
                 {content.highlights.map((h, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2 text-sm leading-relaxed py-2"
+                    className="flex items-start gap-2 text-sm leading-snug py-1"
                     style={{ color: meta.highlightBulletColor }}
                   >
                     <span className="flex-shrink-0 font-medium" aria-hidden="true">–</span>
-                    <span>{h}</span>
+                    <span className="font-semibold">{h}</span>
                   </li>
                 ))}
               </ul>
@@ -588,31 +635,35 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
           )}
 
           {/* Price row */}
-          {(content.sample_price || content.volume_price) && (
+          {(displayPrice || content.volume_price) && (
             <div className="phn-price-row">
-              {content.sample_price && (
+              {displayPrice && (
                 <div className="flex flex-col gap-0.5">
                   <span
                     className="text-xs font-medium"
                     style={{ color: meta.priceLabelColor }}
                   >
-                    Sample Price
+                    {t.samplePrice}
                   </span>
-                  <span
-                    className="text-2xl font-bold tracking-tight"
-                    style={{ color: meta.priceValueColor }}
-                  >
-                    {content.sample_currency}&nbsp;{content.sample_price}
-                  </span>
+                  {priceLoading ? (
+                    <span className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+                  ) : (
+                    <span
+                      className="text-2xl font-bold tracking-tight"
+                      style={{ color: meta.priceValueColor }}
+                    >
+                      {content.sample_currency}&nbsp;{displayPrice}
+                    </span>
+                  )}
                 </div>
               )}
-              {content.volume_price && (
+              {!isContactUs && content.volume_price && (
                 <div className="flex flex-col gap-0.5">
                   <span
                     className="text-xs font-medium"
                     style={{ color: meta.priceLabelColor }}
                   >
-                    Volume Price
+                    {t.volumePrice}
                   </span>
                   <span
                     className="text-2xl font-bold tracking-tight"
@@ -627,36 +678,59 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
 
           {/* CTA buttons */}
           <div className="phn-btn-row">
-            {/* BUY NOW — text in main area, cart icon in right accent strip */}
-            <Link
-              href={safeBuyNowUrl}
-              className="phn-btn-split"
-              style={{ color: meta.buyNowTextColor }}
-              aria-label="Buy now"
-            >
-              <span
-                className="phn-btn-main"
-                style={{ backgroundColor: meta.buyNowBgColor }}
+            {isContactUs ? (
+              /* CONTACT US — opens popup form, no navigation */
+              <button
+                type="button"
+                onClick={contactModal.open}
+                className="phn-btn-split"
+                style={{ color: meta.downloadTextColor }}
+                aria-label="Contact us about this product"
               >
-                BUY NOW
-              </span>
-              <span
-                className="phn-btn-accent"
-                style={{ backgroundColor: '#1a9e4a' }}
+                <span
+                  className="phn-btn-main"
+                  style={{ backgroundColor: '#2563eb' }}
+                >
+                  CONTACT US
+                </span>
+                <span
+                  className="phn-btn-accent"
+                  style={{ backgroundColor: '#1d4ed8' }}
+                >
+                  <MailIcon />
+                </span>
+              </button>
+            ) : (
+              /* BUY NOW — navigates to webstore */
+              <Link
+                href={buyNowHref}
+                className="phn-btn-split"
+                style={{ color: meta.buyNowTextColor }}
+                aria-label="Buy now"
               >
-                <CartIcon />
-              </span>
-            </Link>
+                <span
+                  className="phn-btn-main"
+                  style={{ backgroundColor: meta.buyNowBgColor }}
+                >
+                  BUY NOW
+                </span>
+                <span
+                  className="phn-btn-accent"
+                  style={{ backgroundColor: '#1a9e4a' }}
+                >
+                  <CartIcon />
+                </span>
+              </Link>
+            )}
 
             {/* DOWNLOAD */}
             <div className="flex flex-col items-center gap-0.5">
-              <Link
-                href={safeDownloadUrl}
+              <button
+                type="button"
                 className="phn-btn-split"
                 style={{ color: meta.downloadTextColor }}
                 aria-label={content.download_label}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => setShowDownloadForm(true)}
               >
                 <span
                   className="phn-btn-main"
@@ -670,7 +744,7 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
                 >
                   <DownloadIcon />
                 </span>
-              </Link>
+              </button>
               {content.download_sub_label && (
                 <span className="text-[11px] text-gray-500">
                   {content.download_sub_label}
@@ -687,6 +761,24 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
           </div>
         )}
       </div>
+
+      {/* Contact Us modal — rendered outside the grid so it portals over everything */}
+      <ContactUsModal
+        isOpen={contactModal.isOpen}
+        onClose={contactModal.close}
+        productName={pageProductName || content.title || content.sku_badge}
+      />
+
+      <DownloadFormModal
+        open={showDownloadForm}
+        onClose={() => setShowDownloadForm(false)}
+        documents={
+          content.download_url
+            ? [{ name: content.download_label ?? 'Download', url: content.download_url }]
+            : []
+        }
+        productName={pageProductName || content.title || content.sku_badge}
+      />
     </section>
   );
 }

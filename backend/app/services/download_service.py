@@ -1,19 +1,249 @@
-"""Download request service — validates, logs, and queues download link emails."""
+﻿"""Download request service â€” full production implementation.
 
+Flow:
+1. Check MongoDB rate limit (3-day window, same email + product)
+2. Generate S3 pre-signed URLs for all document links
+3. Add SQL lead via usp_AddLeadAutomation (skip if EU + no GDPR consent)
+4. Record rate-limit entry in MongoDB (skip if EU + no GDPR consent)
+5. Dispatch emails via email_dispatch_service
+6. Return result
+"""
+
+import asyncio
 import os
 import re
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import httpx
-
+from app.mssql import add_blocked_user, add_lead_automation
+from app.services.email_dispatch_service import dispatch_download_emails
+from app.services.storage_service import generate_presigned_url
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# ── reCAPTCHA v3 verification ─────────────────────────────────────────────────
+# â”€â”€ EU country codes (GDPR jurisdiction) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+EU_COUNTRIES = {
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE",
+    "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT",
+    "RO", "SK", "SI", "ES", "SE",
+}
+
+# Rate-limit window: 3 days, max 3 submissions
+RATE_LIMIT_DAYS = 3
+RATE_LIMIT_MAX = 3
+
+_SAFE_URL_RE = re.compile(r"^https?://", re.IGNORECASE)
+
+
+def _safe_url(url: str) -> bool:
+    return bool(_SAFE_URL_RE.match(url.strip()))
+
+
+# â”€â”€ MongoDB rate-limit helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+async def _is_rate_limited(db: Any, email: str, product_name: str) -> bool:
+    """Return True if this email+product has â‰¥ RATE_LIMIT_MAX submissions in the past 3 days."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=RATE_LIMIT_DAYS)
+    count = await db.download_rate_limits.count_documents({
+        "email": email.lower(),
+        "product_name": product_name,
+        "created_at": {"$gt": cutoff},
+    })
+    return count >= RATE_LIMIT_MAX
+
+
+async def _record_rate_limit(db: Any, email: str, product_name: str, ip: str) -> None:
+    await db.download_rate_limits.insert_one({
+        "email": email.lower(),
+        "product_name": product_name,
+        "ip": ip,
+        "created_at": datetime.now(timezone.utc),
+    })
+
+
+# â”€â”€ Build document HTML for emails â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def _build_doc_html_customer(docs: list[dict], download_id: str) -> str:
+    """HTML anchor links with downloadId query param â€” for customer email."""
+    parts = []
+    for i, doc in enumerate(docs, 1):
+        url = doc.get("url", "")
+        name = doc.get("name", "Document")
+        separator = "&" if "?" in url else "?"
+        parts.append(
+            f'<br><strong>'
+            f'<a href="{url}{separator}downloadId={download_id}&documentId={i}" '
+            f'target="_blank" style="font-size:12px">{name}</a>'
+            f'</strong>'
+        )
+    return "".join(parts)
+
+
+def _build_doc_html_internal(docs: list[dict]) -> str:
+    """HTML anchor links without downloadId â€” for internal notification."""
+    parts = []
+    for doc in docs:
+        url = doc.get("url", "")
+        name = doc.get("name", "Document")
+        parts.append(
+            f'<br><strong>'
+            f'<a href="{url}" target="_blank" style="font-size:12px">{name}</a>'
+            f'</strong>'
+        )
+    return "".join(parts)
+
+
+# â”€â”€ Main service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+async def process_download_request(
+    db: Any,
+    name: str,
+    email: str,
+    company: str,
+    country: str,
+    state: str,
+    phone: str,
+    how_did_you_hear: str,
+    newsletter: bool,
+    terms_accepted: bool,
+    product_name: str,
+    incorpid: str,
+    documents: list[dict[str, str]],
+    client_ip: str = "0.0.0.0",
+) -> dict[str, Any]:
+    """Process a document download request."""
+
+    email = email.strip().lower()
+    country_upper = country.strip().upper()
+
+    # Determine GDPR skip: EU country + no terms consent
+    is_eu_no_consent = (country_upper in EU_COUNTRIES) and (not terms_accepted)
+
+    # â”€â”€ Filter to safe document URLs only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    safe_docs = [d for d in documents if _safe_url(d.get("url", ""))]
+    if not safe_docs:
+        return {"status": "error", "code": "NO_VALID_DOCUMENTS"}
+
+    # â”€â”€ Rate limit check (skip for EU no-consent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    is_blocked = False
+    if not is_eu_no_consent:
+        try:
+            is_blocked = await _is_rate_limited(db, email, product_name)
+        except Exception:
+            logger.exception("Rate limit check failed â€” continuing")
+
+    # â”€â”€ Generate S3 pre-signed URLs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    signed_docs: list[dict[str, str]] = []
+    for doc in safe_docs:
+        signed_url = await asyncio.get_event_loop().run_in_executor(
+            None, generate_presigned_url, doc["url"]
+        )
+        signed_docs.append({"name": doc["name"], "url": signed_url})
+
+    doc_names_plain = ", ".join(d["name"] for d in signed_docs)
+
+    # â”€â”€ SQL lead automation (skip if EU no-consent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    download_id = "0"
+    if not is_eu_no_consent:
+        newsletter_int = 1 if newsletter else 0
+        try:
+            download_id = await add_lead_automation({
+                "email": email,
+                "product_name": product_name,
+                "company": company,
+                "name": name,
+                "country": country,
+                "state": state,
+                "city": "N/A",
+                "phone": phone,
+                "newsletter": newsletter_int,
+                "leadsource": "Web Download",
+                "knowecon": how_did_you_hear,
+                "doclist": doc_names_plain,
+            })
+        except Exception:
+            logger.exception("add_lead_automation failed")
+
+    # â”€â”€ Record rate-limit entry (skip if EU no-consent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if not is_eu_no_consent:
+        try:
+            await _record_rate_limit(db, email, product_name, client_ip)
+        except Exception:
+            logger.exception("Rate limit record failed")
+
+    # â”€â”€ Build email context â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    newsletter_txt = (
+        "Send e-con's Newsletter and updates"
+        if newsletter
+        else "e-con's Newsletter and updates are not Requested"
+    )
+    papertype_html = _build_doc_html_customer(signed_docs, download_id)
+    econ_doc_list_html = _build_doc_html_internal(signed_docs)
+
+    ctx = {
+        "email": email,
+        "name": name,
+        "company": company,
+        "country": country_upper,
+        "state": state.strip().upper(),
+        "phone": phone,
+        "product_name": product_name,
+        "papertype": papertype_html,
+        "econ_doc_list": econ_doc_list_html,
+        "download_id": download_id,
+        "newsletter_txt": newsletter_txt,
+        "incorpid": incorpid or "N/A",
+        "is_blocked": is_blocked,
+        "is_bot": incorpid not in ("N/A", "", None),
+    }
+
+    # â”€â”€ Send emails (non-blocking â€” run in thread) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    try:
+        await asyncio.get_event_loop().run_in_executor(
+            None, dispatch_download_emails, ctx
+        )
+    except Exception:
+        logger.exception("Email dispatch failed â€” lead already saved")
+
+    if is_blocked:
+        return {
+            "status": "blocked",
+            "message": "Download technical document has been sent to your mail already.",
+        }
+
+    return {"status": "success", "message": "Download links sent to your email."}
+
+
+async def log_blocked_email(
+    name: str,
+    company: str,
+    email: str,
+    domain: str,
+    status: str,
+    country: str,
+    state: str,
+    phone: str,
+    product_name: str,
+) -> None:
+    """Record a blocked / invalid email validation attempt in SQL."""
+    try:
+        await add_blocked_user({
+            "name": name,
+            "company": company,
+            "email": email,
+            "domain": domain,
+            "status": status,
+            "country": country,
+            "state": state,
+            "city": "",
+            "phone": phone,
+            "psi": product_name,
+        })
+    except Exception:
+        logger.exception("BlockedEmailUserDetails insert failed")
+
+# â”€â”€ reCAPTCHA v3 verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 RECAPTCHA_SECRET = os.getenv("RECAPTCHA_SECRET_KEY", "")
 RECAPTCHA_THRESHOLD = float(os.getenv("RECAPTCHA_THRESHOLD", "0.5"))
@@ -23,7 +253,7 @@ RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 async def verify_recaptcha(token: str) -> bool:
     """Verify a reCAPTCHA v3 token with Google. Returns True if valid."""
     if not RECAPTCHA_SECRET:
-        logger.warning("RECAPTCHA_SECRET_KEY not set — skipping verification")
+        logger.warning("RECAPTCHA_SECRET_KEY not set â€” skipping verification")
         return True
 
     if not token:
@@ -52,17 +282,17 @@ async def verify_recaptcha(token: str) -> bool:
         return False
 
 
-# ── URL validation ────────────────────────────────────────────────────────────
+# â”€â”€ URL validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _SAFE_URL_PATTERN = re.compile(r"^https?://", re.IGNORECASE)
 
 
 def _is_safe_url(url: str) -> bool:
-    """Only allow http(s) URLs — block javascript:, data:, etc."""
+    """Only allow http(s) URLs â€” block javascript:, data:, etc."""
     return bool(_SAFE_URL_PATTERN.match(url.strip()))
 
 
-# ── Email sending ─────────────────────────────────────────────────────────────
+# â”€â”€ Email sending â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -75,7 +305,7 @@ SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 def _send_email(to: str, subject: str, html_body: str) -> bool:
     """Send an email via SMTP. Returns True on success."""
     if not SMTP_HOST:
-        logger.warning("SMTP_HOST not configured — email not sent to %s", to)
+        logger.warning("SMTP_HOST not configured â€” email not sent to %s", to)
         return False
 
     msg = MIMEMultipart("alternative")
@@ -146,62 +376,3 @@ def _build_download_email(
       </p>
     </div>
     """
-
-
-# ── Main service function ─────────────────────────────────────────────────────
-
-
-async def process_download_request(
-    db: Any,
-    name: str,
-    email: str,
-    company: str,
-    country: str,
-    state: str,
-    requirements: str,
-    how_did_you_hear: str,
-    documents: list[dict[str, str]],
-    recaptcha_token: str,
-) -> dict[str, str]:
-    """Validate reCAPTCHA, log the request, and send download links via email."""
-
-    # 1. Verify reCAPTCHA
-    is_valid = await verify_recaptcha(recaptcha_token)
-    if not is_valid:
-        return {"status": "error", "code": "RECAPTCHA_FAILED"}
-
-    # 2. Filter documents to safe URLs only
-    safe_documents = [d for d in documents if _is_safe_url(d.get("url", ""))]
-    if not safe_documents:
-        return {"status": "error", "code": "NO_VALID_DOCUMENTS"}
-
-    # 3. Log the download request to MongoDB for analytics/audit
-    from datetime import datetime, timezone
-
-    await db.download_requests.insert_one({
-        "name": name,
-        "email": email,
-        "company": company,
-        "country": country,
-        "state": state,
-        "requirements": requirements,
-        "how_did_you_hear": how_did_you_hear,
-        "documents": safe_documents,
-        "created_at": datetime.now(timezone.utc),
-    })
-
-    # 4. Send email with download links
-    subject = "Your Requested Documents — e-con Systems"
-    html_body = _build_download_email(name, safe_documents)
-    email_sent = _send_email(email, subject, html_body)
-
-    if not email_sent:
-        logger.warning(
-            "Email delivery failed for download request from %s (%s). Request logged.",
-            email,
-            name,
-        )
-        # Still return success — the request is logged and can be resent
-        return {"status": "queued", "message": "Request received. Email delivery is pending."}
-
-    return {"status": "success", "message": "Download links sent to your email."}

@@ -10,9 +10,10 @@ import { DownloadFormModal } from './DownloadFormModal';
 interface Props {
   data: DocumentsTabContent;
   recaptchaSiteKey?: string;
+  productName?: string;
 }
 
-export function DocumentsRenderer({ data, recaptchaSiteKey = '' }: Props) {
+export function DocumentsRenderer({ data, productName }: Props) {
   const groups = data.groups ?? [];
 
   const [selected, setSelected] = useState<Set<string>>(() => {
@@ -107,7 +108,7 @@ export function DocumentsRenderer({ data, recaptchaSiteKey = '' }: Props) {
         open={showForm}
         onClose={handleCloseForm}
         documents={selectedDocuments}
-        recaptchaSiteKey={recaptchaSiteKey}
+        productName={productName}
       />
     </div>
   );

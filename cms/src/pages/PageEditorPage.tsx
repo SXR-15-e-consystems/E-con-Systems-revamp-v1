@@ -7,7 +7,7 @@ import { fetchPage, updatePage } from '../api/endpoints';
 import { getBlockEditor } from '../components/blocks/BlockEditorRegistry';
 import { getBlockPreview } from '../components/previews/BlockPreviewRegistry';
 import { sanitizeHtml } from '../utils/sanitize';
-import type { BlockEnvelope, BlockType, PageStatus } from '../types';
+import type { BlockEnvelope, BlockType, LocaleVariant, PageStatus } from '../types';
 import { apiClient, PUBLIC_SITE_URL } from '../api/client';
 import type { Template } from '../types/template';
 
@@ -35,13 +35,76 @@ export function PageEditorPage() {
 
   const [title, setTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
+  const [productName, setProductName] = useState('');
   const [status, setStatus] = useState<PageStatus>('draft');
   const [blocks, setBlocks] = useState<BlockEnvelope[]>([]);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  // SEO fields
+  const [ogTitle, setOgTitle] = useState('');
+  const [ogDescription, setOgDescription] = useState('');
+  const [ogType, setOgType] = useState('website');
+  const [twitterCard, setTwitterCard] = useState('summary_large_image');
+  const [twitterSite, setTwitterSite] = useState('');
+  const [schemaJson, setSchemaJson] = useState('');
+  const [canonicalUrl, setCanonicalUrl] = useState('');
+  // JS injection fields
+  const [customJsHead, setCustomJsHead] = useState('');
+  const [customJsBody, setCustomJsBody] = useState('');
+  // Collapsible panel state
+  const [seoOpen, setSeoOpen] = useState(false);
+  const [scriptsOpen, setScriptsOpen] = useState(false);
+  // Locale / translations
+  const LOCALE_TABS = [
+    { code: 'en', label: 'EN', name: 'English' },
+    { code: 'jp', label: 'JP', name: 'Japanese' },
+    { code: 'ko', label: 'KO', name: 'Korean' },
+    { code: 'de', label: 'DE', name: 'German' },
+  ] as const;
+  type LocaleCode = 'jp' | 'ko' | 'de';
+  interface LocaleEditorContent {
+    title: string;
+    metaDescription: string;
+    ogTitle: string;
+    ogDescription: string;
+  }
+  const EMPTY_LOCALE: LocaleEditorContent = { title: '', metaDescription: '', ogTitle: '', ogDescription: '' };
+  const [activeLocale, setActiveLocale] = useState<string>('en');
+  const [localeContents, setLocaleContents] = useState<Record<string, LocaleEditorContent>>({
+    jp: { ...EMPTY_LOCALE },
+    ko: { ...EMPTY_LOCALE },
+    de: { ...EMPTY_LOCALE },
+  });
+  const [translationsOpen, setTranslationsOpen] = useState(false);
 
-  // Use a ref to always have latest blocks in the mutation (fixes stale closure CMS-BUG-002)
+  // Use refs to always have latest values in the mutation (fixes stale closure CMS-BUG-002)
   const blocksRef = useRef(blocks);
   blocksRef.current = blocks;
+  const productNameRef = useRef(productName);
+  productNameRef.current = productName;
+  const titleRef = useRef(title);
+  titleRef.current = title;
+  const metaDescriptionRef = useRef(metaDescription);
+  metaDescriptionRef.current = metaDescription;
+  const ogTitleRef = useRef(ogTitle);
+  ogTitleRef.current = ogTitle;
+  const ogDescriptionRef = useRef(ogDescription);
+  ogDescriptionRef.current = ogDescription;
+  const ogTypeRef = useRef(ogType);
+  ogTypeRef.current = ogType;
+  const twitterCardRef = useRef(twitterCard);
+  twitterCardRef.current = twitterCard;
+  const twitterSiteRef = useRef(twitterSite);
+  twitterSiteRef.current = twitterSite;
+  const schemaJsonRef = useRef(schemaJson);
+  schemaJsonRef.current = schemaJson;
+  const canonicalUrlRef = useRef(canonicalUrl);
+  canonicalUrlRef.current = canonicalUrl;
+  const customJsHeadRef = useRef(customJsHead);
+  customJsHeadRef.current = customJsHead;
+  const customJsBodyRef = useRef(customJsBody);
+  customJsBodyRef.current = customJsBody;
+  const localeContentsRef = useRef(localeContents);
+  localeContentsRef.current = localeContents;
 
   // Initialize form state from server data in useEffect (fixes CMS-BUG-001: state update during render)
   const initializedRef = useRef(false);
@@ -50,8 +113,40 @@ export function PageEditorPage() {
       initializedRef.current = true;
       setTitle(page.title);
       setMetaDescription(page.meta_description);
+      setProductName(page.product_name ?? '');
       setStatus(page.status);
       setBlocks(page.blocks);
+      setOgTitle(page.og_title ?? '');
+      setOgDescription(page.og_description ?? '');
+      setOgType(page.og_type ?? 'website');
+      setTwitterCard(page.twitter_card ?? 'summary_large_image');
+      setTwitterSite(page.twitter_site ?? '');
+      setSchemaJson(page.schema_json ?? '');
+      setCanonicalUrl(page.canonical_url ?? '');
+      setCustomJsHead(page.custom_js_head ?? '');
+      setCustomJsBody(page.custom_js_body ?? '');
+      // Initialize locale variant contents from saved page data
+      const savedLocales = page.locales ?? {};
+      setLocaleContents({
+        jp: {
+          title: (savedLocales.jp as LocaleVariant | undefined)?.title ?? '',
+          metaDescription: (savedLocales.jp as LocaleVariant | undefined)?.meta_description ?? '',
+          ogTitle: (savedLocales.jp as LocaleVariant | undefined)?.og_title ?? '',
+          ogDescription: (savedLocales.jp as LocaleVariant | undefined)?.og_description ?? '',
+        },
+        ko: {
+          title: (savedLocales.ko as LocaleVariant | undefined)?.title ?? '',
+          metaDescription: (savedLocales.ko as LocaleVariant | undefined)?.meta_description ?? '',
+          ogTitle: (savedLocales.ko as LocaleVariant | undefined)?.og_title ?? '',
+          ogDescription: (savedLocales.ko as LocaleVariant | undefined)?.og_description ?? '',
+        },
+        de: {
+          title: (savedLocales.de as LocaleVariant | undefined)?.title ?? '',
+          metaDescription: (savedLocales.de as LocaleVariant | undefined)?.meta_description ?? '',
+          ogTitle: (savedLocales.de as LocaleVariant | undefined)?.og_title ?? '',
+          ogDescription: (savedLocales.de as LocaleVariant | undefined)?.og_description ?? '',
+        },
+      });
     }
   }, [page]);
 
@@ -65,12 +160,44 @@ export function PageEditorPage() {
           block.type === 'RichText' && typeof block.data.html === 'string'
             ? { ...block.data, html: sanitizeHtml(block.data.html) }
             : block.data,
+        // Preserve per-block locale overrides (empty object = no translations yet)
+        locales: block.locales ?? {},
       }));
       return updatePage(slug, {
-        title,
-        meta_description: metaDescription,
+        title: titleRef.current,
+        meta_description: metaDescriptionRef.current,
+        product_name: productNameRef.current,
         status: nextStatus,
         blocks: normalizedBlocks,
+        og_title: ogTitleRef.current,
+        og_description: ogDescriptionRef.current,
+        og_type: ogTypeRef.current,
+        twitter_card: twitterCardRef.current,
+        twitter_site: twitterSiteRef.current,
+        schema_json: schemaJsonRef.current,
+        canonical_url: canonicalUrlRef.current || undefined,
+        custom_js_head: customJsHeadRef.current,
+        custom_js_body: customJsBodyRef.current,
+        locales: {
+          jp: {
+            title: localeContentsRef.current.jp?.title ?? '',
+            meta_description: localeContentsRef.current.jp?.metaDescription ?? '',
+            og_title: localeContentsRef.current.jp?.ogTitle ?? '',
+            og_description: localeContentsRef.current.jp?.ogDescription ?? '',
+          },
+          ko: {
+            title: localeContentsRef.current.ko?.title ?? '',
+            meta_description: localeContentsRef.current.ko?.metaDescription ?? '',
+            og_title: localeContentsRef.current.ko?.ogTitle ?? '',
+            og_description: localeContentsRef.current.ko?.ogDescription ?? '',
+          },
+          de: {
+            title: localeContentsRef.current.de?.title ?? '',
+            meta_description: localeContentsRef.current.de?.metaDescription ?? '',
+            og_title: localeContentsRef.current.de?.ogTitle ?? '',
+            og_description: localeContentsRef.current.de?.ogDescription ?? '',
+          },
+        },
       });
     },
     onSuccess: async (updatedPage) => {
@@ -264,6 +391,11 @@ export function PageEditorPage() {
                     <h3 className="text-sm font-bold text-slate-900 mt-0.5">
                       {editingComponentDef?.label || editingBlock.type}
                     </h3>
+                    {activeLocale !== 'en' && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                        🌐 {LOCALE_TABS.find(l => l.code === activeLocale)?.label} — Translating
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={() => {
@@ -279,16 +411,48 @@ export function PageEditorPage() {
                     ✓ Done
                   </button>
                 </div>
+                {activeLocale !== 'en' && (
+                  <div className="shrink-0 bg-blue-50 border-b border-blue-100 px-5 py-2">
+                    <p className="text-[11px] text-blue-700">
+                      Editing <strong>{LOCALE_TABS.find(l => l.code === activeLocale)?.name}</strong> translation. Fields left blank fall back to English.
+                    </p>
+                  </div>
+                )}
                 <div className="flex-1 overflow-y-auto p-5">
                   <ActiveEditor
-                    block={editingBlock}
+                    block={{
+                      ...editingBlock,
+                      // When translating, show merged EN+locale data so the editor
+                      // pre-fills with existing translations (blank = EN fallback)
+                      data: activeLocale === 'en'
+                        ? editingBlock.data
+                        : { ...editingBlock.data, ...(editingBlock.locales?.[activeLocale] ?? {}) },
+                    }}
                     onChange={(newData: Record<string, unknown>) => {
-                      // Merge new data into the block and trigger re-render for live preview
-                      setBlocks(prev => prev.map(b =>
-                        b.block_id === editingBlock.block_id
-                          ? { ...b, data: { ...b.data, ...newData } }
-                          : b
-                      ));
+                      if (activeLocale === 'en') {
+                        // EN: write directly to block.data (existing behaviour)
+                        setBlocks(prev => prev.map(b =>
+                          b.block_id === editingBlock.block_id
+                            ? { ...b, data: { ...b.data, ...newData } }
+                            : b
+                        ));
+                      } else {
+                        // Non-EN: write to block.locales[activeLocale] only
+                        setBlocks(prev => prev.map(b =>
+                          b.block_id === editingBlock.block_id
+                            ? {
+                                ...b,
+                                locales: {
+                                  ...b.locales,
+                                  [activeLocale]: {
+                                    ...(b.locales?.[activeLocale] ?? {}),
+                                    ...newData,
+                                  },
+                                },
+                              }
+                            : b
+                        ));
+                      }
                     }}
                   />
                 </div>
@@ -296,11 +460,73 @@ export function PageEditorPage() {
             ) : (
               /* ── Page Settings ── */
               <div className="flex h-full flex-col">
-                <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+                <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-3">
                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Properties</h2>
                   <h3 className="text-sm font-bold text-slate-900 mt-0.5">Page Settings</h3>
+                  {/* ── Language Selector ── */}
+                  <div className="flex mt-3 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    {LOCALE_TABS.map((loc) => (
+                      <button
+                        key={loc.code}
+                        type="button"
+                        onClick={() => setActiveLocale(loc.code)}
+                        title={loc.name}
+                        className={`flex-1 py-1.5 text-[11px] font-bold transition-colors ${
+                          activeLocale === loc.code
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600'
+                        }`}
+                      >
+                        {loc.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                  {activeLocale !== 'en' && (
+                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 space-y-3">
+                      <p className="text-xs font-semibold text-blue-800">
+                        🌐 {LOCALE_TABS.find(l => l.code === activeLocale)?.name} — Translations
+                      </p>
+                      <p className="text-[11px] text-blue-600">Fields left blank fall back to English automatically. Block content uses English for all languages.</p>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-slate-700">Title</span>
+                        <input
+                          className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={localeContents[activeLocale]?.title ?? ''}
+                          onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], title: e.target.value } }))}
+                          placeholder={`${LOCALE_TABS.find(l => l.code === activeLocale)?.name} title (leave blank for EN)`}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-slate-700">Meta Description</span>
+                        <textarea
+                          className="min-h-[70px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={localeContents[activeLocale]?.metaDescription ?? ''}
+                          onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], metaDescription: e.target.value } }))}
+                          placeholder="Leave blank for EN"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-slate-700">OG Title</span>
+                        <input
+                          className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={localeContents[activeLocale]?.ogTitle ?? ''}
+                          onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], ogTitle: e.target.value } }))}
+                          placeholder="Leave blank for EN"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-xs font-semibold text-slate-700">OG Description</span>
+                        <textarea
+                          className="min-h-[60px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={localeContents[activeLocale]?.ogDescription ?? ''}
+                          onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], ogDescription: e.target.value } }))}
+                          placeholder="Leave blank for EN"
+                        />
+                      </label>
+                    </div>
+                  )}
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-bold text-slate-600">Page Title</span>
                     <input
@@ -318,6 +544,15 @@ export function PageEditorPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-bold text-slate-600">Product Name</span>
+                    <input
+                      className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      placeholder="e.g. See3CAM_CU27"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-bold text-slate-600">Status</span>
                     <select
                       className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm cursor-not-allowed opacity-80"
@@ -329,6 +564,100 @@ export function PageEditorPage() {
                     </select>
                     <p className="text-[11px] text-slate-400 mt-1">Use the header buttons to change status.</p>
                   </label>
+
+                  {/* ── SEO & Social (collapsible) ── */}
+                  <div className="rounded-lg border border-slate-200 overflow-hidden">
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 text-left"
+                      onClick={() => setSeoOpen((v) => !v)}
+                    >
+                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">SEO &amp; Social</span>
+                      <span className="text-slate-400 text-sm">{seoOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {seoOpen && (
+                      <div className="px-4 py-4 space-y-4 bg-white">
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">OG Title <span className="font-normal text-slate-400">(overrides page title for sharing)</span></span>
+                          <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={ogTitle} onChange={(e) => setOgTitle(e.target.value)} placeholder="Leave blank to use page title" />
+                        </label>
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">OG Description <span className="font-normal text-slate-400">(for social sharing)</span></span>
+                          <textarea className="min-h-[70px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={ogDescription} onChange={(e) => setOgDescription(e.target.value)} placeholder="Leave blank to use meta description" />
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-semibold text-slate-600">OG Type</span>
+                            <select className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={ogType} onChange={(e) => setOgType(e.target.value)}>
+                              <option value="website">website</option>
+                              <option value="article">article</option>
+                              <option value="product">product</option>
+                            </select>
+                          </label>
+                          <label className="flex flex-col gap-1.5">
+                            <span className="text-xs font-semibold text-slate-600">Twitter Card</span>
+                            <select className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={twitterCard} onChange={(e) => setTwitterCard(e.target.value)}>
+                              <option value="summary_large_image">summary_large_image</option>
+                              <option value="summary">summary</option>
+                            </select>
+                          </label>
+                        </div>
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">Twitter @site handle</span>
+                          <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={twitterSite} onChange={(e) => setTwitterSite(e.target.value)} placeholder="@econsystems" />
+                        </label>
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">Canonical URL <span className="font-normal text-slate-400">(leave blank for default)</span></span>
+                          <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://e-consystems.com/..." />
+                        </label>
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">Schema / JSON-LD <span className="font-normal text-slate-400">(structured data for Google)</span></span>
+                          <textarea className="min-h-[100px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={schemaJson} onChange={(e) => setSchemaJson(e.target.value)} placeholder={'{\n  "@context": "https://schema.org",\n  "@type": "Product"\n}'} />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── Scripts (collapsible) ── */}
+                  <div className="rounded-lg border border-slate-200 overflow-hidden">
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 text-left"
+                      onClick={() => setScriptsOpen((v) => !v)}
+                    >
+                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Scripts / Tracking</span>
+                      <span className="text-slate-400 text-sm">{scriptsOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {scriptsOpen && (
+                      <div className="px-4 py-4 space-y-4 bg-white">
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">Head Scripts <span className="font-normal text-slate-400">(injected before page renders)</span></span>
+                          <textarea className="min-h-[100px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={customJsHead} onChange={(e) => setCustomJsHead(e.target.value)} placeholder="<!-- e.g. Google Tag Manager snippet -->" />
+                        </label>
+                        <label className="flex flex-col gap-1.5">
+                          <span className="text-xs font-semibold text-slate-600">Body Scripts <span className="font-normal text-slate-400">(injected after page renders)</span></span>
+                          <textarea className="min-h-[100px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value={customJsBody} onChange={(e) => setCustomJsBody(e.target.value)} placeholder="<!-- e.g. analytics or chat widget -->" />
+                        </label>
+                        {(template?.custom_js_head || template?.custom_js_body) && (
+                          <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+                            <p className="text-xs font-bold text-amber-800 mb-2">Template Scripts (read-only, applied to all pages using this template)</p>
+                            {template.custom_js_head && (
+                              <div className="mb-2">
+                                <p className="text-[10px] font-semibold text-amber-700 mb-1">Head:</p>
+                                <pre className="text-[10px] text-amber-900 whitespace-pre-wrap break-all overflow-auto max-h-24 bg-amber-100 rounded p-2 font-mono">{template.custom_js_head}</pre>
+                              </div>
+                            )}
+                            {template.custom_js_body && (
+                              <div>
+                                <p className="text-[10px] font-semibold text-amber-700 mb-1">Body:</p>
+                                <pre className="text-[10px] text-amber-900 whitespace-pre-wrap break-all overflow-auto max-h-24 bg-amber-100 rounded p-2 font-mono">{template.custom_js_body}</pre>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   <div className="mt-6 rounded-lg bg-blue-50 p-4 border border-blue-100">
                     <h4 className="font-bold text-blue-800 text-xs mb-1">💡 How to edit blocks</h4>
@@ -373,7 +702,71 @@ export function PageEditorPage() {
       {saveMutation.isSuccess && <p className="text-sm rounded bg-emerald-50 text-emerald-700 px-4 py-3 border border-emerald-200">Saved successfully.</p>}
 
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-bold text-slate-800 border-b border-slate-100 pb-2">Page Settings</h2>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-base font-bold text-slate-800">Page Settings</h2>
+          {/* ── Language Selector ── */}
+          <div className="flex rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+            {LOCALE_TABS.map((loc) => (
+              <button
+                key={loc.code}
+                type="button"
+                onClick={() => setActiveLocale(loc.code)}
+                title={loc.name}
+                className={`px-3 py-1.5 text-xs font-bold transition-colors ${
+                  activeLocale === loc.code
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600'
+                }`}
+              >
+                {loc.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {activeLocale !== 'en' ? (
+          <div className="space-y-4 pt-2">
+            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+              <p className="text-sm font-semibold text-blue-800">🌐 {LOCALE_TABS.find(l => l.code === activeLocale)?.name} — Translations</p>
+              <p className="text-xs text-blue-600 mt-1">Fields left blank fall back to English automatically. Block content uses English for all languages.</p>
+            </div>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Title</span>
+              <input
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                value={localeContents[activeLocale]?.title ?? ''}
+                onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], title: e.target.value } }))}
+                placeholder={`${LOCALE_TABS.find(l => l.code === activeLocale)?.name} title (leave blank for EN)`}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Meta Description</span>
+              <textarea
+                className="min-h-[80px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                value={localeContents[activeLocale]?.metaDescription ?? ''}
+                onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], metaDescription: e.target.value } }))}
+                placeholder="Leave blank for EN"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">OG Title</span>
+              <input
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                value={localeContents[activeLocale]?.ogTitle ?? ''}
+                onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], ogTitle: e.target.value } }))}
+                placeholder="Leave blank for EN"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">OG Description</span>
+              <textarea
+                className="min-h-[80px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                value={localeContents[activeLocale]?.ogDescription ?? ''}
+                onChange={(e) => setLocaleContents((prev) => ({ ...prev, [activeLocale]: { ...prev[activeLocale], ogDescription: e.target.value } }))}
+                placeholder="Leave blank for EN"
+              />
+            </label>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           <label className="flex flex-col gap-1.5 md:col-span-2">
             <span className="text-sm font-semibold text-slate-700">Title <span className="text-red-500">*</span></span>
@@ -382,6 +775,10 @@ export function PageEditorPage() {
           <label className="flex flex-col gap-1.5 md:col-span-2">
             <span className="text-sm font-semibold text-slate-700">Meta Description</span>
             <textarea className="min-h-[80px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1.5 md:col-span-2">
+            <span className="text-sm font-semibold text-slate-700">Product Name</span>
+            <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. See3CAM_CU27" />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-semibold text-slate-700">Status</span>
@@ -392,6 +789,82 @@ export function PageEditorPage() {
             </select>
           </label>
         </div>
+        )} {/* end EN */}
+      </section>
+
+      {/* ── SEO & Social (Legacy editor) ── */}
+      <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 text-left border-b border-slate-100"
+          onClick={() => setSeoOpen((v) => !v)}
+        >
+          <h2 className="text-base font-bold text-slate-800">SEO &amp; Social</h2>
+          <span className="text-slate-400">{seoOpen ? '▲' : '▼'}</span>
+        </button>
+        {seoOpen && (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-sm font-semibold text-slate-700">OG Title <span className="font-normal text-slate-500 text-xs">(overrides page title for social sharing)</span></span>
+              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={ogTitle} onChange={(e) => setOgTitle(e.target.value)} placeholder="Leave blank to use page title" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-sm font-semibold text-slate-700">OG Description <span className="font-normal text-slate-500 text-xs">(for social sharing)</span></span>
+              <textarea className="min-h-[80px] rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={ogDescription} onChange={(e) => setOgDescription(e.target.value)} placeholder="Leave blank to use meta description" />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">OG Type</span>
+              <select className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={ogType} onChange={(e) => setOgType(e.target.value)}>
+                <option value="website">website</option>
+                <option value="article">article</option>
+                <option value="product">product</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Twitter Card</span>
+              <select className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={twitterCard} onChange={(e) => setTwitterCard(e.target.value)}>
+                <option value="summary_large_image">summary_large_image</option>
+                <option value="summary">summary</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Twitter @site handle</span>
+              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={twitterSite} onChange={(e) => setTwitterSite(e.target.value)} placeholder="@econsystems" />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Canonical URL</span>
+              <input className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://e-consystems.com/..." />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-sm font-semibold text-slate-700">Schema / JSON-LD <span className="font-normal text-slate-500 text-xs">(structured data for Google &amp; AI)</span></span>
+              <textarea className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none" value={schemaJson} onChange={(e) => setSchemaJson(e.target.value)} placeholder={'{\n  "@context": "https://schema.org",\n  "@type": "Product"\n}'} />
+            </label>
+          </div>
+        )}
+      </section>
+
+      {/* ── Scripts / Tracking (Legacy editor) ── */}
+      <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 text-left border-b border-slate-100"
+          onClick={() => setScriptsOpen((v) => !v)}
+        >
+          <h2 className="text-base font-bold text-slate-800">Scripts / Tracking</h2>
+          <span className="text-slate-400">{scriptsOpen ? '▲' : '▼'}</span>
+        </button>
+        {scriptsOpen && (
+          <div className="p-6 grid grid-cols-1 gap-5">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Head Scripts <span className="font-normal text-slate-500 text-xs">(injected before page renders)</span></span>
+              <textarea className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none" value={customJsHead} onChange={(e) => setCustomJsHead(e.target.value)} placeholder="<!-- e.g. Google Tag Manager snippet -->" />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-slate-700">Body Scripts <span className="font-normal text-slate-500 text-xs">(injected after page renders)</span></span>
+              <textarea className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none" value={customJsBody} onChange={(e) => setCustomJsBody(e.target.value)} placeholder="<!-- e.g. analytics or chat widget -->" />
+            </label>
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">

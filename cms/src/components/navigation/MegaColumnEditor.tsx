@@ -8,9 +8,13 @@ interface Props {
   onChange: (columns: MenuColumn[]) => void;
   promoBanner: PromoBanner | null;
   onPromoBannerChange: (pb: PromoBanner | null) => void;
+  menuId?: string;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function MegaColumnEditor({ columns, onChange, promoBanner, onPromoBannerChange }: Props) {
+export function MegaColumnEditor({ columns, onChange, promoBanner, onPromoBannerChange, menuId, activeLocale, localeFlat, onLocaleChange }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -37,6 +41,9 @@ export function MegaColumnEditor({ columns, onChange, promoBanner, onPromoBanner
               onChange(cols);
             }}
             onDelete={() => onChange(columns.filter((_, i) => i !== ci))}
+            activeLocale={activeLocale}
+            localeFlat={localeFlat}
+            onLocaleChange={onLocaleChange}
           />
         ))}
       </div>
@@ -48,7 +55,14 @@ export function MegaColumnEditor({ columns, onChange, promoBanner, onPromoBanner
       )}
 
       {/* Promo banner */}
-      <PromoBannerEditor value={promoBanner} onChange={onPromoBannerChange} />
+      <PromoBannerEditor
+        value={promoBanner}
+        onChange={onPromoBannerChange}
+        menuId={menuId}
+        activeLocale={activeLocale}
+        localeFlat={localeFlat}
+        onLocaleChange={onLocaleChange}
+      />
     </div>
   );
 }

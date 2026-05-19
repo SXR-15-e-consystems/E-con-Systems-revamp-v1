@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { fetchNavigation } from '@/lib/api';
 import { HeaderClient } from './HeaderClient';
 import type { HeaderConfig, NavMenuEntry } from '@/types/navigation';
@@ -35,11 +36,15 @@ const FALLBACK_MENUS: NavMenuEntry[] = [
 ];
 
 export async function SiteHeader() {
+  // Read locale set by middleware (x-locale header) — falls back to 'en'
+  const reqHeaders = await headers();
+  const locale = reqHeaders.get('x-locale') || 'en';
+
   let header = FALLBACK_HEADER;
   let menus: NavMenuEntry[] = FALLBACK_MENUS;
 
   try {
-    const nav = await fetchNavigation();
+    const nav = await fetchNavigation(locale);
     if (nav) {
       header = nav.header;
       menus = nav.menus;

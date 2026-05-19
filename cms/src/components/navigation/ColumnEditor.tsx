@@ -5,9 +5,13 @@ interface Props {
   column: MenuColumn;
   onChange: (updated: MenuColumn) => void;
   onDelete: () => void;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function ColumnEditor({ column, onChange, onDelete }: Props) {
+export function ColumnEditor({ column, onChange, onDelete, activeLocale, localeFlat, onLocaleChange }: Props) {
+  const isTranslating = !!(activeLocale && activeLocale !== 'en');
   const updateItem = (index: number, updated: MenuItem) => {
     const items = [...column.items];
     items[index] = updated;
@@ -37,9 +41,13 @@ export function ColumnEditor({ column, onChange, onDelete }: Props) {
         <div className="flex-1 space-y-2">
           <input
             type="text"
-            value={column.title}
-            onChange={(e) => onChange({ ...column, title: e.target.value })}
-            placeholder="Column title"
+            value={isTranslating ? (localeFlat?.[`c_${column.col_id}`] ?? '') : column.title}
+            onChange={(e) =>
+              isTranslating
+                ? onLocaleChange?.(`c_${column.col_id}`, e.target.value)
+                : onChange({ ...column, title: e.target.value })
+            }
+            placeholder={isTranslating ? (column.title || 'Column title') : 'Column title'}
             className="w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm font-medium focus:border-blue-500 focus:outline-none"
           />
           <input
@@ -92,9 +100,13 @@ export function ColumnEditor({ column, onChange, onDelete }: Props) {
 
             <input
               type="text"
-              value={item.label}
-              onChange={(e) => updateItem(i, { ...item, label: e.target.value })}
-              placeholder="Label"
+              value={isTranslating ? (localeFlat?.[`ci_${column.col_id}_${i}`] ?? '') : item.label}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.(`ci_${column.col_id}_${i}`, e.target.value)
+                  : updateItem(i, { ...item, label: e.target.value })
+              }
+              placeholder={isTranslating ? (item.label || 'Label') : 'Label'}
               className="flex-1 rounded border border-slate-300 bg-white px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none"
             />
             <input

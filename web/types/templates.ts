@@ -238,6 +238,7 @@ export interface OrderSampleRow {
   kit_contents: string[];
   price: string;
   contact_url: string;
+  nop_product_id?: string;
 }
 
 export interface OrderTableTabContent {
@@ -291,8 +292,9 @@ export interface ProductTabsMeta {
   active_color: string;
   mobile_layout: 'horizontal_scroll' | 'dropdown';
   max_custom_tabs: number;
-  recaptchaSiteKey: string;
+  recaptchaSiteKey?: string;
   datasheet_cta?: DatasheetCTA;
+  product_name?: string;
 }
 
 export interface ProductTabsContent {
@@ -548,6 +550,7 @@ export interface ProductTabsV2Meta {
   contentBgColor: string;
   recaptchaSiteKey: string;
   datasheet_cta?: DatasheetCTA;
+  product_name?: string;
 }
 
 export interface ProductTabsV2Data {
@@ -1006,6 +1009,10 @@ export interface ProductHeroNewContent {
   highlight_icons?: ProductHighlightIcon[];
   show_highlight_icons?: boolean;
   variant_options: string[];
+  /** Maps variant label → NopProductId string for live pricing lookups */
+  variant_product_codes?: Record<string, string>;
+  /** Comma-separated NopProductId values for all variants — sent on page load */
+  product_codes?: string;
   sample_price: string;
   sample_currency: string;
   volume_price?: string;
@@ -1023,6 +1030,23 @@ export interface ProductHeroNewContent {
 export interface ProductHeroNewData {
   meta: ProductHeroNewMeta;
   content: ProductHeroNewContent;
+}
+
+// ─── Live pricing (from MS SQL via /public/product-pricing) ──────────────────
+
+export type PurchaseType = 'buy_now' | 'contact_us';
+
+export interface ProductPriceResult {
+  id: string;
+  name?: string;
+  nopProductName?: string;
+  price?: number;
+  leadTime?: number;
+  leadTimeLabel: string;
+  purchaseType: PurchaseType;
+  maxQuantity?: number;
+  published?: boolean;
+  packs?: number;
 }
 
 // ─── NewsletterSubscribe ─────────────────────────────────────

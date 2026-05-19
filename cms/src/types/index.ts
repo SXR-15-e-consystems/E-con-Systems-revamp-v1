@@ -45,6 +45,8 @@ export interface BlockEnvelope {
   data: Record<string, unknown>;
   component_id?: string;
   content_status?: string;
+  /** Per-block locale overrides. Keys are locale codes (jp/ko/de); values mirror subset of data fields. */
+  locales?: Record<string, Record<string, unknown>>;
 }
 
 export interface HeroData {
@@ -61,15 +63,36 @@ export interface RichTextData {
 
 export type PageStatus = 'draft' | 'published' | 'archived';
 
+export interface LocaleVariant {
+  title?: string;
+  meta_description?: string;
+  og_title?: string;
+  og_description?: string;
+}
+
 export interface Page {
   id: string;
   slug: string;
   title: string;
   meta_description: string;
   og_image_url: string | null;
+  product_name?: string;
   status: PageStatus;
   template_id?: string | null;
   blocks: BlockEnvelope[];
+  // SEO / Open Graph
+  og_title?: string;
+  og_description?: string;
+  og_type?: string;
+  twitter_card?: string;
+  twitter_site?: string;
+  schema_json?: string;
+  canonical_url?: string | null;
+  // Custom JS injection
+  custom_js_head?: string;
+  custom_js_body?: string;
+  // Locale variants
+  locales?: Record<string, LocaleVariant>;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -87,14 +110,42 @@ export interface PageCreate {
   slug: string;
   title: string;
   meta_description?: string;
+  product_name?: string;
   template_id?: string;
   og_image_url?: string;
+  // SEO / Open Graph
+  og_title?: string;
+  og_description?: string;
+  og_type?: string;
+  twitter_card?: string;
+  twitter_site?: string;
+  schema_json?: string;
+  canonical_url?: string;
+  // Custom JS injection
+  custom_js_head?: string;
+  custom_js_body?: string;
+  // Locale variants
+  locales?: Record<string, LocaleVariant>;
 }
 
 export interface PageUpdate {
   title?: string;
   meta_description?: string;
+  product_name?: string;
   og_image_url?: string;
   status?: PageStatus;
   blocks?: BlockEnvelope[];
+  // SEO / Open Graph
+  og_title?: string;
+  og_description?: string;
+  og_type?: string;
+  twitter_card?: string;
+  twitter_site?: string;
+  schema_json?: string;
+  canonical_url?: string | null;
+  // Custom JS injection
+  custom_js_head?: string;
+  custom_js_body?: string;
+  // Locale variants
+  locales?: Record<string, LocaleVariant> | null;
 }

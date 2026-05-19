@@ -39,6 +39,8 @@ const DEFAULT_CONTENT: ProductHeroNewContent = {
   highlight_icons: [],
   show_highlight_icons: false,
   variant_options: [],
+  variant_product_codes: {},
+  product_codes: '',
   sample_price: '',
   sample_currency: 'USD',
   volume_price: '',
@@ -297,12 +299,57 @@ export function ProductHeroNewBlockEditor({ block, onChange }: BlockEditorProps)
       ))}
 
       {accordion('variants', '⑤ Variant Options', (
-        <ListEditor
-          items={content.variant_options}
-          placeholder="e.g. Monochrome, Color"
-          onChange={(v) => updateContent({ variant_options: v })}
-          addLabel="+ Add Variant"
-        />
+        <>
+          <ListEditor
+            items={content.variant_options}
+            placeholder="e.g. Monochrome, Color"
+            onChange={(v) => {
+              // When variant list changes, also clean up stale keys in variant_product_codes
+              const kept = new Set(v);
+              const existing = content.variant_product_codes ?? {};
+              const cleaned = Object.fromEntries(
+                Object.entries(existing).filter(([k]) => kept.has(k))
+              );
+              updateContent({ variant_options: v, variant_product_codes: cleaned });
+            }}
+            addLabel="+ Add Variant"
+          />
+          {content.variant_options.length > 0 && (
+            <>
+              {sectionHeader('NopCommerce Product IDs (for live pricing)')}
+              <p className="text-[11px] text-gray-400 mb-2">
+                Enter the NopProductId from the econ database for each variant.
+                Leave blank to use static fallback price.
+              </p>
+              <div className="flex flex-col gap-2">
+                {content.variant_options.map((variant) => (
+                  <div key={variant} className="grid grid-cols-2 gap-2 items-center">
+                    <span className="text-xs text-gray-700 truncate" title={variant}>{variant}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+                      placeholder="Product ID (e.g. 281)"
+                      value={(content.variant_product_codes ?? {})[variant] ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        const updated = { ...(content.variant_product_codes ?? {}), [variant]: val };
+                        if (!val) delete updated[variant];
+                        // Rebuild product_codes from all entered IDs
+                        const allCodes = content.variant_options
+                          .map((opt) => updated[opt])
+                          .filter(Boolean)
+                          .join(',');
+                        updateContent({ variant_product_codes: updated, product_codes: allCodes });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       ))}
 
       {accordion('pricing', '⑥ Pricing', (

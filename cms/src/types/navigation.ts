@@ -114,16 +114,20 @@ export interface NavigationConfig {
   status: NavigationStatus;
   updated_at: string;
   updated_by: string;
+  /** Flat label-override map per locale. See backend navigation.py for key conventions. */
+  locales?: Record<string, Record<string, string>>;
 }
 
 export interface NavigationUpdate {
   header?: HeaderConfig;
   menus?: NavMenuEntry[];
+  locales?: Record<string, Record<string, string>> | null;
 }
 
 export interface NavigationPublicResponse {
   header: HeaderConfig;
   menus: NavMenuEntry[];
+  locales: Record<string, Record<string, string>>;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

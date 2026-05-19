@@ -94,6 +94,15 @@ export function ProductTabsTemplateConfig({ block, onChange }: BlockEditorProps)
       <fieldset className="border border-gray-200 rounded p-3 space-y-3">
         <legend className="text-xs font-bold text-gray-700 px-1">Download Form (Documents Tab)</legend>
         <label>
+          {label('Product Name (shown in download & contact popups)')}
+          <input
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            value={meta.product_name ?? ''}
+            onChange={(e) => updateMeta({ product_name: e.target.value })}
+            placeholder="e.g. See3CAM_CU27"
+          />
+        </label>
+        <label>
           {label('reCAPTCHA v3 Site Key')}
           <input
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm font-mono"
@@ -103,8 +112,7 @@ export function ProductTabsTemplateConfig({ block, onChange }: BlockEditorProps)
           />
         </label>
         <p className="text-[10px] text-gray-400">
-          When users click &ldquo;Download&rdquo; in the Documents tab, a form will appear requesting their
-          details. A reCAPTCHA v3 site key is recommended for spam protection.
+          Product Name appears as the title in the Download and Contact Us popup forms.
         </p>
       </fieldset>
     </div>

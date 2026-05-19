@@ -117,6 +117,10 @@ export function TemplateBuilderPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragActiveId, setDragActiveId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  // JS injection fields
+  const [customJsHead, setCustomJsHead] = useState('');
+  const [customJsBody, setCustomJsBody] = useState('');
+  const [templateScriptsOpen, setTemplateScriptsOpen] = useState(false);
 
   // Refs for position-aware drop
   const canvasGridRef = useRef<HTMLDivElement | null>(null);
@@ -161,6 +165,8 @@ export function TemplateBuilderPage() {
         },
       }));
       setComponents(migratedComponents);
+      setCustomJsHead(template.custom_js_head ?? '');
+      setCustomJsBody(template.custom_js_body ?? '');
       setInitialized(true);
     }
   }, [template, initialized]);
@@ -175,6 +181,8 @@ export function TemplateBuilderPage() {
         category,
         grid,
         components: components.map((c, i) => ({ ...c, order: i })),
+        custom_js_head: customJsHead,
+        custom_js_body: customJsBody,
       };
       if (isEdit) return updateTemplate(templateId!, payload);
       return createTemplate(payload);
@@ -412,6 +420,43 @@ export function TemplateBuilderPage() {
           Template saved successfully!
         </div>
       )}
+
+      {/* ── Template Scripts (collapsible) ── */}
+      <div className="border-b border-slate-200">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-2 bg-slate-50 hover:bg-slate-100 text-left"
+          onClick={() => setTemplateScriptsOpen((v) => !v)}
+        >
+          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Template Scripts / Tracking{' '}
+            <span className="font-normal text-slate-400 normal-case">(applied to all pages using this template)</span>
+          </span>
+          <span className="text-slate-400 text-sm">{templateScriptsOpen ? '▲' : '▼'}</span>
+        </button>
+        {templateScriptsOpen && (
+          <div className="grid grid-cols-2 gap-4 px-4 py-4 bg-white">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-slate-600">Head Scripts <span className="font-normal text-slate-400">(injected before page renders)</span></span>
+              <textarea
+                className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={customJsHead}
+                onChange={(e) => setCustomJsHead(e.target.value)}
+                placeholder="<!-- e.g. Google Tag Manager snippet -->"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-slate-600">Body Scripts <span className="font-normal text-slate-400">(injected after page renders)</span></span>
+              <textarea
+                className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={customJsBody}
+                onChange={(e) => setCustomJsBody(e.target.value)}
+                placeholder="<!-- e.g. analytics / chat widget -->"
+              />
+            </label>
+          </div>
+        )}
+      </div>
 
       {/* ── Main workspace ── */}
       <div className="flex flex-1 overflow-hidden">

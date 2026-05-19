@@ -111,4 +111,5 @@ export interface HeaderConfig {
 export interface NavigationPublicResponse {
   header: HeaderConfig;
   menus: NavMenuEntry[];
+  locales: Record<string, Record<string, string>>;
 }

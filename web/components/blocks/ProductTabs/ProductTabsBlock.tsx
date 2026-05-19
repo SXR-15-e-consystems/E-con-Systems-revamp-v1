@@ -44,6 +44,7 @@ function renderTabContent(
   recaptchaSiteKey: string,
   datasheetCta?: DatasheetCTA,
   documentsData?: DocumentsTabContent,
+  productName?: string,
 ) {
   if (!data) {
     return (
@@ -61,14 +62,15 @@ function renderTabContent(
           datasheetCta={tab.preset_key === 'overview' ? datasheetCta : undefined}
           documentsData={tab.preset_key === 'overview' ? documentsData : undefined}
           recaptchaSiteKey={recaptchaSiteKey}
+          productName={productName}
         />
       );
     case 'spec_list':
       return <SpecListRenderer data={data as SpecListTabContent} />;
     case 'documents':
-      return <DocumentsRenderer data={data as DocumentsTabContent} recaptchaSiteKey={recaptchaSiteKey} />;
+      return <DocumentsRenderer data={data as DocumentsTabContent} recaptchaSiteKey={recaptchaSiteKey} productName={productName} />;
     case 'order_table':
-      return <OrderTableRenderer data={data as OrderTableTabContent} />;
+      return <OrderTableRenderer data={data as OrderTableTabContent} productName={productName} />;
     case 'video_grid':
       return <VideoGridRenderer data={data as VideoGridTabContent} />;
     case 'compliance_table':
@@ -82,7 +84,27 @@ function renderTabContent(
 
 export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
   const raw = data as unknown as ProductTabsData;
-  const meta: ProductTabsMeta = { ...DEFAULT_META, ...raw.meta };
+  const pageProductName = (data.__page_product_name as string) ?? '';
+  const pageTitle = (data.__page_title as string) ?? '';
+  const perBlockProductName = (raw.meta as ProductTabsMeta)?.product_name ?? '';
+  // Priority: page-level product_name (authoritative) → legacy per-block field → page title
+  const resolvedProductName = pageProductName || perBlockProductName || pageTitle || undefined;
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[ProductTabsBlock] product_name debug:', {
+      __page_product_name: data.__page_product_name,
+      __page_title: data.__page_title,
+      pageProductName,
+      perBlockProductName,
+      resolvedProductName,
+    });
+  }
+
+  const meta: ProductTabsMeta = {
+    ...DEFAULT_META,
+    ...raw.meta,
+    product_name: resolvedProductName,
+  };
 
   const tabs: ProductTab[] = useMemo(
     () =>
@@ -282,7 +304,7 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
           {activeTab && !activeTab.external_url && (
             <>
               <h2 className="text-base font-bold text-slate-900 mb-4">{activeTab.label}</h2>
-              {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey, meta.datasheet_cta, documentsData)}
+              {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey ?? '', meta.datasheet_cta, documentsData, meta.product_name)}
             </>
           )}
         </div>
@@ -293,7 +315,7 @@ export function ProductTabsBlock({ data }: ProductTabsBlockProps) {
         {activeTab && !activeTab.external_url && (
           <>
             <h2 className="text-base font-bold text-slate-900 mb-3">{activeTab.label}</h2>
-            {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey, meta.datasheet_cta, documentsData)}
+            {renderTabContent(activeTab, tabData[activeTab.tab_id], meta.recaptchaSiteKey ?? '', meta.datasheet_cta, documentsData, meta.product_name)}
           </>
         )}
       </div>

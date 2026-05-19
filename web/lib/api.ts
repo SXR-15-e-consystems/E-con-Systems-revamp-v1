@@ -44,18 +44,19 @@ export async function fetchPublicPagesBatch(slugs: string[]): Promise<PageRespon
   }
 }
 
-export async function fetchPublicPage(slug: string): Promise<PageResponse | null> {
+export async function fetchPublicPage(slug: string, locale?: string): Promise<PageResponse | null> {
   const cleanSlug = slug
     .split('/')
     .filter(Boolean)
     .map(encodeURIComponent)
     .join('/');
 
-  const endpoint = `${API_BASE_URL}/public/pages/${cleanSlug}`;
+  const localeParam = locale && locale !== 'en' ? `?locale=${encodeURIComponent(locale)}` : '';
+  const endpoint = `${API_BASE_URL}/public/pages/${cleanSlug}${localeParam}`;
 
   try {
     const res = await fetch(endpoint, {
-      next: { revalidate: REVALIDATE_SECONDS },
+      cache: 'no-store',
     });
 
     if (res.status === 404) {
@@ -118,12 +119,13 @@ export async function fetchTemplate(templateId: string): Promise<Template | null
   }
 }
 
-export async function fetchNavigation(): Promise<NavigationPublicResponse | null> {
-  const endpoint = `${API_BASE_URL}/public/navigation`;
+export async function fetchNavigation(locale?: string): Promise<NavigationPublicResponse | null> {
+  const localeParam = locale && locale !== 'en' ? `?locale=${encodeURIComponent(locale)}` : '';
+  const endpoint = `${API_BASE_URL}/public/navigation${localeParam}`;
 
   try {
     const res = await fetch(endpoint, {
-      next: { revalidate: REVALIDATE_SECONDS },
+      cache: 'no-store',
     });
 
     if (res.status === 404) {

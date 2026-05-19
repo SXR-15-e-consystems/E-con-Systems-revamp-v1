@@ -9,6 +9,7 @@ import { TemplateListPage } from './pages/TemplateListPage';
 import { TemplateBuilderPage } from './pages/TemplateBuilderPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { NavigationPage } from './pages/NavigationPage';
+import { UIStringsPage } from './pages/UIStringsPage';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/templates/:templateId/edit" element={<ProtectedRoute allowedRoles={['admin']}><TemplateBuilderPage /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
         <Route path="/navigation" element={<ProtectedRoute allowedRoles={['admin', 'marketing']}><NavigationPage /></ProtectedRoute>} />
+        <Route path="/ui-strings" element={<ProtectedRoute allowedRoles={['admin', 'marketing']}><UIStringsPage /></ProtectedRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

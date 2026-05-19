@@ -18,6 +18,8 @@ import type {
 } from '@/types/templates';
 
 import { OverviewRenderer } from '@/components/blocks/ProductTabs/renderers/OverviewRenderer';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import { SpecListRenderer } from '@/components/blocks/ProductTabs/renderers/SpecListRenderer';
 import { DocumentsRenderer } from '@/components/blocks/ProductTabs/renderers/DocumentsRenderer';
 import { OrderTableRenderer } from '@/components/blocks/ProductTabs/renderers/OrderTableRenderer';
@@ -58,11 +60,13 @@ function renderTabContent(
   recaptchaSiteKey: string,
   datasheetCta?: DatasheetCTA,
   documentsData?: DocumentsTabContent,
+  productName?: string,
+  noTabContent?: string,
 ) {
   if (!tabData) {
     return (
       <div className="py-10 text-center text-sm text-slate-400">
-        No content available for this tab.
+        {noTabContent ?? 'No content available for this tab.'}
       </div>
     );
   }
@@ -80,6 +84,7 @@ function renderTabContent(
           datasheetCta={tab.preset_key === 'overview' ? datasheetCta : undefined}
           documentsData={tab.preset_key === 'overview' ? documentsData : undefined}
           recaptchaSiteKey={recaptchaSiteKey}
+          productName={productName}
         />
       );
     case 'spec_list':
@@ -89,10 +94,11 @@ function renderTabContent(
         <DocumentsRenderer
           data={tabData as DocumentsTabContent}
           recaptchaSiteKey={recaptchaSiteKey}
+          productName={productName}
         />
       );
     case 'order_table':
-      return <OrderTableRenderer data={tabData as OrderTableTabContent} />;
+      return <OrderTableRenderer data={tabData as OrderTableTabContent} productName={productName} />;
     case 'video_grid':
       return <VideoGridRenderer data={tabData as VideoGridTabContent} />;
     case 'compliance_table':
@@ -143,8 +149,14 @@ function SpecTable({ tabData }: { tabData: SpecListTabContent }) {
 
 // ── Main component ─────────────────────────────────────────────────────────
 export function ProductTabsV2Block({ data }: ProductTabsV2BlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const raw = data as unknown as ProductTabsV2Data;
-  const meta: ProductTabsV2Meta = { ...DEFAULT_META, ...(raw.meta ?? {}) };
+  const pageProductName = (data.__page_product_name as string) ?? '';
+  const pageTitle = (data.__page_title as string) ?? '';
+  const perBlockProductName = (raw.meta as ProductTabsV2Meta)?.product_name ?? '';
+  // Priority: page-level product_name (authoritative) → legacy per-block field → page title
+  const resolvedProductName = pageProductName || perBlockProductName || pageTitle || undefined;
+  const meta: ProductTabsV2Meta = { ...DEFAULT_META, ...(raw.meta ?? {}), product_name: resolvedProductName };
 
   const tabs: ProductTab[] = useMemo(
     () =>
@@ -326,6 +338,8 @@ export function ProductTabsV2Block({ data }: ProductTabsV2BlockProps) {
               meta.recaptchaSiteKey,
               meta.datasheet_cta,
               documentsData,
+              meta.product_name,
+              t.noTabContent,
             )
           )}
         </div>

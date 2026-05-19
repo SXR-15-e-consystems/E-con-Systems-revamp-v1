@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { sanitizeFormType, sanitizeUrl } from '@/lib/security';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type { FormContent, FormData, FormMeta, FormType, QuoteQuantity } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,9 +140,13 @@ const inputClass =
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function FormBlock({ data }: FormBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const parsed = data as unknown as FormData;
   const meta: FormMeta = { ...DEFAULT_META, ...parsed.meta };
-  const content: FormContent = { ...DEFAULT_CONTENT, ...parsed.content };
+  const content: FormContent = {
+    ...{ heading: undefined, subheading: undefined, successMessage: t.formSuccess, errorMessage: t.formError },
+    ...parsed.content,
+  };
 
   const [fields, setFields] = useState<UnionFields>(() => buildDefaultFields(meta.formType));
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -162,21 +168,21 @@ export function FormBlock({ data }: FormBlockProps) {
 
   function validate(): boolean {
     const errors: Partial<Record<string, string>> = {};
-    if (!fields.name.trim()) errors['name'] = 'Required';
+    if (!fields.name.trim()) errors['name'] = t.required;
     if (!fields.email.trim()) {
-      errors['email'] = 'Required';
+      errors['email'] = t.required;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-      errors['email'] = 'Invalid email address';
+      errors['email'] = t.invalidEmail;
     }
-    if (!fields.company.trim()) errors['company'] = 'Required';
-    if (!fields.country) errors['country'] = 'Required';
+    if (!fields.company.trim()) errors['company'] = t.required;
+    if (!fields.country) errors['country'] = t.required;
     if (meta.formType === 'registration') {
       const reg = fields as RegistrationFields;
-      if (!reg.eventDate) errors['eventDate'] = 'Required';
+      if (!reg.eventDate) errors['eventDate'] = t.required;
     }
     if (meta.formType === 'get-quote') {
       const quote = fields as QuoteFields;
-      if (!quote.quantity) errors['quantity'] = 'Required';
+      if (!quote.quantity) errors['quantity'] = t.required;
     }
     if (!fields.tc) errors['tc'] = 'You must accept the Terms & Conditions';
     setFieldErrors(errors);

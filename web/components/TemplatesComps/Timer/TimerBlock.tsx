@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { useCountdown } from '@/hooks/useCountdown';
 import { Z_INDEX } from '@/lib/constants';
 import { sanitizeUrl } from '@/lib/security';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type { TimerContent, TimerData, TimerMeta } from '@/types/templates';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,9 +35,11 @@ const DEFAULT_META: TimerMeta = {
 function CountdownDisplay({
   expiryIso,
   textColor,
+  labels,
 }: {
   expiryIso: string;
   textColor: string;
+  labels: { days: string; hours: string; minutes: string; seconds: string };
 }) {
   const { days, hours, minutes, seconds, expired } = useCountdown(expiryIso);
 
@@ -64,13 +68,13 @@ function CountdownDisplay({
 
   return (
     <div className="flex items-end gap-1">
-      {unit(days, 'DD')}
+      {unit(days, labels.days)}
       {separator}
-      {unit(hours, 'HH')}
+      {unit(hours, labels.hours)}
       {separator}
-      {unit(minutes, 'MM')}
+      {unit(minutes, labels.minutes)}
       {separator}
-      {unit(seconds, 'SS')}
+      {unit(seconds, labels.seconds)}
     </div>
   );
 }
@@ -82,11 +86,13 @@ function TimerInner({
   meta,
   onDismiss,
   isPopup,
+  countdownLabels,
 }: {
   content: TimerContent;
   meta: TimerMeta;
   onDismiss?: () => void;
   isPopup: boolean;
+  countdownLabels: { days: string; hours: string; minutes: string; seconds: string };
 }) {
   const { expired } = useCountdown(content.expiry_iso);
 
@@ -123,7 +129,7 @@ function TimerInner({
       </div>
 
       {/* Countdown */}
-      <CountdownDisplay expiryIso={content.expiry_iso} textColor={meta.textColor} />
+      <CountdownDisplay expiryIso={content.expiry_iso} textColor={meta.textColor} labels={countdownLabels} />
 
       {/* CTA */}
       {content.cta_text && content.cta_link && (() => {
@@ -160,6 +166,8 @@ function TimerInner({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function TimerBlock({ data }: TimerBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
+  const countdownLabels = { days: t.timerDays, hours: t.timerHours, minutes: t.timerMinutes, seconds: t.timerSeconds };
   const parsed = data as unknown as TimerData;
   const meta: TimerMeta = { ...DEFAULT_META, ...parsed.meta };
   const content: TimerContent | undefined = parsed.content;
@@ -189,6 +197,7 @@ export function TimerBlock({ data }: TimerBlockProps) {
         meta={meta}
         isPopup={isPopup}
         onDismiss={isPopup ? () => setDismissed(true) : undefined}
+        countdownLabels={countdownLabels}
       />
     </div>
   );

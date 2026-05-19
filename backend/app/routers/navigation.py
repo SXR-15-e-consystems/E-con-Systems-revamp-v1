@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.database import get_db
 from app.models.navigation import (
@@ -96,7 +96,8 @@ public_router = APIRouter()
 
 @public_router.get("/navigation", response_model=NavigationPublicResponse)
 async def public_get_navigation(
+    locale: str = Query(default="en", max_length=10),
     db: Any = Depends(get_db),
 ) -> NavigationPublicResponse:
     """Get the published navigation config for the public website."""
-    return await get_public_navigation(db)
+    return await get_public_navigation(db, locale)

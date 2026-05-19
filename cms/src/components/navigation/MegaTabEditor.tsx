@@ -19,9 +19,14 @@ interface Props {
   onChange: (tabs: MegaMenuTab[]) => void;
   promoBanner: PromoBanner | null;
   onPromoBannerChange: (pb: PromoBanner | null) => void;
+  menuId?: string;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange }: Props) {
+export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange, menuId, activeLocale, localeFlat, onLocaleChange }: Props) {
+  const isTranslating = !!(activeLocale && activeLocale !== 'en');
   const [activeTabId, setActiveTabId] = useState<string | null>(
     tabs.find((t) => t.is_default)?.tab_id ?? tabs[0]?.tab_id ?? null,
   );
@@ -137,8 +142,13 @@ export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange
               <label className="block text-xs font-semibold text-slate-600 mb-1">Tab Label</label>
               <input
                 type="text"
-                value={activeTab.label}
-                onChange={(e) => updateTab({ ...activeTab, label: e.target.value })}
+                value={isTranslating ? (localeFlat?.[`t_${activeTab.tab_id}`] ?? '') : activeTab.label}
+                onChange={(e) =>
+                  isTranslating
+                    ? onLocaleChange?.(`t_${activeTab.tab_id}`, e.target.value)
+                    : updateTab({ ...activeTab, label: e.target.value })
+                }
+                placeholder={isTranslating ? (activeTab.label || 'Tab label') : 'Tab label'}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -187,6 +197,9 @@ export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange
                       columns: activeTab.columns.filter((_, i) => i !== ci),
                     });
                   }}
+                  activeLocale={activeLocale}
+                  localeFlat={localeFlat}
+                  onLocaleChange={onLocaleChange}
                 />
               ))}
             </div>
@@ -218,14 +231,16 @@ export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange
               <div className="space-y-2">
                 <input
                   type="text"
-                  value={activeTab.bottom_section.title}
+                  value={isTranslating ? (localeFlat?.[`bs_${activeTab.tab_id}`] ?? '') : activeTab.bottom_section.title}
                   onChange={(e) =>
-                    updateTab({
-                      ...activeTab,
-                      bottom_section: { ...activeTab.bottom_section!, title: e.target.value },
-                    })
+                    isTranslating
+                      ? onLocaleChange?.(`bs_${activeTab.tab_id}`, e.target.value)
+                      : updateTab({
+                          ...activeTab,
+                          bottom_section: { ...activeTab.bottom_section!, title: e.target.value },
+                        })
                   }
-                  placeholder="Section title"
+                  placeholder={isTranslating ? (activeTab.bottom_section.title || 'Section title') : 'Section title'}
                   className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
                 />
                 {activeTab.bottom_section.items.map((item, mi) => (
@@ -304,7 +319,14 @@ export function MegaTabEditor({ tabs, onChange, promoBanner, onPromoBannerChange
       )}
 
       {/* Promo banner */}
-      <PromoBannerEditor value={promoBanner} onChange={onPromoBannerChange} />
+      <PromoBannerEditor
+        value={promoBanner}
+        onChange={onPromoBannerChange}
+        menuId={menuId}
+        activeLocale={activeLocale}
+        localeFlat={localeFlat}
+        onLocaleChange={onLocaleChange}
+      />
     </div>
   );
 }

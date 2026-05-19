@@ -252,6 +252,7 @@ export interface OrderSampleRow {
   kit_contents: string[];
   price: string;
   contact_url: string;
+  nop_product_id?: string;
 }
 
 export interface OrderTableTabContent {
@@ -329,6 +330,7 @@ export interface ProductTabsV2Meta {
   contentBgColor: string;     // background behind the tab content
   recaptchaSiteKey: string;   // used by Order Samples reCAPTCHA
   datasheet_cta?: { enabled: boolean; label: string };
+  product_name?: string;      // overrides page-level product_name for this block
 }
 
 export interface ProductTabsV2Data {
@@ -991,6 +993,10 @@ export interface ProductHeroNewContent {
   highlight_icons?: ProductHighlightIcon[];
   show_highlight_icons?: boolean;
   variant_options: string[];
+  /** Maps variant label → NopProductId string for live pricing lookups */
+  variant_product_codes?: Record<string, string>;
+  /** Comma-separated NopProductId values for all variants — sent on page load */
+  product_codes?: string;
   sample_price: string;
   sample_currency: string;
   volume_price?: string;

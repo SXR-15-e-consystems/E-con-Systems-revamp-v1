@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useState, useCallback } from 'react';
 
 import { sanitizeUrl } from '@/lib/security';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type {
   ProductHeroData,
   ProductHeroMeta,
@@ -139,6 +141,7 @@ function ProductImageSlider({
 // ── Main block ────────────────────────────────────────────────────────────
 export function ProductHeroBlock({ data }: ProductHeroBlockProps) {
   const typed = data as unknown as ProductHeroData;
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const meta: ProductHeroMeta = { ...DEFAULT_META, ...typed.meta };
   const content: ProductHeroContent = {
     sku_badge: typed.content?.sku_badge ?? '',
@@ -350,7 +353,7 @@ export function ProductHeroBlock({ data }: ProductHeroBlockProps) {
             <div className="ph-price-row">
               {content.sample_price && (
                 <div>
-                  <p className="text-xs text-gray-500">Sample Price</p>
+                  <p className="text-xs text-gray-500">{t.samplePrice}</p>
                   <p className="text-xl font-bold text-gray-900">
                     {content.sample_currency} {content.sample_price}
                   </p>
@@ -358,7 +361,7 @@ export function ProductHeroBlock({ data }: ProductHeroBlockProps) {
               )}
               {content.volume_price && (
                 <div>
-                  <p className="text-xs text-gray-500">Volume Price</p>
+                  <p className="text-xs text-gray-500">{t.volumePrice}</p>
                   <p className="text-xl font-bold text-gray-900">
                     {content.volume_currency ?? 'USD'} {content.volume_price}
                   </p>

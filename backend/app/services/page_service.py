@@ -179,10 +179,21 @@ async def _to_page_response(document: dict[str, Any], db: Any) -> PageResponse:
         title=document["title"],
         meta_description=document.get("meta_description", ""),
         og_image_url=document.get("og_image_url"),
+        product_name=document.get("product_name", ""),
         template_id=template_id,
         template_config=template_config,
         status=document["status"],
         blocks=document.get("blocks", []),
+        og_title=document.get("og_title", ""),
+        og_description=document.get("og_description", ""),
+        og_type=document.get("og_type", "website"),
+        twitter_card=document.get("twitter_card", "summary_large_image"),
+        twitter_site=document.get("twitter_site", ""),
+        schema_json=document.get("schema_json", ""),
+        canonical_url=document.get("canonical_url"),
+        custom_js_head=document.get("custom_js_head", ""),
+        custom_js_body=document.get("custom_js_body", ""),
+        locales=document.get("locales", {}),
         created_by=document.get("created_by", "poc-user"),
         created_at=document["created_at"],
         updated_at=document["updated_at"],
@@ -249,9 +260,20 @@ async def create_page(db: Any, payload: PageCreate) -> PageResponse:
         "title": payload.title,
         "meta_description": payload.meta_description,
         "og_image_url": payload.og_image_url,
+        "product_name": payload.product_name if hasattr(payload, "product_name") and payload.product_name else "",
         "template_id": payload.template_id if hasattr(payload, "template_id") else None,
         "status": PageStatus.DRAFT.value,
         "blocks": [],
+        "og_title": payload.og_title if hasattr(payload, "og_title") else "",
+        "og_description": payload.og_description if hasattr(payload, "og_description") else "",
+        "og_type": payload.og_type if hasattr(payload, "og_type") else "website",
+        "twitter_card": payload.twitter_card if hasattr(payload, "twitter_card") else "summary_large_image",
+        "twitter_site": payload.twitter_site if hasattr(payload, "twitter_site") else "",
+        "schema_json": payload.schema_json if hasattr(payload, "schema_json") else "",
+        "canonical_url": payload.canonical_url if hasattr(payload, "canonical_url") else None,
+        "custom_js_head": payload.custom_js_head if hasattr(payload, "custom_js_head") else "",
+        "custom_js_body": payload.custom_js_body if hasattr(payload, "custom_js_body") else "",
+        "locales": {},
         "created_by": "poc-user",
         "created_at": now,
         "updated_at": now,
@@ -296,6 +318,8 @@ async def update_page(db: Any, slug: str, payload: PageUpdate) -> PageResponse:
         update_dict["title"] = payload.title
     if payload.meta_description is not None:
         update_dict["meta_description"] = payload.meta_description
+    if payload.product_name is not None:
+        update_dict["product_name"] = payload.product_name
     if payload.og_image_url is not None:
         update_dict["og_image_url"] = payload.og_image_url
     if payload.status is not None:
@@ -303,6 +327,26 @@ async def update_page(db: Any, slug: str, payload: PageUpdate) -> PageResponse:
     if payload.blocks is not None:
         blocks = validate_blocks(payload.blocks)
         update_dict["blocks"] = [block.model_dump() for block in blocks]
+    if payload.og_title is not None:
+        update_dict["og_title"] = payload.og_title
+    if payload.og_description is not None:
+        update_dict["og_description"] = payload.og_description
+    if payload.og_type is not None:
+        update_dict["og_type"] = payload.og_type
+    if payload.twitter_card is not None:
+        update_dict["twitter_card"] = payload.twitter_card
+    if payload.twitter_site is not None:
+        update_dict["twitter_site"] = payload.twitter_site
+    if payload.schema_json is not None:
+        update_dict["schema_json"] = payload.schema_json
+    if payload.canonical_url is not None:
+        update_dict["canonical_url"] = payload.canonical_url
+    if payload.custom_js_head is not None:
+        update_dict["custom_js_head"] = payload.custom_js_head
+    if payload.custom_js_body is not None:
+        update_dict["custom_js_body"] = payload.custom_js_body
+    if payload.locales is not None:
+        update_dict["locales"] = payload.locales
 
     await db.pages.update_one({"_id": ObjectId(existing["_id"])}, {"$set": update_dict})
     updated = await db.pages.find_one({"_id": ObjectId(existing["_id"])})
@@ -337,7 +381,7 @@ async def list_public_pages(db: Any) -> list[PageListItem]:
     return items
 
 
-async def get_public_page(db: Any, slug: str) -> PageResponse:
+async def get_public_page(db: Any, slug: str, locale: str = "en") -> PageResponse:
     normalized_slug = slug.strip("/").lower()
     document = await db.pages.find_one(
         {"slug": normalized_slug, "status": PageStatus.PUBLISHED.value}
@@ -345,7 +389,32 @@ async def get_public_page(db: Any, slug: str) -> PageResponse:
     if document is None:
         raise ServiceError("NOT_FOUND", "Page not found", 404)
 
+    # Apply locale variant overlay — silently falls back to EN if locale missing
+    normalized_locale = (locale or "en").strip().lower()
+    if normalized_locale not in ("en", ""):
+        variant = document.get("locales", {}).get(normalized_locale)
+        if variant and isinstance(variant, dict):
+            if variant.get("title"):
+                document["title"] = variant["title"]
+            if variant.get("meta_description"):
+                document["meta_description"] = variant["meta_description"]
+            if variant.get("og_title"):
+                document["og_title"] = variant["og_title"]
+            if variant.get("og_description"):
+                document["og_description"] = variant["og_description"]
+
     visible_blocks = [block for block in document.get("blocks", []) if block.get("visible", True)]
+    # Apply per-block locale overlay when a non-EN locale is requested
+    if normalized_locale not in ("en", ""):
+        for block in visible_blocks:
+            block_variant = block.get("locales", {}).get(normalized_locale)
+            if block_variant and isinstance(block_variant, dict):
+                # Shallow-merge: only override keys that are non-empty strings
+                merged = dict(block.get("data", {}))
+                for key, val in block_variant.items():
+                    if val not in (None, ""):
+                        merged[key] = val
+                block["data"] = merged
     document["blocks"] = visible_blocks
     return await _to_page_response(document, db)
 

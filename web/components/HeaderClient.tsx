@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { sanitizeUrl } from '@/lib/security';
 import type {
@@ -636,7 +636,6 @@ function buildLocalePath(pathname: string, currentLocale: string, targetLocale: 
 
 function FlagDropdown({ flags }: { flags: CountryFlag[] }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -661,7 +660,8 @@ function FlagDropdown({ flags }: { flags: CountryFlag[] }) {
   const handleSelect = (flag: CountryFlag) => {
     setOpen(false);
     const newPath = buildLocalePath(pathname, activeLocale, flag.locale_prefix);
-    router.push(newPath);
+    // Full page navigation so the server re-renders SiteHeader with the new locale
+    window.location.href = newPath;
   };
 
   if (!activeFlag) return null;
@@ -713,7 +713,6 @@ function FlagDropdown({ flags }: { flags: CountryFlag[] }) {
 
 function MobileFlagSelector({ flags, onSelect }: { flags: CountryFlag[]; onSelect: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
   const activeLocale = getActiveLocale(pathname, flags);
   const activeFlag = flags.find((f) => f.locale_prefix === activeLocale)
     ?? flags.find((f) => f.is_default)
@@ -722,7 +721,8 @@ function MobileFlagSelector({ flags, onSelect }: { flags: CountryFlag[]; onSelec
   const handleChange = (localePrefix: string) => {
     onSelect();
     const newPath = buildLocalePath(pathname, activeLocale, localePrefix);
-    router.push(newPath);
+    // Full page navigation so the server re-renders SiteHeader with the new locale
+    window.location.href = newPath;
   };
 
   return (

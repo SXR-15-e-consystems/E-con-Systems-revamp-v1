@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { sanitizeUrl } from '@/lib/security';
+import { DownloadFormModal } from '../../blocks/ProductTabs/renderers/DownloadFormModal';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type {
   DocumentDownloadData,
   DocumentDownloadMeta,
@@ -49,9 +52,11 @@ function fileIcon(fileType: string): string {
 }
 
 export function DocumentDownloadBlock({ data }: DocumentDownloadBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const raw = data as unknown as DocumentDownloadData;
   const meta: DocumentDownloadMeta = { ...DEFAULT_META, ...raw.meta };
   const content: DocumentDownloadContent = { ...{ heading: '', products: [] }, ...raw.content };
+  const pageProductName = (data.__page_product_name as string) ?? '';
 
   const { heading, products } = content;
 
@@ -88,29 +93,25 @@ export function DocumentDownloadBlock({ data }: DocumentDownloadBlockProps) {
     });
   }, [products, totalFiles]);
 
-  const downloadSelected = useCallback(() => {
-    const urls: string[] = [];
+  const [showDownloadForm, setShowDownloadForm] = useState(false);
+
+  const selectedDocumentsForModal = useMemo(() => {
+    const docs: { name: string; url: string }[] = [];
     selected.forEach((key) => {
       const [pi, ci, fi] = key.split('-').map(Number);
       const file = products[pi]?.categories[ci]?.files[fi];
       if (file) {
         const url = sanitizeUrl(file.url);
-        if (url) urls.push(url);
+        if (url) docs.push({ name: file.name, url });
       }
     });
-    // Trigger downloads with small delay between each
-    urls.forEach((url, i) => {
-      setTimeout(() => {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }, i * 200);
-    });
+    return docs;
   }, [selected, products]);
+
+  const downloadSelected = useCallback(() => {
+    if (selected.size === 0) return;
+    setShowDownloadForm(true);
+  }, [selected]);
 
   if (!heading && products.length === 0) return null;
 
@@ -144,7 +145,7 @@ export function DocumentDownloadBlock({ data }: DocumentDownloadBlockProps) {
                 className="text-sm font-medium hover:underline"
                 style={{ color: meta.linkColor }}
               >
-                {selected.size === totalFiles ? 'Deselect All' : 'Select All'}
+                {selected.size === totalFiles ? t.deselectAll : t.selectAll}
               </button>
               <button
                 type="button"
@@ -237,6 +238,13 @@ export function DocumentDownloadBlock({ data }: DocumentDownloadBlockProps) {
           </div>
         )}
       </div>
+
+      <DownloadFormModal
+        open={showDownloadForm}
+        onClose={() => setShowDownloadForm(false)}
+        documents={selectedDocumentsForModal}
+        productName={pageProductName || content.products[0]?.label || content.heading}
+      />
     </section>
   );
 }

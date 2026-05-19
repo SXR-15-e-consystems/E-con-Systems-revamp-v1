@@ -5,9 +5,12 @@ interface Props {
   children: DropdownChild[];
   onChange: (children: DropdownChild[]) => void;
   allowNesting: boolean;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function DropdownEditor({ children, onChange, allowNesting }: Props) {
+export function DropdownEditor({ children, onChange, allowNesting, activeLocale, localeFlat, onLocaleChange }: Props) {
   const addChild = () => {
     onChange([...children, createEmptyDropdownChild()]);
   };
@@ -63,6 +66,9 @@ export function DropdownEditor({ children, onChange, allowNesting }: Props) {
             onMove={(dir) => moveChild(i, dir)}
             allowNesting={allowNesting}
             depth={0}
+            activeLocale={activeLocale}
+            localeFlat={localeFlat}
+            onLocaleChange={onLocaleChange}
           />
         ))}
       </div>
@@ -79,6 +85,9 @@ interface ItemRowProps {
   onMove: (direction: -1 | 1) => void;
   allowNesting: boolean;
   depth: number;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
 function DropdownItemRow({
@@ -90,7 +99,11 @@ function DropdownItemRow({
   onMove,
   allowNesting,
   depth,
+  activeLocale,
+  localeFlat,
+  onLocaleChange,
 }: ItemRowProps) {
+  const isTranslating = !!(activeLocale && activeLocale !== 'en') && depth === 0;
   const addSubChild = () => {
     onChange({
       ...item,
@@ -148,9 +161,13 @@ function DropdownItemRow({
 
         <input
           type="text"
-          value={item.label}
-          onChange={(e) => onChange({ ...item, label: e.target.value })}
-          placeholder="Label"
+          value={isTranslating ? (localeFlat?.[`d_${item.item_id}`] ?? '') : item.label}
+          onChange={(e) =>
+            isTranslating
+              ? onLocaleChange?.(`d_${item.item_id}`, e.target.value)
+              : onChange({ ...item, label: e.target.value })
+          }
+          placeholder={isTranslating ? (item.label || 'Label') : 'Label'}
           className="flex-1 rounded border border-slate-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
         />
         <input

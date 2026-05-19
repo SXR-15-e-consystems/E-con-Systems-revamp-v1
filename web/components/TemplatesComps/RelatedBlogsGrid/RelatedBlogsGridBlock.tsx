@@ -2,6 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { sanitizeUrl } from '@/lib/security';
+import { getUiStrings } from '@/lib/ui-strings';
+import type { UiStrings } from '@/lib/ui-strings';
 import type {
   RelatedBlogsGridData,
   RelatedBlogsGridMeta,
@@ -117,6 +119,7 @@ function renderCard(
 }
 
 export function RelatedBlogsGridBlock({ data }: RelatedBlogsGridBlockProps) {
+  const t = getUiStrings(data.__ui as UiStrings | undefined);
   const raw = data as unknown as RelatedBlogsGridData;
   const meta: RelatedBlogsGridMeta = { ...DEFAULT_META, ...raw.meta };
   const content: RelatedBlogsGridContent = {
@@ -153,7 +156,7 @@ export function RelatedBlogsGridBlock({ data }: RelatedBlogsGridBlockProps) {
             {items.map((item, index) => {
               const imageUrl = sanitizeUrl(item.image_url);
               const linkUrl = sanitizeUrl(item.link);
-              const ctaText = item.cta_text || 'Know More';
+              const ctaText = item.cta_text || t.knowMore;
 
               return renderCard(item, index, imageUrl, linkUrl, ctaText, meta);
             })}
@@ -172,7 +175,7 @@ export function RelatedBlogsGridBlock({ data }: RelatedBlogsGridBlockProps) {
               {items.map((item, index) => {
                 const imageUrl = sanitizeUrl(item.image_url);
                 const linkUrl = sanitizeUrl(item.link);
-                const ctaText = item.cta_text || 'Know More';
+                const ctaText = item.cta_text || t.knowMore;
 
                 return (
                   <div key={index} className="rbg-card-wrap">

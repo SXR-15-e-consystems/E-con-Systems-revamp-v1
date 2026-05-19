@@ -11,7 +11,7 @@ export function CMSLayout() {
   const navItems = [
     { to: '/', label: 'Pages' },
     { to: '/templates', label: 'Templates' },
-    ...(isEditor ? [{ to: '/navigation', label: 'Navigation' }] : []),
+    ...(isEditor ? [{ to: '/navigation', label: 'Navigation' }, { to: '/ui-strings', label: 'UI Strings' }] : []),
     ...(isAdmin ? [{ to: '/users', label: 'Users' }] : []),
   ];
 

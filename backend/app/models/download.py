@@ -1,4 +1,4 @@
-"""Pydantic models for download request endpoint."""
+"""Pydantic models for download request and contact inquiry endpoints."""
 
 from pydantic import BaseModel, EmailStr, field_validator
 
@@ -36,9 +36,12 @@ class DownloadRequest(BaseModel):
     company: str
     country: str
     state: str = ""
-    requirements: str = ""
+    phone: str = ""
     howDidYouHear: str = ""
-    recaptchaToken: str = ""
+    newsletter: bool = True
+    termsAccepted: bool = False
+    productName: str = ""
+    incorpid: str = ""
     documents: list[DownloadDocumentItem]
 
     @field_validator("name", "company", "country")
@@ -51,7 +54,7 @@ class DownloadRequest(BaseModel):
             raise ValueError("Value too long")
         return stripped
 
-    @field_validator("requirements", "howDidYouHear", "state")
+    @field_validator("phone", "howDidYouHear", "state", "productName", "incorpid")
     @classmethod
     def limit_length(cls, v: str) -> str:
         if len(v) > 2000:
@@ -73,3 +76,92 @@ class DownloadResponse(BaseModel):
 
     status: str
     message: str = ""
+
+
+class ValidateEmailRequest(BaseModel):
+    """Request body for POST /api/v1/public/validate-email."""
+
+    email: EmailStr
+
+
+class ValidateEmailResponse(BaseModel):
+    """Response body for validate-email."""
+
+    valid: bool
+    reason: str = ""
+    incorpid: str = ""
+
+
+class ContactInquiryRequest(BaseModel):
+    """Request body for POST /api/v1/public/contact-inquiry."""
+
+    name: str
+    email: EmailStr
+    company: str = ""
+    phone: str = ""
+    country: str = ""
+    state: str = ""
+    howDidYouHear: str = ""
+    requirements: str = ""
+    product: str = ""
+
+    @field_validator("name")
+    @classmethod
+    def name_not_empty(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Name is required")
+        if len(stripped) > 200:
+            raise ValueError("Name too long")
+        return stripped
+
+    @field_validator("company", "phone", "country", "state", "howDidYouHear", "product")
+    @classmethod
+    def limit_optional_length(cls, v: str) -> str:
+        if len(v) > 500:
+            raise ValueError("Value too long")
+        return v.strip()
+
+    @field_validator("requirements")
+    @classmethod
+    def limit_requirements(cls, v: str) -> str:
+        if len(v) > 2000:
+            raise ValueError("Requirements too long")
+        return v.strip()
+
+
+class ContactInquiryResponse(BaseModel):
+    """Response body for contact inquiry."""
+
+    status: str
+    message: str = ""
+
+
+class BlockedEmailRequest(BaseModel):
+    """Request body for POST /api/v1/public/downloads/log-blocked."""
+
+    name: str = ""
+    company: str = ""
+    email: str
+    domain: str = ""
+    status: str = ""
+    country: str = ""
+    state: str = ""
+    phone: str = ""
+    productName: str = ""
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        stripped = v.strip().lower()
+        if not stripped or "@" not in stripped:
+            raise ValueError("Valid email required")
+        return stripped
+
+    @field_validator("name", "company", "domain", "status", "country", "state", "phone", "productName")
+    @classmethod
+    def limit_length(cls, v: str) -> str:
+        if len(v) > 500:
+            raise ValueError("Value too long")
+        return v.strip()
+

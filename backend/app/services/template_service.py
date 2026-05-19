@@ -28,6 +28,8 @@ def _to_template_response(document: dict[str, Any]) -> TemplateResponse:
         grid=document.get("grid", {"columns": 12, "row_height": 40, "gap": 16}),
         components=document.get("components", []),
         status=document.get("status", "active"),
+        custom_js_head=document.get("custom_js_head", ""),
+        custom_js_body=document.get("custom_js_body", ""),
         created_by=document.get("created_by", "designer"),
         created_at=document["created_at"],
         updated_at=document["updated_at"],
@@ -97,6 +99,8 @@ async def create_template(db: Any, payload: TemplateCreate) -> TemplateResponse:
         "grid": payload.grid.model_dump(),
         "components": [comp.model_dump() for comp in payload.components],
         "status": TemplateStatus.ACTIVE.value,
+        "custom_js_head": "",
+        "custom_js_body": "",
         "created_by": "designer",
         "created_at": now,
         "updated_at": now,
@@ -130,6 +134,10 @@ async def update_template(
         update_dict["components"] = [comp.model_dump() for comp in payload.components]
     if payload.status is not None:
         update_dict["status"] = payload.status.value
+    if payload.custom_js_head is not None:
+        update_dict["custom_js_head"] = payload.custom_js_head
+    if payload.custom_js_body is not None:
+        update_dict["custom_js_body"] = payload.custom_js_body
 
     await db.templates.update_one(
         {"_id": ObjectId(template_id)}, {"$set": update_dict}

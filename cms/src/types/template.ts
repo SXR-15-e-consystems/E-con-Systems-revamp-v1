@@ -41,6 +41,8 @@ export interface Template {
   grid: GridConfig;
   components: TemplateComponent[];
   status: TemplateStatus;
+  custom_js_head?: string;
+  custom_js_body?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -65,6 +67,8 @@ export interface TemplateCreate {
   category?: string;
   grid?: GridConfig;
   components?: TemplateComponent[];
+  custom_js_head?: string;
+  custom_js_body?: string;
 }
 
 export interface TemplateUpdate {
@@ -75,4 +79,6 @@ export interface TemplateUpdate {
   grid?: GridConfig;
   components?: TemplateComponent[];
   status?: TemplateStatus;
+  custom_js_head?: string;
+  custom_js_body?: string;
 }

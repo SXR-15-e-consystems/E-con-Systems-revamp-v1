@@ -60,6 +60,9 @@ class TemplateInDB(BaseModel):
     grid: GridConfig = Field(default_factory=GridConfig)
     components: list[TemplateComponent] = Field(default_factory=list)
     status: TemplateStatus = TemplateStatus.ACTIVE
+    # Custom JS injection (applied to all pages using this template)
+    custom_js_head: str = Field(default="", max_length=100000)
+    custom_js_body: str = Field(default="", max_length=100000)
     created_by: str = "designer"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -98,6 +101,9 @@ class TemplateUpdate(BaseModel):
     grid: GridConfig | None = None
     components: list[TemplateComponent] | None = None
     status: TemplateStatus | None = None
+    # Custom JS injection
+    custom_js_head: str | None = Field(default=None, max_length=100000)
+    custom_js_body: str | None = Field(default=None, max_length=100000)
 
 
 class TemplateResponse(BaseModel):
@@ -110,6 +116,9 @@ class TemplateResponse(BaseModel):
     grid: GridConfig
     components: list[TemplateComponent]
     status: TemplateStatus
+    # Custom JS injection
+    custom_js_head: str = ""
+    custom_js_body: str = ""
     created_by: str
     created_at: datetime
     updated_at: datetime

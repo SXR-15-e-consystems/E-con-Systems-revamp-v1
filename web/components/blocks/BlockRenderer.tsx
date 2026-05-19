@@ -1,16 +1,18 @@
 import type { BlockEnvelope, PageResponse } from '@/types';
 import type { TemplateConfigForPage } from '@/types/template';
+import type { UiStrings } from '@/lib/ui-strings';
 import { getBlockComponent } from './BlockRegistry';
 import { GridLayout } from './GridLayout';
 
 interface Props {
   page: PageResponse;
   template?: TemplateConfigForPage;
+  uiStrings?: UiStrings;
 }
 
-export function BlockRenderer({ page, template }: Props) {
+export function BlockRenderer({ page, template, uiStrings }: Props) {
   if (template) {
-    return <GridLayout page={page} templateConfig={template} />;
+    return <GridLayout page={page} templateConfig={template} uiStrings={uiStrings} />;
   }
 
   if (!page?.blocks) {
@@ -38,7 +40,7 @@ export function BlockRenderer({ page, template }: Props) {
           }
           return null;
         }
-        return <Component key={block.block_id} data={block.data} />;
+        return <Component key={block.block_id} data={{ ...block.data, __page_product_name: page.product_name ?? '', __page_title: page.title ?? '', __ui: uiStrings }} />;
       })}
     </>
   );

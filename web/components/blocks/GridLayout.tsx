@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BlockEnvelope, PageResponse } from '@/types';
 import type { TemplateComponent, TemplateConfigForPage } from '@/types/template';
+import type { UiStrings } from '@/lib/ui-strings';
 import { getBlockComponent } from './BlockRegistry';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -105,6 +106,9 @@ function renderGridItem(
   block: BlockEnvelope,
   compDef: TemplateComponent,
   rowMap: Map<number, number>,
+  pageProductName: string,
+  pageTitleFallback: string,
+  uiStrings?: UiStrings,
 ): React.ReactNode {
   const Component = getBlockComponent(block.type);
   if (!Component) return null;
@@ -181,9 +185,12 @@ function renderGridItem(
   const mergedData = hasNestedMeta
     ? {
         ...blockData,
+        __page_product_name: pageProductName,
+        __page_title: pageTitleFallback,
+        __ui: uiStrings,
         meta: { ...templateMeta, ...(blockData.meta as Record<string, unknown>) },
       }
-    : { ...templateMeta, ...blockData };
+    : { ...templateMeta, ...blockData, __page_product_name: pageProductName, __page_title: pageTitleFallback, __ui: uiStrings };
 
   const safeComponentId = String(block.component_id).replace(/[^a-zA-Z0-9_-]/g, '');
 
@@ -205,9 +212,10 @@ function renderGridItem(
 interface Props {
   page: PageResponse;
   templateConfig: TemplateConfigForPage;
+  uiStrings?: UiStrings;
 }
 
-export function GridLayout({ page, templateConfig }: Props) {
+export function GridLayout({ page, templateConfig, uiStrings }: Props) {
   const visibleBlocks = page.blocks.filter((b) => b.visible);
   const { columns, gap } = templateConfig.grid;
 
@@ -246,7 +254,7 @@ export function GridLayout({ page, templateConfig }: Props) {
         gap: `${gap}px`,
       }}
     >
-      {paired.map(({ block, compDef }) => renderGridItem(block, compDef, rowMap))}
+      {paired.map(({ block, compDef }) => renderGridItem(block, compDef, rowMap, page.product_name ?? '', page.title ?? '', uiStrings))}
 
       {/* Responsive overrides */}
       <style

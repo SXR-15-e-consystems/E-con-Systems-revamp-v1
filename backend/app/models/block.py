@@ -59,6 +59,9 @@ class BlockEnvelope(BaseModel):
     visible: bool = True
     data: dict[str, Any] = Field(...)
     content_status: str = Field(default="empty", description="empty or filled")
+    # Per-block locale overrides: {"jp": {"title": "...", "subtitle": "..."}, ...}
+    # Keys match the field names inside `data`. Blank/missing keys fall back to EN data.
+    locales: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @field_validator("data")
     @classmethod

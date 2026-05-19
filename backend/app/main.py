@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, connect_db
+from app.mssql import init_mssql
 from app.routers import auth, cms, navigation, public, templates, users
 from app.utils.logger import get_logger
 
@@ -71,6 +72,7 @@ async def _seed_admin_if_needed() -> None:
 async def lifespan(app: FastAPI):
     logger.info("Starting up and connecting to database")
     await connect_db()
+    init_mssql()
     await _seed_admin_if_needed()
     yield
     logger.info("Shutting down and closing database")

@@ -195,12 +195,18 @@ class NavigationConfig(BaseModel):
     status: NavigationStatus = NavigationStatus.DRAFT
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_by: str = Field(default="", max_length=200)
+    # Flat label-override map per locale.
+    # Keys follow the pattern: h_phone, h_contact, h_cta, m_{menu_id},
+    # t_{tab_id}, bs_{tab_id}, c_{col_id}, ci_{col_id}_{idx}, d_{item_id},
+    # pb_{menu_id}_title, pb_{menu_id}_desc, pb_{menu_id}_cta
+    locales: dict[str, dict[str, str]] = Field(default_factory=dict)
 
 
 class NavigationUpdate(BaseModel):
     """Payload for updating navigation config. All fields optional."""
     header: HeaderConfig | None = None
     menus: list[NavMenuEntry] | None = None
+    locales: dict[str, dict[str, str]] | None = None
 
 
 class NavigationResponse(BaseModel):
@@ -210,9 +216,11 @@ class NavigationResponse(BaseModel):
     status: NavigationStatus
     updated_at: datetime
     updated_by: str
+    locales: dict[str, dict[str, str]] = Field(default_factory=dict)
 
 
 class NavigationPublicResponse(BaseModel):
     """Lightweight response for public API — no status/audit fields."""
     header: HeaderConfig
     menus: list[NavMenuEntry]
+    locales: dict[str, dict[str, str]] = Field(default_factory=dict)

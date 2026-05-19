@@ -4,10 +4,15 @@ import { createEmptyPromoBanner } from "../../types/navigation";
 interface Props {
   value: PromoBanner | null;
   onChange: (pb: PromoBanner | null) => void;
+  menuId?: string;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function PromoBannerEditor({ value, onChange }: Props) {
+export function PromoBannerEditor({ value, onChange, menuId, activeLocale, localeFlat, onLocaleChange }: Props) {
   const banner = value ?? createEmptyPromoBanner();
+  const isTranslating = !!(activeLocale && activeLocale !== 'en' && menuId);
 
   return (
     <fieldset className="rounded-md border border-slate-200 p-4">
@@ -44,18 +49,26 @@ export function PromoBannerEditor({ value, onChange }: Props) {
             <label className="block text-xs text-slate-500 mb-1">Title</label>
             <input
               type="text"
-              value={banner.title}
-              onChange={(e) => onChange({ ...banner, title: e.target.value })}
-              placeholder="Promo title"
+              value={isTranslating ? (localeFlat?.[`pb_${menuId}_title`] ?? '') : banner.title}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.(`pb_${menuId}_title`, e.target.value)
+                  : onChange({ ...banner, title: e.target.value })
+              }
+              placeholder={isTranslating ? (banner.title || 'Promo title') : 'Promo title'}
               className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
             <label className="block text-xs text-slate-500 mb-1">Description</label>
             <textarea
-              value={banner.description}
-              onChange={(e) => onChange({ ...banner, description: e.target.value })}
-              placeholder="Short promo description"
+              value={isTranslating ? (localeFlat?.[`pb_${menuId}_desc`] ?? '') : banner.description}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.(`pb_${menuId}_desc`, e.target.value)
+                  : onChange({ ...banner, description: e.target.value })
+              }
+              placeholder={isTranslating ? (banner.description || 'Short promo description') : 'Short promo description'}
               rows={2}
               className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none resize-none"
             />
@@ -65,9 +78,13 @@ export function PromoBannerEditor({ value, onChange }: Props) {
               <label className="block text-xs text-slate-500 mb-1">CTA Label</label>
               <input
                 type="text"
-                value={banner.cta_label}
-                onChange={(e) => onChange({ ...banner, cta_label: e.target.value })}
-                placeholder="Learn More"
+                value={isTranslating ? (localeFlat?.[`pb_${menuId}_cta`] ?? '') : banner.cta_label}
+                onChange={(e) =>
+                  isTranslating
+                    ? onLocaleChange?.(`pb_${menuId}_cta`, e.target.value)
+                    : onChange({ ...banner, cta_label: e.target.value })
+                }
+                placeholder={isTranslating ? (banner.cta_label || 'Learn More') : 'Learn More'}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>

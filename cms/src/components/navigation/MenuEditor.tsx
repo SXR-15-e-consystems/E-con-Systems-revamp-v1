@@ -8,12 +8,17 @@ import { PromoBannerEditor } from "./PromoBannerEditor";
 interface Props {
   menu: NavMenuEntry;
   onChange: (updated: NavMenuEntry) => void;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function MenuEditor({ menu, onChange }: Props) {
+export function MenuEditor({ menu, onChange, activeLocale, localeFlat, onLocaleChange }: Props) {
   const update = <K extends keyof NavMenuEntry>(key: K, val: NavMenuEntry[K]) => {
     onChange({ ...menu, [key]: val });
   };
+
+  const isTranslating = !!(activeLocale && activeLocale !== 'en');
 
   const menuTypes: MenuType[] = [
     "mega_tabbed",
@@ -34,9 +39,13 @@ export function MenuEditor({ menu, onChange }: Props) {
             </label>
             <input
               type="text"
-              value={menu.label}
-              onChange={(e) => update("label", e.target.value)}
-              placeholder="Menu label"
+              value={isTranslating ? (localeFlat?.[`m_${menu.menu_id}`] ?? '') : menu.label}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.(`m_${menu.menu_id}`, e.target.value)
+                  : update("label", e.target.value)
+              }
+              placeholder={isTranslating ? (menu.label || 'Menu label') : 'Menu label'}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-medium focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -95,6 +104,12 @@ export function MenuEditor({ menu, onChange }: Props) {
             </div>
           </div>
         )}
+        {isTranslating && (
+          <div className="mt-3 flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+            <span className="font-bold">🌐 {activeLocale!.toUpperCase()} — Translating</span>
+            <span className="text-blue-500">Text labels update the {activeLocale!.toUpperCase()} translation. Type, URL, and visibility always update the base structure.</span>
+          </div>
+        )}
       </div>
 
       {/* Type-specific editor */}
@@ -105,6 +120,10 @@ export function MenuEditor({ menu, onChange }: Props) {
             onChange={(tabs: MegaMenuTab[]) => update("tabs", tabs)}
             promoBanner={menu.promo_banner}
             onPromoBannerChange={(pb: PromoBanner | null) => update("promo_banner", pb)}
+            menuId={menu.menu_id}
+            activeLocale={activeLocale}
+            localeFlat={localeFlat}
+            onLocaleChange={onLocaleChange}
           />
         )}
 
@@ -114,6 +133,10 @@ export function MenuEditor({ menu, onChange }: Props) {
             onChange={(cols: MenuColumn[]) => update("columns", cols)}
             promoBanner={menu.promo_banner}
             onPromoBannerChange={(pb: PromoBanner | null) => update("promo_banner", pb)}
+            menuId={menu.menu_id}
+            activeLocale={activeLocale}
+            localeFlat={localeFlat}
+            onLocaleChange={onLocaleChange}
           />
         )}
 
@@ -122,6 +145,9 @@ export function MenuEditor({ menu, onChange }: Props) {
             children={menu.children}
             onChange={(kids: DropdownChild[]) => update("children", kids)}
             allowNesting={menu.menu_type === "nested"}
+            activeLocale={activeLocale}
+            localeFlat={localeFlat}
+            onLocaleChange={onLocaleChange}
           />
         )}
 

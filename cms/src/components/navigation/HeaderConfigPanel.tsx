@@ -3,12 +3,17 @@ import type { HeaderConfig, CountryFlag } from "../../types/navigation";
 interface Props {
   value: HeaderConfig;
   onChange: (updated: HeaderConfig) => void;
+  activeLocale?: string;
+  localeFlat?: Record<string, string>;
+  onLocaleChange?: (key: string, val: string) => void;
 }
 
-export function HeaderConfigPanel({ value, onChange }: Props) {
+export function HeaderConfigPanel({ value, onChange, activeLocale, localeFlat, onLocaleChange }: Props) {
   const update = <K extends keyof HeaderConfig>(key: K, val: HeaderConfig[K]) => {
     onChange({ ...value, [key]: val });
   };
+
+  const isTranslating = !!(activeLocale && activeLocale !== 'en');
 
   const addFlag = () => {
     const newFlag: CountryFlag = {
@@ -77,9 +82,13 @@ export function HeaderConfigPanel({ value, onChange }: Props) {
             <label className="block text-xs text-slate-500 mb-1">Label</label>
             <input
               type="text"
-              value={value.phone.label}
-              onChange={(e) => update("phone", { ...value.phone, label: e.target.value })}
-              placeholder="Optional display label"
+              value={isTranslating ? (localeFlat?.["h_phone"] ?? '') : value.phone.label}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.("h_phone", e.target.value)
+                  : update("phone", { ...value.phone, label: e.target.value })
+              }
+              placeholder={isTranslating ? (value.phone.label || 'Optional display label') : 'Optional display label'}
               className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -105,8 +114,13 @@ export function HeaderConfigPanel({ value, onChange }: Props) {
             <label className="block text-xs text-slate-500 mb-1">Label</label>
             <input
               type="text"
-              value={value.contact_link.label}
-              onChange={(e) => update("contact_link", { ...value.contact_link, label: e.target.value })}
+              value={isTranslating ? (localeFlat?.["h_contact"] ?? '') : value.contact_link.label}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.("h_contact", e.target.value)
+                  : update("contact_link", { ...value.contact_link, label: e.target.value })
+              }
+              placeholder={isTranslating ? (value.contact_link.label || 'Contact Us') : 'Contact Us'}
               className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -141,8 +155,13 @@ export function HeaderConfigPanel({ value, onChange }: Props) {
             <label className="block text-xs text-slate-500 mb-1">Label</label>
             <input
               type="text"
-              value={value.cta_button.label}
-              onChange={(e) => update("cta_button", { ...value.cta_button, label: e.target.value })}
+              value={isTranslating ? (localeFlat?.["h_cta"] ?? '') : value.cta_button.label}
+              onChange={(e) =>
+                isTranslating
+                  ? onLocaleChange?.("h_cta", e.target.value)
+                  : update("cta_button", { ...value.cta_button, label: e.target.value })
+              }
+              placeholder={isTranslating ? (value.cta_button.label || 'Developers') : 'Developers'}
               className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
             />
           </div>

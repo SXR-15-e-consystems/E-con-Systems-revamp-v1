@@ -25,13 +25,68 @@ def _to_response(doc: dict[str, Any]) -> NavigationResponse:
         status=doc.get("status", NavigationStatus.DRAFT.value),
         updated_at=doc.get("updated_at", datetime.now(timezone.utc)),
         updated_by=doc.get("updated_by", ""),
+        locales=doc.get("locales", {}),
     )
 
 
-def _to_public_response(doc: dict[str, Any]) -> NavigationPublicResponse:
+def _to_public_response(doc: dict[str, Any], locale: str = "en") -> NavigationPublicResponse:
+    """Build public response, applying flat-key locale overrides when locale != en."""
+    import copy
+    header = copy.deepcopy(doc.get("header", {}))
+    menus = copy.deepcopy(doc.get("menus", []))
+    locales_store = doc.get("locales", {})
+
+    normalized = (locale or "en").strip().lower()
+    if normalized not in ("en", ""):
+        flat = locales_store.get(normalized, {})
+        if flat:
+            # Header overrides
+            if flat.get("h_phone") and isinstance(header.get("phone"), dict):
+                header["phone"]["label"] = flat["h_phone"]
+            if flat.get("h_contact") and isinstance(header.get("contact_link"), dict):
+                header["contact_link"]["label"] = flat["h_contact"]
+            if flat.get("h_cta") and isinstance(header.get("cta_button"), dict):
+                header["cta_button"]["label"] = flat["h_cta"]
+
+            # Menu tree overrides
+            for menu in menus:
+                mid = menu.get("menu_id", "")
+                if flat.get(f"m_{mid}"):
+                    menu["label"] = flat[f"m_{mid}"]
+                # Promo banner
+                pb = menu.get("promo_banner") or {}
+                if pb:
+                    if flat.get(f"pb_{mid}_title"): pb["title"] = flat[f"pb_{mid}_title"]
+                    if flat.get(f"pb_{mid}_desc"): pb["description"] = flat[f"pb_{mid}_desc"]
+                    if flat.get(f"pb_{mid}_cta"): pb["cta_label"] = flat[f"pb_{mid}_cta"]
+                # Tabs
+                for tab in menu.get("tabs", []):
+                    tid = tab.get("tab_id", "")
+                    if flat.get(f"t_{tid}"): tab["label"] = flat[f"t_{tid}"]
+                    bs = tab.get("bottom_section") or {}
+                    if bs and flat.get(f"bs_{tid}"): bs["title"] = flat[f"bs_{tid}"]
+                    for col in tab.get("columns", []):
+                        cid = col.get("col_id", "")
+                        if flat.get(f"c_{cid}"): col["title"] = flat[f"c_{cid}"]
+                        for idx, item in enumerate(col.get("items", [])):
+                            key = f"ci_{cid}_{idx}"
+                            if flat.get(key): item["label"] = flat[key]
+                # Top-level columns
+                for col in menu.get("columns", []):
+                    cid = col.get("col_id", "")
+                    if flat.get(f"c_{cid}"): col["title"] = flat[f"c_{cid}"]
+                    for idx, item in enumerate(col.get("items", [])):
+                        key = f"ci_{cid}_{idx}"
+                        if flat.get(key): item["label"] = flat[key]
+                # Dropdown children
+                for child in menu.get("children", []):
+                    did = child.get("item_id", "")
+                    if flat.get(f"d_{did}"): child["label"] = flat[f"d_{did}"]
+
     return NavigationPublicResponse(
-        header=doc.get("header", {}),
-        menus=doc.get("menus", []),
+        header=header,
+        menus=menus,
+        locales=locales_store,
     )
 
 
@@ -78,6 +133,8 @@ async def update_navigation(
         update_fields["header"] = payload.header.model_dump()
     if payload.menus is not None:
         update_fields["menus"] = [m.model_dump() for m in payload.menus]
+    if payload.locales is not None:
+        update_fields["locales"] = payload.locales
 
     await db[COLLECTION].update_one(
         {"_id": doc["_id"]},
@@ -110,8 +167,8 @@ async def publish_navigation(db: Any, published_by: str) -> NavigationResponse:
     return _to_response(updated)
 
 
-async def get_public_navigation(db: Any) -> NavigationPublicResponse:
-    """Get published navigation for the public website."""
+async def get_public_navigation(db: Any, locale: str = "en") -> NavigationPublicResponse:
+    """Get published navigation for the public website, with optional locale overlay."""
     doc = await db[COLLECTION].find_one(
         {"status": NavigationStatus.PUBLISHED.value},
     )
@@ -132,8 +189,5 @@ async def get_public_navigation(db: Any) -> NavigationPublicResponse:
         [m for m in menus if m.get("visible", True)],
         key=lambda m: m.get("order", 0),
     )
-
-    return NavigationPublicResponse(
-        header=doc.get("header", {}),
-        menus=visible_menus,
-    )
+    doc["menus"] = visible_menus
+    return _to_public_response(doc, locale)

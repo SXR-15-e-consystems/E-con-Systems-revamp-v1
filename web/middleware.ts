@@ -45,7 +45,9 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     url.searchParams.set('locale', firstSegment);
-    return NextResponse.rewrite(url);
+    const res = NextResponse.rewrite(url);
+    res.headers.set('x-locale', firstSegment);
+    return res;
   }
 
   // Multi-segment: /jp/test → /test?locale=jp
@@ -53,7 +55,9 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = restPath;
   url.searchParams.set('locale', firstSegment);
-  return NextResponse.rewrite(url);
+  const res = NextResponse.rewrite(url);
+  res.headers.set('x-locale', firstSegment);
+  return res;
 }
 
 export const config = {
