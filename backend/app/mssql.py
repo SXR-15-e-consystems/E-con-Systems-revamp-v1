@@ -76,7 +76,7 @@ def _sync_call_get_product_details(product_ids: str) -> Optional[str]:
         # never interpolated into the SQL string (prevents injection).
         cursor.execute(
             "EXEC cart.GetProductDetails @prodcutID = ?",
-            product_ids,
+            (product_ids,),
         )
         row = cursor.fetchone()
         return str(row[0]) if row and row[0] is not None else None
@@ -118,13 +118,13 @@ def _sync_check_domain(domain: str) -> str:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT TOP 1 1 FROM InvalidDomain WHERE InvalidDomainName = ? AND IsBlocked = '1'",
-            domain,
+            (domain,),
         )
         if cursor.fetchone():
             return "1"
         cursor.execute(
             "SELECT TOP 1 1 FROM ValidDomain WHERE ValidDomainName = ?",
-            domain,
+            (domain,),
         )
         if cursor.fetchone():
             return "2"
@@ -149,7 +149,7 @@ def _sync_check_guest_email(email: str) -> bool:
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT TOP 1 1 FROM Customer WHERE GuestEmail = ?",
-                email,
+                (email,),
             )
             return cursor.fetchone() is not None
         finally:
@@ -174,7 +174,7 @@ def _sync_count_domain_users(domain: str) -> int:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT COUNT(Email) AS cnt FROM AspNetUsers WHERE Email LIKE ?",
-            f"%@{domain}",
+            (f"%@{domain}",),
         )
         row = cursor.fetchone()
         return int(row[0]) if row and row[0] is not None else 0
@@ -215,21 +215,23 @@ def _sync_add_lead_automation(params: dict[str, Any]) -> str:
                 @documentList  = ?,
                 @description   = ?
             """,
-            params.get("email", ""),
-            params.get("product_name", ""),
-            params.get("company", ""),
-            params.get("name", ""),
-            params.get("country", ""),
-            params.get("state", ""),
-            params.get("city", "N/A"),
-            params.get("phone", ""),
-            params.get("newsletter", 0),
-            params.get("leadsource", "Web Download"),
-            "",
-            params.get("knowecon", ""),
-            category,
-            params.get("doclist", ""),
-            None,
+            (
+                params.get("email", ""),
+                params.get("product_name", ""),
+                params.get("company", ""),
+                params.get("name", ""),
+                params.get("country", ""),
+                params.get("state", ""),
+                params.get("city", "N/A"),
+                params.get("phone", ""),
+                params.get("newsletter", 0),
+                params.get("leadsource", "Web Download"),
+                "",
+                params.get("knowecon", ""),
+                category,
+                params.get("doclist", ""),
+                None,
+            ),
         )
         row = cursor.fetchone()
         conn.commit()
@@ -262,16 +264,18 @@ def _sync_add_blocked_user(params: dict[str, Any]) -> None:
                 (Name, Company, Email, Domain, Status, Country, State, City, Phone, PSI)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            params.get("name", ""),
-            params.get("company", ""),
-            params.get("email", ""),
-            params.get("domain", ""),
-            params.get("status", ""),
-            params.get("country", ""),
-            params.get("state", ""),
-            params.get("city", ""),
-            params.get("phone", ""),
-            params.get("psi", ""),
+            (
+                params.get("name", ""),
+                params.get("company", ""),
+                params.get("email", ""),
+                params.get("domain", ""),
+                params.get("status", ""),
+                params.get("country", ""),
+                params.get("state", ""),
+                params.get("city", ""),
+                params.get("phone", ""),
+                params.get("psi", ""),
+            ),
         )
         conn.commit()
     except Exception:

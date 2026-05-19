@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Locale prefix middleware.
+ * Locale prefix proxy (replacing deprecated middleware convention).
  *
  * Detects URLs like /jp/test, /de/about, /kr/products and rewrites them
  * internally to /test?locale=jp, /about?locale=de etc. so the existing
@@ -16,7 +16,7 @@ const LOCALE_PATTERN = /^[a-z]{2,5}$/;
 // Segments that are NEVER locales (existing top-level routes / assets)
 const RESERVED = new Set(['api', '_next', 'favicon.ico']);
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip reserved paths
