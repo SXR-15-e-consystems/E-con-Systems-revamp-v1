@@ -111,6 +111,7 @@ export interface HeaderConfig {
 export interface NavigationConfig {
   header: HeaderConfig;
   menus: NavMenuEntry[];
+  footer?: FooterConfig;
   status: NavigationStatus;
   updated_at: string;
   updated_by: string;
@@ -121,6 +122,7 @@ export interface NavigationConfig {
 export interface NavigationUpdate {
   header?: HeaderConfig;
   menus?: NavMenuEntry[];
+  footer?: FooterConfig;
   locales?: Record<string, Record<string, string>> | null;
 }
 
@@ -219,5 +221,78 @@ export function createDefaultHeader(): HeaderConfig {
     search_enabled: true,
     cart_enabled: true,
     account_enabled: true,
+  };
+}
+
+// ─── Footer types ─────────────────────────────────────────────────────────────
+
+export interface FooterLinkItem {
+  label: string;
+  url: string;
+  target: LinkTarget;
+}
+
+export interface FooterColumn {
+  col_id: string;
+  title: string;
+  items: FooterLinkItem[];
+}
+
+export interface FooterSocialLink {
+  platform: string;
+  url: string;
+  label: string;
+}
+
+export interface FooterBadge {
+  badge_id: string;
+  image_url: string;
+  alt_text: string;
+  link_url: string;
+}
+
+export interface FooterSubscribeConfig {
+  enabled: boolean;
+  heading: string;
+  placeholder: string;
+  button_label: string;
+  notification_email: string;
+}
+
+export interface FooterConfig {
+  logo_url: string;
+  logo_alt: string;
+  logo_link: string;
+  tagline: string;
+  columns: FooterColumn[];
+  social_links: FooterSocialLink[];
+  badges: FooterBadge[];
+  subscribe: FooterSubscribeConfig;
+  copyright_text: string;
+  sitemap_link: string;
+  sitemap_label: string;
+  border_color: string;
+}
+
+export function createDefaultFooter(): FooterConfig {
+  return {
+    logo_url: "",
+    logo_alt: "e-con Systems",
+    logo_link: "/",
+    tagline: "Think Vision. Think e-con.",
+    columns: [],
+    social_links: [],
+    badges: [],
+    subscribe: {
+      enabled: true,
+      heading: "Subscribe for latest updates",
+      placeholder: "Email id*",
+      button_label: "SUBSCRIBE",
+      notification_email: "",
+    },
+    copyright_text: "Copyright \u00a9 {year} e-con Systems\u00ae",
+    sitemap_link: "/sitemap",
+    sitemap_label: "Site Map",
+    border_color: "#006786",
   };
 }

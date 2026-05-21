@@ -9,9 +9,11 @@ import type {
   NavigationConfig,
   NavMenuEntry,
   HeaderConfig,
+  FooterConfig,
 } from "../types/navigation";
-import { createEmptyMenuEntry, createDefaultHeader } from "../types/navigation";
+import { createEmptyMenuEntry, createDefaultHeader, createDefaultFooter } from "../types/navigation";
 import { HeaderConfigPanel } from "../components/navigation/HeaderConfigPanel";
+import { FooterConfigPanel } from "../components/navigation/FooterConfigPanel";
 import { MenuList } from "../components/navigation/MenuList";
 import { MenuEditor } from "../components/navigation/MenuEditor";
 
@@ -62,6 +64,7 @@ export function NavigationPage() {
   const queryClient = useQueryClient();
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
   const [headerOpen, setHeaderOpen] = useState(false);
+  const [footerOpen, setFooterOpen] = useState(false);
   const [activeLocale, setActiveLocale] = useState<LocaleCode>("en");
   const [translationsOpen, setTranslationsOpen] = useState(false);
   // localeData: Record<locale, Record<flatKey, value>>
@@ -71,6 +74,7 @@ export function NavigationPage() {
   // Local draft state
   const [localHeader, setLocalHeader] = useState<HeaderConfig | null>(null);
   const [localMenus, setLocalMenus] = useState<NavMenuEntry[] | null>(null);
+  const [localFooter, setLocalFooter] = useState<FooterConfig | null>(null);
 
   const { data: nav, isLoading, error } = useQuery<NavigationConfig>({
     queryKey: ["navigation"],
@@ -81,7 +85,8 @@ export function NavigationPage() {
   // Seed local state from server on first load; also hydrate localeData
   const header = localHeader ?? nav?.header ?? createDefaultHeader();
   const menus = localMenus ?? nav?.menus ?? [];
-  const isDirty = localHeader !== null || localMenus !== null;
+  const footer = localFooter ?? nav?.footer ?? createDefaultFooter();
+  const isDirty = localHeader !== null || localMenus !== null || localFooter !== null;
 
   // Hydrate localeData from server on first load
   const [localeDataHydrated, setLocaleDataHydrated] = useState(false);
@@ -102,12 +107,14 @@ export function NavigationPage() {
       updateNavigation({
         header: localHeader ?? undefined,
         menus: localMenus ?? undefined,
+        footer: localFooter ?? undefined,
         locales: localeData,
       }),
     onSuccess: (updated) => {
       queryClient.setQueryData(["navigation"], updated);
       setLocalHeader(null);
       setLocalMenus(null);
+      setLocalFooter(null);
     },
   });
 
@@ -117,6 +124,7 @@ export function NavigationPage() {
       queryClient.setQueryData(["navigation"], updated);
       setLocalHeader(null);
       setLocalMenus(null);
+      setLocalFooter(null);
     },
   });
 
@@ -127,14 +135,19 @@ export function NavigationPage() {
       await updateNavigation({
         header: localHeader ?? undefined,
         menus: localMenus ?? undefined,
+        footer: localFooter ?? undefined,
         locales: localeData,
       });
     }
     publishMutation.mutate();
-  }, [isDirty, localHeader, localMenus, localeData, publishMutation]);
+  }, [isDirty, localHeader, localMenus, localFooter, localeData, publishMutation]);
 
   const handleHeaderChange = useCallback((h: HeaderConfig) => {
     setLocalHeader(h);
+  }, []);
+
+  const handleFooterChange = useCallback((f: FooterConfig) => {
+    setLocalFooter(f);
   }, []);
 
   const handleMenusChange = useCallback((updated: NavMenuEntry[]) => {
@@ -364,6 +377,33 @@ export function NavigationPage() {
                 }))
               }
             />
+          </div>
+        )}
+      </div>
+
+      {/* Footer config toggle */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setFooterOpen(!footerOpen)}
+          className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-5 py-3 text-left shadow-sm hover:bg-slate-50"
+        >
+          <span className="text-sm font-semibold text-slate-800">
+            Footer Configuration
+          </span>
+          <svg
+            className={`h-4 w-4 text-slate-400 transition-transform ${footerOpen ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {footerOpen && (
+          <div className="mt-2 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <FooterConfigPanel value={footer} onChange={handleFooterChange} />
           </div>
         )}
       </div>

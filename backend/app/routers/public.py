@@ -8,6 +8,8 @@ from app.models.download import (
     ContactInquiryResponse,
     DownloadRequest,
     DownloadResponse,
+    SubscribeRequest,
+    SubscribeResponse,
     ValidateEmailRequest,
     ValidateEmailResponse,
 )
@@ -16,6 +18,7 @@ from app.mssql import call_get_product_details
 from app.services.contact_service import process_contact_inquiry
 from app.services.download_service import log_blocked_email, process_download_request
 from app.services.email_validation_service import validate_email
+from app.services.subscription_service import process_subscription
 from app.services.page_service import (
     ServiceError,
     get_public_page,
@@ -171,6 +174,29 @@ async def contact_inquiry(body: ContactInquiryRequest) -> ContactInquiryResponse
         product_name=body.product,
     )
     return ContactInquiryResponse(status=result["status"], message=result.get("message", ""))
+
+
+# ── Newsletter subscription ───────────────────────────────────────────────────
+
+@router.post("/subscribe", response_model=SubscribeResponse)
+async def newsletter_subscribe(
+    body: SubscribeRequest,
+    db: Any = Depends(get_db),
+) -> SubscribeResponse:
+    """Newsletter subscription — validate email and notify internal team.
+
+    Uses the same 6-step validation pipeline as the download form.
+    The notification is sent to the email address configured in footer.subscribe.notification_email.
+    """
+    from app.services.navigation_service import get_public_navigation
+    nav = await get_public_navigation(db)
+    notification_email = (nav.footer.subscribe.notification_email or "").strip()
+
+    result = await process_subscription(
+        email=str(body.email),
+        notification_email=notification_email,
+    )
+    return SubscribeResponse(status=result["status"], message=result.get("message", ""))
 
 
 # ── Pricing ───────────────────────────────────────────────────────────────────

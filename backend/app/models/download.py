@@ -131,7 +131,27 @@ class ContactInquiryRequest(BaseModel):
 
 
 class ContactInquiryResponse(BaseModel):
-    """Response body for contact inquiry."""
+    """Response body for contact inquiry endpoint."""
+
+    status: str
+    message: str = ""
+
+
+class SubscribeRequest(BaseModel):
+    """Request body for POST /api/v1/public/subscribe."""
+
+    email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_length(cls, v: EmailStr) -> EmailStr:
+        if len(str(v)) > 254:
+            raise ValueError("Email address too long")
+        return v
+
+
+class SubscribeResponse(BaseModel):
+    """Response body for subscribe endpoint."""
 
     status: str
     message: str = ""

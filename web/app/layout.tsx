@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Open_Sans } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -21,7 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-white text-slate-900 antialiased" suppressHydrationWarning>
         <div className="mx-auto max-w-[2000px] overflow-x-hidden">
           <SiteHeader />
-          <main >{children}</main>
+          <main>{children}</main>
+          <SiteFooter />
         </div>
       </body>
     </html>

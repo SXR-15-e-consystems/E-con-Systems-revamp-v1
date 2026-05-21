@@ -21,5 +21,5 @@ export default async function HomePage({ searchParams }: Props) {
     ? await fetchTemplate(page.template_id)
     : undefined;
 
-  return <BlockRenderer page={page} template={template} />;
+  return <BlockRenderer page={page} template={template ?? undefined} />;
 }

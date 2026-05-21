@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 import { fetchPage, updatePage } from '../api/endpoints';
+import { TaxonomyPanel } from '../components/TaxonomyPanel';
 import { getBlockEditor } from '../components/blocks/BlockEditorRegistry';
 import { getBlockPreview } from '../components/previews/BlockPreviewRegistry';
 import { sanitizeHtml } from '../utils/sanitize';
@@ -659,6 +660,13 @@ export function PageEditorPage() {
                     )}
                   </div>
 
+                  {/* ── URL & Categorisation (collapsible) ── */}
+                  <TaxonomyPanel
+                    pageSlug={slug}
+                    productName={productName}
+                    pageId={page.id}
+                  />
+
                   <div className="mt-6 rounded-lg bg-blue-50 p-4 border border-blue-100">
                     <h4 className="font-bold text-blue-800 text-xs mb-1">💡 How to edit blocks</h4>
                     <p className="text-[11px] text-blue-700 leading-relaxed">
@@ -866,6 +874,9 @@ export function PageEditorPage() {
           </div>
         )}
       </section>
+
+      {/* ── URL & Categorisation (Legacy editor) ── */}
+      <TaxonomyPanel pageSlug={slug} productName={productName} pageId={page.id} />
 
       <section className="space-y-4">
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">

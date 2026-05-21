@@ -1,3 +1,5 @@
+import type { TemplateConfigForPage } from './template';
+
 export type BlockType =
   | 'Hero'
   | 'RichText'
@@ -79,7 +81,7 @@ export interface PageResponse {
   product_name?: string;
   status: PageStatus;
   template_id?: string | null;
-  template_config?: { grid: Record<string, any>; components: Record<string, any>[] } | null;
+  template_config?: TemplateConfigForPage | null;
   blocks: BlockEnvelope[];
   // SEO / Open Graph
   og_title?: string;

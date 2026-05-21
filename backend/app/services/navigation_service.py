@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.models.navigation import (
+    FooterConfig,
     NavigationConfig,
     NavigationPublicResponse,
     NavigationResponse,
@@ -21,6 +22,7 @@ COLLECTION = "navigation"
 def _to_response(doc: dict[str, Any]) -> NavigationResponse:
     return NavigationResponse(
         header=doc.get("header", {}),
+        footer=doc.get("footer", FooterConfig().model_dump()),
         menus=doc.get("menus", []),
         status=doc.get("status", NavigationStatus.DRAFT.value),
         updated_at=doc.get("updated_at", datetime.now(timezone.utc)),
@@ -33,6 +35,7 @@ def _to_public_response(doc: dict[str, Any], locale: str = "en") -> NavigationPu
     """Build public response, applying flat-key locale overrides when locale != en."""
     import copy
     header = copy.deepcopy(doc.get("header", {}))
+    footer = copy.deepcopy(doc.get("footer", FooterConfig().model_dump()))
     menus = copy.deepcopy(doc.get("menus", []))
     locales_store = doc.get("locales", {})
 
@@ -47,6 +50,27 @@ def _to_public_response(doc: dict[str, Any], locale: str = "en") -> NavigationPu
                 header["contact_link"]["label"] = flat["h_contact"]
             if flat.get("h_cta") and isinstance(header.get("cta_button"), dict):
                 header["cta_button"]["label"] = flat["h_cta"]
+
+            # Footer overrides: f_heading, f_placeholder, f_btn, f_copyright,
+            # fc_{col_id} (column title), fci_{col_id}_{idx} (item label)
+            if isinstance(footer, dict):
+                sub = footer.get("subscribe") or {}
+                if flat.get("f_heading") and isinstance(sub, dict):
+                    sub["heading"] = flat["f_heading"]
+                if flat.get("f_placeholder") and isinstance(sub, dict):
+                    sub["placeholder"] = flat["f_placeholder"]
+                if flat.get("f_btn") and isinstance(sub, dict):
+                    sub["button_label"] = flat["f_btn"]
+                if flat.get("f_copyright"):
+                    footer["copyright_text"] = flat["f_copyright"]
+                for col in footer.get("columns", []):
+                    cid = col.get("col_id", "")
+                    if flat.get(f"fc_{cid}"):
+                        col["title"] = flat[f"fc_{cid}"]
+                    for idx, item in enumerate(col.get("items", [])):
+                        key = f"fci_{cid}_{idx}"
+                        if flat.get(key):
+                            item["label"] = flat[key]
 
             # Menu tree overrides
             for menu in menus:
@@ -85,6 +109,7 @@ def _to_public_response(doc: dict[str, Any], locale: str = "en") -> NavigationPu
 
     return NavigationPublicResponse(
         header=header,
+        footer=footer,
         menus=menus,
         locales=locales_store,
     )
@@ -131,6 +156,8 @@ async def update_navigation(
 
     if payload.header is not None:
         update_fields["header"] = payload.header.model_dump()
+    if payload.footer is not None:
+        update_fields["footer"] = payload.footer.model_dump()
     if payload.menus is not None:
         update_fields["menus"] = [m.model_dump() for m in payload.menus]
     if payload.locales is not None:

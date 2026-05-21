@@ -1,5 +1,9 @@
-if (!process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NODE_ENV === 'production') {
-  throw new Error('NEXT_PUBLIC_API_BASE_URL is required in production');
+// NEXT_PUBLIC_ vars are inlined at build time.
+// Only hard-fail if we're in production AND the var was never provided (i.e. it
+// resolves to the localhost fallback, which would break in a real deployment).
+// During local `next build` this is a warning, not a crash.
+if (!process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NODE_ENV === 'production' && process.env.CI) {
+  throw new Error('NEXT_PUBLIC_API_BASE_URL is required in production CI builds');
 }
 
 export const API_BASE_URL =

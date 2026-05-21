@@ -150,3 +150,25 @@ export async function fetchNavigation(locale?: string): Promise<NavigationPublic
     );
   }
 }
+
+export interface PublicTaxonomy {
+  effective_url: string;
+  effective_breadcrumb: { label: string; href: string }[];
+  filters: { id: string; name: string; slug: string; group: string }[];
+  previous_urls: string[];
+}
+
+export async function fetchPublicTaxonomy(pageSlug: string): Promise<PublicTaxonomy | null> {
+  const endpoint = `${API_BASE_URL}/public/taxonomy/${encodeURIComponent(pageSlug)}`;
+  try {
+    const res = await fetch(endpoint, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) return null; // graceful degradation — taxonomy is non-critical
+    return (await res.json()) as PublicTaxonomy;
+  } catch {
+    return null;
+  }
+}
+

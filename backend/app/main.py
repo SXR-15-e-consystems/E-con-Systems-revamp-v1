@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import close_db, connect_db
 from app.mssql import init_mssql
-from app.routers import auth, cms, navigation, public, templates, users
+from app.routers import auth, cms, navigation, public, taxonomy, templates, users
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -74,6 +74,9 @@ async def lifespan(app: FastAPI):
     await connect_db()
     init_mssql()
     await _seed_admin_if_needed()
+    from app.database import get_db
+    from app.services.taxonomy_service import ensure_taxonomy_indexes
+    await ensure_taxonomy_indexes(get_db())
     yield
     logger.info("Shutting down and closing database")
     await close_db()
@@ -137,6 +140,8 @@ def create_app() -> FastAPI:
     app.include_router(users.router, prefix="/api/v1/cms", tags=["Users"])
     app.include_router(public.router, prefix="/api/v1/public", tags=["Public"])
     app.include_router(navigation.public_router, prefix="/api/v1/public", tags=["Navigation"])
+    app.include_router(taxonomy.cms_router, prefix="/api/v1/cms", tags=["Taxonomy"])
+    app.include_router(taxonomy.public_router, prefix="/api/v1/public", tags=["Taxonomy Public"])
 
     @app.get("/health", tags=["System"])
     async def health_check() -> dict[str, str]:

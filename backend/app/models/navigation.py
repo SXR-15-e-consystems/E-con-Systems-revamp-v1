@@ -188,9 +188,89 @@ class HeaderConfig(BaseModel):
 # Root navigation document
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Footer configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+class FooterLinkItem(BaseModel):
+    """A single link inside a footer column."""
+    label: str = Field(..., min_length=1, max_length=200)
+    url: str = Field(..., max_length=500)
+    target: LinkTarget = LinkTarget.SELF
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str) -> str:
+        v = v.strip()
+        if v.startswith(("javascript:", "data:")):
+            raise ValueError("Unsafe URL scheme")
+        return v
+
+
+class FooterColumn(BaseModel):
+    """A titled column in the footer link grid."""
+    col_id: str = Field(..., min_length=1, max_length=100)
+    title: str = Field(..., min_length=1, max_length=200)
+    items: list[FooterLinkItem] = Field(default_factory=list, max_length=30)
+
+
+class FooterSocialLink(BaseModel):
+    """A social media icon + URL."""
+    platform: str = Field(..., min_length=1, max_length=50)   # e.g. "twitter", "linkedin"
+    url: str = Field(..., max_length=500)
+    label: str = Field(default="", max_length=100)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str) -> str:
+        v = v.strip()
+        if v.startswith(("javascript:", "data:")):
+            raise ValueError("Unsafe URL scheme")
+        return v
+
+
+class FooterBadge(BaseModel):
+    """A certification/trust badge shown in the footer."""
+    badge_id: str = Field(..., min_length=1, max_length=100)
+    image_url: str = Field(..., max_length=500)
+    alt_text: str = Field(default="", max_length=200)
+    link_url: str = Field(default="", max_length=500)
+
+
+class FooterSubscribeConfig(BaseModel):
+    """Newsletter / subscription bar configuration."""
+    enabled: bool = True
+    heading: str = Field(default="Subscribe for latest updates", max_length=200)
+    placeholder: str = Field(default="Email id*", max_length=100)
+    button_label: str = Field(default="SUBSCRIBE", max_length=50)
+    # Internal email address that receives subscription notifications
+    notification_email: str = Field(default="", max_length=254)
+
+
+class FooterConfig(BaseModel):
+    """Full footer configuration."""
+    logo_url: str = Field(default="", max_length=500)
+    logo_alt: str = Field(default="e-con Systems", max_length=200)
+    logo_link: str = Field(default="/", max_length=500)
+    tagline: str = Field(default="Think Vision. Think e-con.", max_length=300)
+    columns: list[FooterColumn] = Field(default_factory=list, max_length=10)
+    social_links: list[FooterSocialLink] = Field(default_factory=list, max_length=10)
+    badges: list[FooterBadge] = Field(default_factory=list, max_length=10)
+    subscribe: FooterSubscribeConfig = Field(default_factory=FooterSubscribeConfig)
+    copyright_text: str = Field(default="", max_length=300)
+    sitemap_link: str = Field(default="/sitemap", max_length=500)
+    sitemap_label: str = Field(default="Site Map", max_length=100)
+    border_color: str = Field(default="#006786", max_length=20)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Root navigation document
+# ─────────────────────────────────────────────────────────────────────────────
+
 class NavigationConfig(BaseModel):
     """Full navigation configuration — single document in 'navigation' collection."""
     header: HeaderConfig = Field(default_factory=HeaderConfig)
+    footer: FooterConfig = Field(default_factory=FooterConfig)
     menus: list[NavMenuEntry] = Field(default_factory=list, max_length=20)
     status: NavigationStatus = NavigationStatus.DRAFT
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -199,12 +279,15 @@ class NavigationConfig(BaseModel):
     # Keys follow the pattern: h_phone, h_contact, h_cta, m_{menu_id},
     # t_{tab_id}, bs_{tab_id}, c_{col_id}, ci_{col_id}_{idx}, d_{item_id},
     # pb_{menu_id}_title, pb_{menu_id}_desc, pb_{menu_id}_cta
+    # Footer keys: f_heading, f_placeholder, f_btn, f_copyright,
+    #              fc_{col_id}, fci_{col_id}_{idx}
     locales: dict[str, dict[str, str]] = Field(default_factory=dict)
 
 
 class NavigationUpdate(BaseModel):
     """Payload for updating navigation config. All fields optional."""
     header: HeaderConfig | None = None
+    footer: FooterConfig | None = None
     menus: list[NavMenuEntry] | None = None
     locales: dict[str, dict[str, str]] | None = None
 
@@ -212,6 +295,7 @@ class NavigationUpdate(BaseModel):
 class NavigationResponse(BaseModel):
     """API response shape for navigation config."""
     header: HeaderConfig
+    footer: FooterConfig
     menus: list[NavMenuEntry]
     status: NavigationStatus
     updated_at: datetime
@@ -222,5 +306,6 @@ class NavigationResponse(BaseModel):
 class NavigationPublicResponse(BaseModel):
     """Lightweight response for public API — no status/audit fields."""
     header: HeaderConfig
+    footer: FooterConfig
     menus: list[NavMenuEntry]
     locales: dict[str, dict[str, str]] = Field(default_factory=dict)

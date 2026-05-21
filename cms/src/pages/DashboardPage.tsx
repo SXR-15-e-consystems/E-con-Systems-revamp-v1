@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { createPage, deletePage, fetchPages } from '../api/endpoints';
 import { PUBLIC_SITE_URL, apiClient } from '../api/client';
+import { fetchProductTaxonomies } from '../api/taxonomyEndpoints';
 import { useAuth } from '../auth/AuthProvider';
 import type { PageListItem } from '../types';
 
@@ -16,6 +17,16 @@ export function DashboardPage() {
     queryKey: ['pages'],
     queryFn: fetchPages,
   });
+
+  // Build slug → effective_url lookup from taxonomy (best-effort, non-blocking)
+  const { data: taxonomies } = useQuery({
+    queryKey: ['taxonomy-products'],
+    queryFn: fetchProductTaxonomies,
+    staleTime: 60_000,
+  });
+  const taxonomyUrlMap = Object.fromEntries(
+    (taxonomies ?? []).map((t) => [t.page_slug, t.effective_url]),
+  );
 
   const [showCreate, setShowCreate] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<PageListItem | null>(null);
@@ -94,7 +105,7 @@ export function DashboardPage() {
                     <div className="flex gap-2">
                       <a
                         className="inline-flex items-center gap-1 rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                        href={`${PUBLIC_SITE_URL}/${page.slug}`}
+                        href={`${PUBLIC_SITE_URL}${taxonomyUrlMap[page.slug] ?? `/${page.slug}`}`}
                         rel="noopener noreferrer"
                         target="_blank"
                       >

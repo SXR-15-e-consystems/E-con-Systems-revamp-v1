@@ -110,6 +110,59 @@ export interface HeaderConfig {
 
 export interface NavigationPublicResponse {
   header: HeaderConfig;
+  footer: FooterConfig;
   menus: NavMenuEntry[];
   locales: Record<string, Record<string, string>>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Footer types — mirrors backend/app/models/navigation.py FooterConfig
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface FooterLinkItem {
+  label: string;
+  url: string;
+  target: LinkTarget;
+}
+
+export interface FooterColumn {
+  col_id: string;
+  title: string;
+  items: FooterLinkItem[];
+}
+
+export interface FooterSocialLink {
+  platform: string;
+  url: string;
+  label: string;
+}
+
+export interface FooterBadge {
+  badge_id: string;
+  image_url: string;
+  alt_text: string;
+  link_url: string;
+}
+
+export interface FooterSubscribeConfig {
+  enabled: boolean;
+  heading: string;
+  placeholder: string;
+  button_label: string;
+  notification_email: string;
+}
+
+export interface FooterConfig {
+  logo_url: string;
+  logo_alt: string;
+  logo_link: string;
+  tagline: string;
+  columns: FooterColumn[];
+  social_links: FooterSocialLink[];
+  badges: FooterBadge[];
+  subscribe: FooterSubscribeConfig;
+  copyright_text: string;
+  sitemap_link: string;
+  sitemap_label: string;
+  border_color: string;
 }
