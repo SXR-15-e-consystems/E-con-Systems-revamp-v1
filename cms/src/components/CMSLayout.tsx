@@ -15,6 +15,7 @@ export function CMSLayout() {
       { to: '/navigation', label: 'Navigation' },
       { to: '/ui-strings', label: 'UI Strings' },
       { to: '/taxonomy', label: 'Taxonomy' },
+      { to: '/webstore-config', label: 'Webstore' },
     ] : []),
     ...(isAdmin ? [{ to: '/users', label: 'Users' }] : []),
   ];

@@ -1,4 +1,4 @@
-import type { PageResponse } from '@/types';
+import type { PageResponse, WebstoreProductItem, WebstoreCountryConfigResponse } from '@/types';
 import type { Template } from '@/types/template';
 import type { NavigationPublicResponse } from '@/types/navigation';
 
@@ -156,6 +156,42 @@ export interface PublicTaxonomy {
   effective_breadcrumb: { label: string; href: string }[];
   filters: { id: string; name: string; slug: string; group: string }[];
   previous_urls: string[];
+}
+
+export async function fetchWebstoreProducts(): Promise<WebstoreProductItem[]> {
+  const endpoint = `${API_BASE_URL}/public/webstore/products`;
+  try {
+    const res = await fetch(endpoint, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+    if (!res.ok) throw new ApiError('Failed to fetch webstore products', res.status, endpoint);
+    return (await res.json()) as WebstoreProductItem[];
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(
+      `Network error fetching webstore products: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      500,
+      endpoint,
+    );
+  }
+}
+
+export async function fetchWebstoreCountryConfig(country: string): Promise<WebstoreCountryConfigResponse> {
+  const endpoint = `${API_BASE_URL}/public/webstore/country-config?country=${encodeURIComponent(country)}`;
+  try {
+    const res = await fetch(endpoint, {
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+    if (!res.ok) throw new ApiError('Failed to fetch country config', res.status, endpoint);
+    return (await res.json()) as WebstoreCountryConfigResponse;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(
+      `Network error fetching country config: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      500,
+      endpoint,
+    );
+  }
 }
 
 export async function fetchPublicTaxonomy(pageSlug: string): Promise<PublicTaxonomy | null> {

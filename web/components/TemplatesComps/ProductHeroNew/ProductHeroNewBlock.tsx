@@ -253,9 +253,9 @@ export function ProductHeroNewBlock({ data }: ProductHeroNewBlockProps) {
   void safeDownloadUrl; // kept for potential use; DOWNLOAD button now opens modal
   const [showDownloadForm, setShowDownloadForm] = useState(false);
   const safeBuyNowUrl = content.buy_now_url ? sanitizeUrl(content.buy_now_url) : '#';
-  // If product has a code, append it as a query param for the webstore
+  // Route Buy Now through the webstore so the product card is highlighted for the user
   const buyNowHref = currentCode
-    ? `${safeBuyNowUrl}${safeBuyNowUrl.includes('?') ? '&' : '?'}productId=${encodeURIComponent(currentCode)}`
+    ? `/webstore?sku=${encodeURIComponent(currentCode)}`
     : safeBuyNowUrl;
   const hasTags = Array.isArray(content.tags) && content.tags.length > 0;
 

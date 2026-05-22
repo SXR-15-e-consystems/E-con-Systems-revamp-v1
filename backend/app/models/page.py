@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.models import PyObjectId
 from app.models.block import BlockEnvelope
+from app.models.webstore import WebstoreFeature
 
 
 class PageStatus(str, Enum):
@@ -54,6 +55,13 @@ class PageInDB(BaseModel):
     custom_js_body: str = Field(default="", max_length=100000)
     # Locale variants (keys: "jp", "ko", "de", etc.)
     locales: dict[str, Any] = Field(default_factory=dict)
+    # Webstore settings
+    webstore_enabled: bool = Field(default=False)
+    webstore_category: str = Field(default="", max_length=200)
+    webstore_priority: int = Field(default=0)
+    webstore_features: list[WebstoreFeature] = Field(default_factory=list)
+    webstore_image_url: str = Field(default="", max_length=1000)
+    webstore_title: str = Field(default="", max_length=200)
     created_by: str = "poc-user"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -89,6 +97,13 @@ class PageCreate(BaseModel):
     custom_js_body: str = Field(default="", max_length=100000)
     # Locale variants
     locales: dict[str, Any] = Field(default_factory=dict)
+    # Webstore settings
+    webstore_enabled: bool = Field(default=False)
+    webstore_category: str = Field(default="", max_length=200)
+    webstore_priority: int = Field(default=0)
+    webstore_features: list[WebstoreFeature] = Field(default_factory=list)
+    webstore_image_url: str = Field(default="", max_length=1000)
+    webstore_title: str = Field(default="", max_length=200)
 
     @field_validator("slug")
     @classmethod
@@ -116,6 +131,13 @@ class PageUpdate(BaseModel):
     custom_js_body: str | None = Field(default=None, max_length=100000)
     # Locale variants
     locales: dict[str, Any] | None = None
+    # Webstore settings
+    webstore_enabled: bool | None = None
+    webstore_category: str | None = Field(default=None, max_length=200)
+    webstore_priority: int | None = None
+    webstore_features: list[WebstoreFeature] | None = None
+    webstore_image_url: str | None = Field(default=None, max_length=1000)
+    webstore_title: str | None = Field(default=None, max_length=200)
 
 
 class TemplateConfigForPage(BaseModel):
@@ -148,6 +170,13 @@ class PageResponse(BaseModel):
     custom_js_body: str = ""
     # Locale variants
     locales: dict[str, Any] = Field(default_factory=dict)
+    # Webstore settings
+    webstore_enabled: bool = False
+    webstore_category: str = ""
+    webstore_priority: int = 0
+    webstore_features: list[WebstoreFeature] = Field(default_factory=list)
+    webstore_image_url: str = ""
+    webstore_title: str = ""
     created_by: str
     created_at: datetime
     updated_at: datetime

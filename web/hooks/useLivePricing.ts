@@ -62,11 +62,29 @@ export function useLivePricing(productCodes: string | undefined): LivePricingSta
     }
   }, []);
 
+  // Normal mount / dependency change — fetch on load and whenever codes change
   useEffect(() => {
     if (productCodes) {
       void fetchPricing(productCodes);
     }
     return () => abortRef.current?.abort();
+  }, [productCodes, fetchPricing]);
+
+  // bfcache (Back/Forward Cache) restoration fix.
+  // When the browser uses the back/forward button it may restore the page from
+  // a frozen snapshot (bfcache) instead of remounting the component. In that
+  // case the useEffect above never re-runs and priceMap stays as it was when
+  // the page was frozen — possibly empty if pricing hadn't finished loading yet.
+  // The `pageshow` event fires with event.persisted === true exactly in this
+  // scenario, so we force a fresh pricing fetch here.
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted && productCodes) {
+        void fetchPricing(productCodes);
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, [productCodes, fetchPricing]);
 
   return { priceMap, loading, error };

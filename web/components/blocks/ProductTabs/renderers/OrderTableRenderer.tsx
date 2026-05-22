@@ -69,9 +69,9 @@ export function OrderTableRenderer({ data, productName }: Props) {
               ? `USD ${liveData.price}`
               : row.price;
 
-            // Buy Now URL appends productId so webstore can pre-select the product
-            const buyNowHref = safeUrl && row.nop_product_id
-              ? `${safeUrl}${safeUrl.includes('?') ? '&' : '?'}productId=${encodeURIComponent(row.nop_product_id)}`
+            // Route through webstore so the matching product card is highlighted
+            const buyNowHref = row.nop_product_id
+              ? `/webstore?sku=${encodeURIComponent(row.nop_product_id)}`
               : safeUrl;
 
             return (

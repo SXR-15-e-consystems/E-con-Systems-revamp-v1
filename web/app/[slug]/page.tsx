@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
@@ -60,6 +60,15 @@ export default async function SlugPage({ params, searchParams }: Props) {
 
   if (!page) {
     notFound();
+  }
+
+  // Redirect bare slug to the taxonomy canonical URL (e.g. /see3cam-130d-new → /nvidia-cameras/agx-orin/see3cam-130d-new)
+  if (taxonomy?.effective_url) {
+    const bareSlugPath = `/${slug}`;
+    if (bareSlugPath !== taxonomy.effective_url) {
+      const localePrefix = locale ? `/${locale}` : '';
+      redirect(`${localePrefix}${taxonomy.effective_url}`);
+    }
   }
 
   const effectiveLocale = locale ?? 'en';

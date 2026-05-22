@@ -300,4 +300,27 @@ async def public_get_page(
         raise HTTPException(status_code=exc.status_code, detail=_service_error_response(exc)) from exc
 
 
+# ── Webstore ──────────────────────────────────────────────────────────────────
+
+@router.get("/webstore/products", response_model=list)
+async def webstore_list_products(db: Any = Depends(get_db)) -> list:
+    """Return all published webstore-enabled products with extracted hero + order data."""
+    from app.services.webstore_service import list_webstore_products
+    items = await list_webstore_products(db)
+    return [item.model_dump() for item in items]
+
+
+@router.get("/webstore/country-config")
+async def webstore_country_config(
+    country: str = Query(default="", max_length=3, description="ISO country code e.g. US, IN, DE"),
+    db: Any = Depends(get_db),
+) -> dict:
+    """Return purchase mode and distributor info for the given country code."""
+    from app.services.webstore_service import get_country_config
+    if not country:
+        return {"country": "", "purchase_mode": "buy", "cart_url": None, "distributor": None, "message": ""}
+    result = await get_country_config(db, country)
+    return result.model_dump()
+
+
 

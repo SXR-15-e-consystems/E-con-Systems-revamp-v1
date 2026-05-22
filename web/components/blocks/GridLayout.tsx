@@ -150,7 +150,15 @@ function renderGridItem(
     boxSizing: 'border-box',
     overflow: 'hidden',
     minWidth: 0,
-    ...(heightVal ? { height: heightVal } : {}),
+    // IMPORTANT: always set minHeight alongside height so that CSS Grid's
+    // auto track-sizing algorithm correctly expands the spanned row tracks.
+    // When overflow:hidden is set on a spanning grid item, browsers treat its
+    // automatic minimum size as 0 and may size the row tracks to less than the
+    // item's explicit height, causing the item to overflow into adjacent rows
+    // and visually overlap components placed directly below it (e.g. Tags under
+    // the Image Slider).  An explicit min-height bypasses this and forces the
+    // track-sizing algorithm to reserve the necessary space.
+    ...(heightVal ? { height: heightVal, minHeight: heightVal } : {}),
     // Margin — CSS override takes priority
     ...(marginOverride
       ? { margin: marginOverride }

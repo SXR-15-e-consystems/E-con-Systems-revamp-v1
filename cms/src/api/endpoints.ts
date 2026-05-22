@@ -78,6 +78,46 @@ export async function updatePage(slug: string, payload: PageUpdate): Promise<Pag
   }
 }
 
+// ── Webstore config ────────────────────────────────────────────────────────
+
+export interface WebstoreDistributor {
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+  message: string;
+}
+
+export interface WebstoreCountryEntry {
+  country_code: string;
+  purchase_mode: 'buy' | 'contact';
+  cart_url: string;
+  distributor: WebstoreDistributor;
+}
+
+export interface WebstoreConfig {
+  default_cart_url: string;
+  countries: WebstoreCountryEntry[];
+}
+
+export async function fetchWebstoreConfig(): Promise<WebstoreConfig> {
+  try {
+    const { data } = await apiClient.get<WebstoreConfig>('/cms/webstore-config');
+    return data;
+  } catch (error) {
+    throw new ApiError(extractErrorMessage(error), (error as AxiosError)?.response?.status);
+  }
+}
+
+export async function saveWebstoreConfig(payload: WebstoreConfig): Promise<WebstoreConfig> {
+  try {
+    const { data } = await apiClient.put<WebstoreConfig>('/cms/webstore-config', payload);
+    return data;
+  } catch (error) {
+    throw new ApiError(extractErrorMessage(error), (error as AxiosError)?.response?.status);
+  }
+}
+
 export async function deletePage(slug: string): Promise<void> {
   try {
     await apiClient.delete(`/cms/pages/${encodeURIComponent(slug)}`);

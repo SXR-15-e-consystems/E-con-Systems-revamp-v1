@@ -100,3 +100,56 @@ export interface PageResponse {
   created_at: string;
   updated_at: string;
 }
+
+// ── Webstore ─────────────────────────────────────────────────────────────────
+
+export interface WebstoreFeature {
+  label: string;
+  value: string;
+}
+
+export interface OrderRowSummary {
+  part_no: string;
+  kit_contents: string[];
+  price: string;
+  nop_product_id: string;
+  cart_url: string;
+}
+
+export interface WebstoreProductItem {
+  slug: string;
+  title: string;
+  product_name: string;
+  hero_title: string;
+  sku_badge: string;
+  webstore_title: string;
+  webstore_category: string;
+  webstore_priority: number;
+  webstore_features: WebstoreFeature[];
+  webstore_image_url: string;
+  variant_options: string[];
+  highlights: string[];
+  sample_price: string;
+  sample_currency: string;
+  volume_price: string;
+  order_rows: OrderRowSummary[];
+  meta_description: string;
+  og_image_url: string | null;
+  url_path: string;
+}
+
+export interface WebstoreDistributor {
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+  message: string;
+}
+
+export interface WebstoreCountryConfigResponse {
+  country: string;
+  purchase_mode: 'buy' | 'contact';
+  cart_url: string | null;
+  distributor: WebstoreDistributor | null;
+  message: string;
+}

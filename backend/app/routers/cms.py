@@ -185,3 +185,36 @@ async def cms_upload_document(
         ) from exc
 
     return {"url": url, "filename": file.filename}
+
+
+# ── Webstore config ───────────────────────────────────────────────────────────
+
+@router.get("/webstore-config")
+async def cms_get_webstore_config(
+    current_user: dict = Depends(require_role(_EDITORS)),
+    db: Any = Depends(get_db),
+) -> dict:
+    """Fetch webstore global config (cart URL + country entries)."""
+    from app.services.webstore_service import get_webstore_config
+    config = await get_webstore_config(db)
+    return config.model_dump()
+
+
+@router.put("/webstore-config")
+async def cms_save_webstore_config(
+    payload: dict,
+    current_user: dict = Depends(require_role(_EDITORS)),
+    db: Any = Depends(get_db),
+) -> dict:
+    """Save webstore global config."""
+    from app.models.webstore import WebstoreConfig
+    from app.services.webstore_service import save_webstore_config
+    try:
+        config = WebstoreConfig(**payload)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": "VALIDATION_ERROR", "message": str(exc), "details": []}},
+        ) from exc
+    saved = await save_webstore_config(db, config)
+    return saved.model_dump()

@@ -93,6 +93,13 @@ export interface Page {
   custom_js_body?: string;
   // Locale variants
   locales?: Record<string, LocaleVariant>;
+  // Webstore
+  webstore_enabled?: boolean;
+  webstore_category?: string;
+  webstore_priority?: number;
+  webstore_features?: Array<{ label: string; value: string }>;
+  webstore_image_url?: string;
+  webstore_title?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -126,6 +133,13 @@ export interface PageCreate {
   custom_js_body?: string;
   // Locale variants
   locales?: Record<string, LocaleVariant>;
+  // Webstore
+  webstore_enabled?: boolean;
+  webstore_category?: string;
+  webstore_priority?: number;
+  webstore_features?: Array<{ label: string; value: string }>;
+  webstore_image_url?: string;
+  webstore_title?: string;
 }
 
 export interface PageUpdate {
@@ -148,4 +162,11 @@ export interface PageUpdate {
   custom_js_body?: string;
   // Locale variants
   locales?: Record<string, LocaleVariant> | null;
+  // Webstore
+  webstore_enabled?: boolean;
+  webstore_category?: string;
+  webstore_priority?: number;
+  webstore_features?: Array<{ label: string; value: string }>;
+  webstore_image_url?: string;
+  webstore_title?: string;
 }

@@ -14,6 +14,10 @@ const openSans = Open_Sans({
 export const metadata: Metadata = {
   title: 'e-con Systems',
   description: 'CMS-driven page rendering',
+  icons: {
+    shortcut: 'https://www.e-consystems.com/images/econ.ico',
+    icon: 'https://www.e-consystems.com/images/econ.ico',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

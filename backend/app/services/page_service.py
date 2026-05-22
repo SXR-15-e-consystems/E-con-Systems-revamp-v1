@@ -347,6 +347,18 @@ async def update_page(db: Any, slug: str, payload: PageUpdate) -> PageResponse:
         update_dict["custom_js_body"] = payload.custom_js_body
     if payload.locales is not None:
         update_dict["locales"] = payload.locales
+    if payload.webstore_enabled is not None:
+        update_dict["webstore_enabled"] = payload.webstore_enabled
+    if payload.webstore_category is not None:
+        update_dict["webstore_category"] = payload.webstore_category
+    if payload.webstore_priority is not None:
+        update_dict["webstore_priority"] = payload.webstore_priority
+    if payload.webstore_features is not None:
+        update_dict["webstore_features"] = [f.model_dump() for f in payload.webstore_features]
+    if payload.webstore_image_url is not None:
+        update_dict["webstore_image_url"] = payload.webstore_image_url
+    if payload.webstore_title is not None:
+        update_dict["webstore_title"] = payload.webstore_title
 
     await db.pages.update_one({"_id": ObjectId(existing["_id"])}, {"$set": update_dict})
     updated = await db.pages.find_one({"_id": ObjectId(existing["_id"])})
