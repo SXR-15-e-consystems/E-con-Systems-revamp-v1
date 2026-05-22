@@ -98,7 +98,7 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
   return (
     <section
       className="w-full"
-      style={{ backgroundColor: meta.bgColor, padding: meta.sectionPadding }}
+      style={{ backgroundColor: meta.bgColor }}
     >
       <style>{`
         .es-eval-card {
@@ -117,22 +117,24 @@ export function EvaluationSectionBlock({ data }: EvaluationSectionBlockProps) {
           }
         }
       `}</style>
-      {content.heading && (
-        <h3
-          className="mb-5 font-bold"
-          style={{ color: meta.headingColor, fontSize: meta.headingSize }}
-        >
-          {content.heading}
-        </h3>
-      )}
+      <div className="mx-auto max-w-screen-xl" style={{ padding: meta.sectionPadding }}>
+        {content.heading && (
+          <h3
+            className="mb-5 font-bold"
+            style={{ color: meta.headingColor, fontSize: meta.headingSize }}
+          >
+            {content.heading}
+          </h3>
+        )}
 
-      <div
-        className="flex flex-wrap"
-        style={{ gap: meta.cardGap }}
-      >
-        {content.items.map((item, idx) => (
-          <EvalCard key={`${item.name}-${idx}`} item={item} meta={meta} />
-        ))}
+        <div
+          className="flex flex-wrap"
+          style={{ gap: meta.cardGap }}
+        >
+          {content.items.map((item, idx) => (
+            <EvalCard key={`${item.name}-${idx}`} item={item} meta={meta} />
+          ))}
+        </div>
       </div>
     </section>
   );

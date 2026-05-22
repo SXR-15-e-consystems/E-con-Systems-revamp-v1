@@ -23,6 +23,10 @@ class GridConfig(BaseModel):
     columns: int = Field(default=12, ge=1, le=100)
     row_height: int = Field(default=40, ge=10, le=200)
     gap: int = Field(default=16, ge=0, le=100)
+    # Optional full-bleed row background colors, keyed by original row_start as string
+    row_backgrounds: dict[str, str] = Field(default_factory=dict)
+    # Optional max-width for the whole grid (e.g. "1280px"). Empty string = no constraint.
+    content_max_width: str = Field(default='')
 
 
 class ResponsiveOverrides(BaseModel):

@@ -13,6 +13,15 @@ export interface GridConfig {
   columns: number;
   row_height: number;
   gap: number;
+  /** Optional full-bleed background colors keyed by original row_start number (as string). */
+  row_backgrounds?: Record<string, string>;
+  /**
+   * When set (e.g. "1280px"), the whole grid is wrapped in a centered max-width container
+   * so side-by-side columns don't stretch to fill ultra-wide viewports.
+   * Row background sentinels still break out to full viewport width.
+   * Leave undefined / empty for no constraint (current default behaviour).
+   */
+  content_max_width?: string;
 }
 
 export interface TemplateComponent {

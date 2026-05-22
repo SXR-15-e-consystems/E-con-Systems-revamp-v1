@@ -101,7 +101,7 @@ export function NewsletterSubscribeBlock({ data }: NewsletterSubscribeBlockProps
   return (
     <section
       className="nls-root w-full"
-      style={{ backgroundColor: meta.bgColor, width: meta.width }}
+      style={{ backgroundColor: meta.bgColor }}
     >
       <style>{`
         .nls-root {
@@ -129,7 +129,7 @@ export function NewsletterSubscribeBlock({ data }: NewsletterSubscribeBlockProps
         }
       `}</style>
 
-      <div className="nls-inner mx-auto max-w-screen-lg">
+      <div className="nls-inner mx-auto max-w-screen-lg" style={meta.width && meta.width !== '100%' ? { maxWidth: meta.width } : undefined}>
         {/* Heading */}
         <h2
           style={{

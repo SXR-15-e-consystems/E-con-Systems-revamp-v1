@@ -231,14 +231,20 @@ export function ProductTabsV2Block({ data }: ProductTabsV2BlockProps) {
       style={{ backgroundColor: meta.tabsBgColor }}
     >
       <style>{`
-        /* Horizontal scrollable tab bar */
+        /* Full-width wrapper carries the border so it spans the entire viewport */
+        .ptv2-tabbar-outer {
+          width: 100%;
+          border-bottom: 2px solid ${meta.tabBarBorderColor};
+        }
+        /* Constrained inner tab bar — scrollable on mobile */
         .ptv2-tabbar {
           display: flex;
           overflow-x: auto;
           scrollbar-width: none;
           -ms-overflow-style: none;
-          border-bottom: 2px solid ${meta.tabBarBorderColor};
-          background: ${meta.tabsBgColor};
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 0 1rem;
         }
         .ptv2-tabbar::-webkit-scrollbar {
           display: none;
@@ -275,9 +281,16 @@ export function ProductTabsV2Block({ data }: ProductTabsV2BlockProps) {
           border-radius: 2px 2px 0 0;
           z-index: 1;
         }
-        .ptv2-content {
-          padding: clamp(20px, 3vw, 36px) 0;
+        /* Full-width wrapper carries the background so it spans the entire viewport */
+        .ptv2-content-outer {
+          width: 100%;
           background: ${meta.contentBgColor};
+        }
+        /* Constrained inner content area */
+        .ptv2-content {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: clamp(20px, 3vw, 36px) 1rem;
         }
         /* Spec table responsive */
         @media (max-width: 640px) {
@@ -301,47 +314,51 @@ export function ProductTabsV2Block({ data }: ProductTabsV2BlockProps) {
         }
       `}</style>
 
-      {/* Tab bar */}
-      <div className="ptv2-tabbar" ref={scrollRef} role="tablist" aria-label="Product tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.tab_id}
-            data-tabid={tab.tab_id}
-            role="tab"
-            aria-selected={tab.tab_id === activeId}
-            aria-controls={`ptv2-panel-${tab.tab_id}`}
-            className={`ptv2-tab-btn${tab.tab_id === activeId ? ' active' : ''}`}
-            onClick={() => handleTabClick(tab)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tab bar — outer div provides full-bleed border; inner div is max-width constrained */}
+      <div className="ptv2-tabbar-outer">
+        <div className="ptv2-tabbar" ref={scrollRef} role="tablist" aria-label="Product tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.tab_id}
+              data-tabid={tab.tab_id}
+              role="tab"
+              aria-selected={tab.tab_id === activeId}
+              aria-controls={`ptv2-panel-${tab.tab_id}`}
+              className={`ptv2-tab-btn${tab.tab_id === activeId ? ' active' : ''}`}
+              onClick={() => handleTabClick(tab)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Tab content panel */}
+      {/* Tab content panel — outer div provides full-bleed bg; inner div is max-width constrained */}
       {activeTab && (
-        <div
-          id={`ptv2-panel-${activeTab.tab_id}`}
-          role="tabpanel"
-          aria-labelledby={`ptv2-tab-${activeTab.tab_id}`}
-          className="ptv2-content"
-        >
-          {/* Spec list gets the new clean table layout */}
-          {activeTab.content_type === 'spec_list' ? (
-            <SpecTable
-              tabData={(activeTabData as SpecListTabContent | undefined) ?? { sections: [] }}
-            />
-          ) : (
-            renderTabContent(
-              activeTab,
-              activeTabData,
-              meta.recaptchaSiteKey,
-              meta.datasheet_cta,
-              documentsData,
-              meta.product_name,
-              t.noTabContent,
-            )
-          )}
+        <div className="ptv2-content-outer">
+          <div
+            id={`ptv2-panel-${activeTab.tab_id}`}
+            role="tabpanel"
+            aria-labelledby={`ptv2-tab-${activeTab.tab_id}`}
+            className="ptv2-content"
+          >
+            {/* Spec list gets the new clean table layout */}
+            {activeTab.content_type === 'spec_list' ? (
+              <SpecTable
+                tabData={(activeTabData as SpecListTabContent | undefined) ?? { sections: [] }}
+              />
+            ) : (
+              renderTabContent(
+                activeTab,
+                activeTabData,
+                meta.recaptchaSiteKey,
+                meta.datasheet_cta,
+                documentsData,
+                meta.product_name,
+                t.noTabContent,
+              )
+            )}
+          </div>
         </div>
       )}
     </section>

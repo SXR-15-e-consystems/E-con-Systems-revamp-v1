@@ -98,6 +98,139 @@ function resolveOverlaps(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// RowBackgroundsPanel — shown in right sidebar when no component is selected
+// Lets designers assign a full-bleed background color to each template row.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RowBackgroundsPanel({
+  components,
+  grid,
+  onChange,
+}: {
+  components: TemplateComponent[];
+  grid: GridConfig;
+  onChange: React.Dispatch<React.SetStateAction<GridConfig>>;
+}) {
+  const uniqueRows = [...new Set(components.map((c) => c.grid_placement.row_start))].sort(
+    (a, b) => a - b,
+  );
+  const rowBgs = grid.row_backgrounds ?? {};
+
+  const setRowBg = (rowStart: number, color: string) => {
+    onChange((g) => ({
+      ...g,
+      row_backgrounds: { ...(g.row_backgrounds ?? {}), [String(rowStart)]: color },
+    }));
+  };
+
+  const clearRowBg = (rowStart: number) => {
+    onChange((g) => {
+      const bgs = { ...(g.row_backgrounds ?? {}) };
+      delete bgs[String(rowStart)];
+      return { ...g, row_backgrounds: bgs };
+    });
+  };
+
+  return (
+    <div className="w-[320px] flex-shrink-0 border-l border-slate-200 bg-white flex flex-col">
+      <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Grid &amp; Layout Settings</h3>
+        <p className="mt-1 text-[11px] text-slate-400">
+          Select a component to configure its layout properties.
+        </p>
+      </div>
+
+      {/* ── Content max-width ────────────────────────────────────────────── */}
+      <div className="px-4 pt-4 pb-0 border-b border-slate-100 space-y-1 pb-4">
+        <label className="text-xs font-bold text-slate-600">Content Max Width</label>
+        <p className="text-[10px] text-slate-400 leading-snug mb-1">
+          Constrains side-by-side columns on wide screens (e.g. 4K / 2560px).
+          Row background colours still bleed edge-to-edge.
+          Enter a CSS length (e.g.&nbsp;<code className="font-mono">1280px</code>) or leave blank for no limit.
+        </p>
+        <input
+          type="text"
+          value={grid.content_max_width ?? ''}
+          onChange={(e) =>
+            onChange((g) => ({ ...g, content_max_width: e.target.value.trim() || undefined }))
+          }
+          placeholder="e.g. 1280px  (empty = no limit)"
+          className="w-full rounded border border-slate-300 px-2 py-1.5 text-xs font-mono focus:border-blue-400 focus:outline-none"
+        />
+        {grid.content_max_width && (
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+            <span className="text-[10px] text-green-700 font-medium">
+              Active — grid constrained to {grid.content_max_width}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Row background colours ───────────────────────────────────────── */}
+      <div className="px-5 py-3 border-b border-slate-100 bg-slate-50">
+        <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Row Background Colors</h4>
+        <p className="mt-0.5 text-[10px] text-slate-400">
+          Full-width bg per row — always extends to viewport edges.
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {uniqueRows.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-8">Add components to the canvas to configure row backgrounds.</p>
+        ) : (
+          uniqueRows.map((rowStart) => {
+            const rowComps = components.filter((c) => c.grid_placement.row_start === rowStart);
+            const rowLabel = rowComps.map((c) => c.label || c.type).join(', ');
+            const currentBg = rowBgs[String(rowStart)] ?? '';
+            return (
+              <div key={rowStart} className="rounded-lg border border-slate-200 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-600">Row {rowStart}</span>
+                  <span className="text-[10px] text-slate-400 truncate">{rowLabel}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={currentBg || '#ffffff'}
+                    onChange={(e) => setRowBg(rowStart, e.target.value)}
+                    className="h-8 w-10 cursor-pointer rounded border border-slate-300 p-0.5"
+                    title="Pick background color"
+                  />
+                  <input
+                    type="text"
+                    value={currentBg}
+                    onChange={(e) => setRowBg(rowStart, e.target.value)}
+                    placeholder="transparent"
+                    className="flex-1 rounded border border-slate-300 px-2 py-1.5 text-xs font-mono focus:border-blue-400 focus:outline-none"
+                  />
+                  {currentBg && (
+                    <button
+                      type="button"
+                      onClick={() => clearRowBg(rowStart)}
+                      className="text-slate-400 hover:text-red-500 text-xs leading-none"
+                      title="Remove background"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {currentBg && (
+                  <div
+                    className="h-4 w-full rounded border border-slate-200"
+                    style={{ backgroundColor: currentBg }}
+                    title={currentBg}
+                  />
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TemplateBuilderPage
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -507,12 +640,20 @@ export function TemplateBuilderPage() {
           </DragOverlay>
         </DndContext>
 
-        {/* Right: Config Panel */}
-        <ComponentConfigPanel
-          component={selectedComponent}
-          onChange={handleComponentUpdate}
-          grid={grid}
-        />
+        {/* Right: Config Panel or Row Backgrounds Panel */}
+        {selectedId ? (
+          <ComponentConfigPanel
+            component={selectedComponent}
+            onChange={handleComponentUpdate}
+            grid={grid}
+          />
+        ) : (
+          <RowBackgroundsPanel
+            components={components}
+            grid={grid}
+            onChange={setGrid}
+          />
+        )}
       </div>
     </div>
   );
